@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: "backend"
+  profiles:
+    active: "private"
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/core}
+    username: ${SPRING_DATASOURCE_USERNAME:user}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+      hibernate:
+        ddl-auto: "none" # Ensures JPA does not update or modify the schema
+      properties:
+        hibernate:
+          show_sql: true   # Optional: Enable to log SQL queries
+          format_sql: true
+
+server:
+  port: 8080
+
+

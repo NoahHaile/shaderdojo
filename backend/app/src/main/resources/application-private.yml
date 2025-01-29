@@ -1,0 +1,6 @@
+jwt:
+  key: ${JWT_KEY:secret}
+
+api:
+  key: ${API_KEY:secret}
+

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShaderDojo</title>
+    <link rel="stylesheet" href="../../css/common.css">
+    <link rel="stylesheet" href="../../css/problem.css">
+</head>
+
+<body>
+    <header>
+        <a href="../index.html" class="title-link">
+            <div class="title-container">
+                <img src="../../imgs/DojoLogo.png" class="logo" />
+                <h1 class="title">ShaderDojo</h1>
+            </div>
+        </a>
+        <nav>
+            <ul class="nav-container">
+                <li><a href="../problems.html" class="nav-link">Problems</a></li>
+                <li><a href="../solutions.html" class="nav-link">Discussion</a></li>
+                <li><a href="../profile.html" class="nav-link">Profile</a></li>
+            </ul>
+        </nav>
+        <div class="menu-button" onclick="toggleDrawer()">☰</div>
+    </header>
+    <div id="drawer" class="drawer">
+        <a href="../problems.html" onclick="closeDrawer()">Problems</a>
+        <a href="../solutions.html" onclick="closeDrawer()">Discussion</a>
+        <a href="../profile.html" onclick="closeDrawer()">Profile</a>
+    </div>
+    <script src="../../scripts/drawer.js"></script>
+
+    <section class="problem-title-container" onclick="toggleExpand()">
+        <img src="../../imgs/right-arrow-svgrepo-com.svg" class="expand-arrow" />
+        <h1 class="problem-title">Diagonal Line</h1>
+        <p class="expansion-instruction">Collapse</p>
+    </section>
+
+    <img src="../../imgs/problem-5.png" class="problem-image" />
+    <div class="problem-description">
+        <p>In this task, you will create a diagonal line that extends from the <strong>top-left corner</strong> to the
+            <strong>bottom-right corner</strong>. The fragment shader currently displays a diagonal line extending from
+            the <strong>top-right corner</strong> to the <strong>bottom-left corner</strong>.
+        </p>
+
+        <p>Modify the conditional with the <code>if</code> statement to determine whether each pixel is within the
+            defined range of the diagonal line. Pixels that meet the condition should be colored black, while the rest
+            of the screen should remain white.
+        </p>
+
+        <p>By the end, the screen should display a black diagonal line of your specified width against a white
+            background.</p>
+    </div>
+
+
+    <div class="shader-canvas-container">
+        <canvas id="shaderCanvas"></canvas>
+        <div class="shader-controllers">
+            <div style="display: flex; align-items: flex-end;">
+                <button id="pausePlayButton">❚❚</button>
+                <div id='timeDisplay' class="time-display"></div>
+            </div>
+
+            <div style="display: flex; align-items: flex-end;">
+                <input type="number" id="manualTime" min="0" max="10000" step="0.1" placeholder="Start time">
+                <button id="resetButton">↻</button>
+            </div>
+        </div>
+    </div>
+    <div class="editor-container">
+        <p class="status-text">Problem Unattempted</p>
+        <form>
+            <div id="editor"></div>
+            <div class="button-container">
+                <button type="button" class="button1" onclick="buttonClick(this); runNewShader()">Run</button>
+                <button type="button" class="button2" onclick="buttonClick(this); submitShader()">Submit</button>
+            </div>
+        </form>
+    </div>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span id="closeModalBtn" class="close">&times;</span>
+            <h2 id="result-status"></h2>
+            <p id="processing-status"></p>
+            <div class="button-container" id="modal-button-container">
+
+            </div>
+        </div>
+    </div>
+    <div id="error-modal" class="error-modal">
+        <div class="error-modal-content">
+            <p id="error-modal-message"></p>
+            <span id="close-error-ModalBtn" class="close-error">&times;</span>
+        </div>
+    </div>
+
+    <script id="page-constants">
+        const id = "7df8b2ac-22f4-4f83-a2e6-5678abcdef90";
+        const redirectUrl = "../login.html?redirect=problems/5.html";
+        const fragmentShaderSourceBody = `
+void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution; // Normalize pixel coordinates
+
+    vec4 white = vec4(1.0, 1.0, 1.0, 1.0);   // White color
+    vec4 black = vec4(0.0, 0.0, 0.0, 1.0);   // Black color
+
+    float tolerance = 0.01;                  // Tolerance for line width
+    if (abs(uv.x - uv.y) < tolerance) {
+        gl_FragColor = black;                // Color pixels near the diagonal line black
+    } else {
+        gl_FragColor = white;                // Color the rest white
+    }
+}
+`;
+        const timeList = [0, 0.001, 1, 5, 20000, 2000000, 2000000000];
+        const pageUrl = "problems/5.html";
+    </script>
+    <script src="../../scripts/errorModal.js"></script>
+    <script src="../../scripts/modal.js"></script>
+    <script src="../../scripts/account_verify.js"></script>
+    <script src="../../scripts/problemApi.js"></script>
+    <script src="../../scripts/button.js"></script>
+    <script src="../../scripts/shaderControllers.js"></script>
+
+    <script src="../../lib/ace/ace.js"></script>
+    <script src="../../lib/ace/mode.js"></script>
+    <script src="../../lib/ace/theme.js"></script>
+    <script src="../../scripts/editor-setup.js"></script>
+    <script src="../../scripts/problem.js"></script>
+    <script src="../../scripts/imageLoader.js"></script>
+    <script src="../../lib/sha256.js"></script>
+    <script src="../../scripts/shaderFunctions.js"></script>
+    <script src="../../scripts/shader.js"></script>
+</body>
+
+</html>

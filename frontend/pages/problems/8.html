@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShaderDojo</title>
+    <link rel="stylesheet" href="../../css/common.css">
+    <link rel="stylesheet" href="../../css/problem.css">
+</head>
+
+<body>
+    <header>
+        <a href="../index.html" class="title-link">
+            <div class="title-container">
+                <img src="../../imgs/DojoLogo.png" class="logo" />
+                <h1 class="title">ShaderDojo</h1>
+            </div>
+        </a>
+        <nav>
+            <ul class="nav-container">
+                <li><a href="../problems.html" class="nav-link">Problems</a></li>
+                <li><a href="../solutions.html" class="nav-link">Discussion</a></li>
+                <li><a href="../profile.html" class="nav-link">Profile</a></li>
+            </ul>
+        </nav>
+        <div class="menu-button" onclick="toggleDrawer()">☰</div>
+    </header>
+    <div id="drawer" class="drawer">
+        <a href="../problems.html" onclick="closeDrawer()">Problems</a>
+        <a href="../solutions.html" onclick="closeDrawer()">Discussion</a>
+        <a href="../profile.html" onclick="closeDrawer()">Profile</a>
+    </div>
+    <script src="../../scripts/drawer.js"></script>
+
+    <section class="problem-title-container" onclick="toggleExpand()">
+        <img src="../../imgs/right-arrow-svgrepo-com.svg" class="expand-arrow" />
+        <h1 class="problem-title">Vertical Image Flip</h1>
+        <p class="expansion-instruction">Collapse</p>
+    </section>
+
+    <img src="../../imgs/problem-8.png" class="problem-image" />
+    <div class="problem-description">
+        <p>In the example, you see a plain image. You can access this texture in the editor below using
+            <code>u_texture</code>. By mapping it to <code>gl_FragColor</code>, you can display the texture on the
+            canvas. However, the output of the shader below appears flipped upside down.
+        </p>
+        <p>WebGL textures are displayed upside down by default after processing by the GPU. This occurs due to
+            differences in coordinate systems: WebGL's default texture coordinate system places the origin (0, 0) at the
+            bottom-left, while most image formats (such as PNG and JPEG) and canvas elements in JavaScript have their
+            origin at the top-left.</p>
+        <p>This issue is typically resolved by adjusting the coordinate system in WebGL before uploading the texture.
+            However, in this task, you are asked to flip the texture vertically within the fragment shader. The fragment
+            shader should take the texture and output the same texture, but flipped vertically, so it appears correctly
+            on the screen, as shown in the example.</p>
+    </div>
+
+
+    <div class="shader-canvas-container">
+        <canvas id="shaderCanvas"></canvas>
+        <div class="shader-controllers">
+            <div style="display: flex; align-items: flex-end;">
+                <button id="pausePlayButton">❚❚</button>
+                <div id='timeDisplay' class="time-display"></div>
+            </div>
+
+            <div style="display: flex; align-items: flex-end;">
+                <input type="number" id="manualTime" min="0" max="10000" step="0.1" placeholder="Start time">
+                <button id="resetButton">↻</button>
+            </div>
+        </div>
+    </div>
+    <div class="editor-container">
+        <p class="status-text">Problem Unattempted</p>
+        <form>
+            <div id="editor"></div>
+            <div class="button-container">
+                <button type="button" class="button1" onclick="buttonClick(this); runNewShader()">Run</button>
+                <button type="button" class="button2" onclick="buttonClick(this); submitShader()">Submit</button>
+            </div>
+        </form>
+    </div>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span id="closeModalBtn" class="close">&times;</span>
+            <h2 id="result-status"></h2>
+            <p id="processing-status"></p>
+            <div class="button-container" id="modal-button-container">
+
+            </div>
+        </div>
+    </div>
+    <div id="error-modal" class="error-modal">
+        <div class="error-modal-content">
+            <p id="error-modal-message"></p>
+            <span id="close-error-ModalBtn" class="close-error">&times;</span>
+        </div>
+    </div>
+
+    <script id="page-constants">
+        const id = "a0037a03-2c8e-4e51-a70b-66eb4471250d"
+        const redirectUrl = "../login.html?redirect=problems/1.html"
+        const fragmentShaderSourceBody = `
+void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution; // Normalize pixel coordinates
+    vec4 color = texture2D(u_texture, uv);    // Sample the texture
+    gl_FragColor = color;                     // Set the fragment color
+}
+`
+        const timeList = [0, 0.001, 1, 5, 20000, 2000000, 2000000000];
+        const pageUrl = "problems/8.html";
+    </script>
+    <script src="../../scripts/errorModal.js"></script>
+    <script src="../../scripts/modal.js"></script>
+    <script src="../../scripts/account_verify.js"></script>
+    <script src="../../scripts/problemApi.js"></script>
+    <script src="../../scripts/button.js"></script>
+    <script src="../../scripts/shaderControllers.js"></script>
+
+    <script src="../../lib/ace/ace.js"></script>
+    <script src="../../lib/ace/mode.js"></script>
+    <script src="../../lib/ace/theme.js"></script>
+    <script src="../../scripts/editor-setup.js"></script>
+    <script src="../../scripts/problem.js"></script>
+    <script src="../../scripts/imageLoader.js"></script>
+    <script src="../../lib/sha256.js"></script>
+    <script src="../../scripts/shaderFunctions.js"></script>
+    <script src="../../scripts/loadScreen.js"></script>
+    <script src="../../scripts/shader.js"></script>
+
+
+</body>
+
+</html>

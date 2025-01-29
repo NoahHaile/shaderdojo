@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShaderDojo</title>
+    <link rel="stylesheet" href="../../css/common.css">
+    <link rel="stylesheet" href="../../css/discussion.css">
+</head>
+
+<body>
+    <header>
+        <a href="../index.html" class="title-link">
+            <div class="title-container">
+                <img src="../../imgs/DojoLogo.png" class="logo" />
+                <h1 class="title">ShaderDojo</h1>
+            </div>
+        </a>
+        <nav>
+            <ul class="nav-container">
+                <li><a href="../problems.html" class="nav-link">Problems</a></li>
+                <li><a href="../solutions.html" class="nav-link">Discussion</a></li>
+                <li><a href="../profile.html" class="nav-link">Profile</a></li>
+            </ul>
+        </nav>
+        <div class="menu-button" onclick="toggleDrawer()">☰</div>
+    </header>
+    <div id="drawer" class="drawer">
+        <a href="../problems.html" onclick="closeDrawer()">Problems</a>
+        <a href="../solutions.html" onclick="closeDrawer()">Discussion</a>
+        <a href="../profile.html" onclick="closeDrawer()">Profile</a>
+    </div>
+
+    <script>
+        const drawer = document.getElementById("drawer");
+
+        function toggleDrawer() {
+            drawer.classList.toggle("open");
+        }
+
+        function closeDrawer() {
+            drawer.classList.remove("open");
+        }
+    </script>
+
+    <main class="solution">
+        <h1 class="page-title">Image Flip | Accepted Solution</h1>
+        <div class="program">
+            <div class="shader-canvas-container">
+                <canvas id="shaderCanvas"></canvas>
+                <div class="shader-controllers">
+                    <div style="display: flex; align-items: flex-end;">
+                        <button id="pausePlayButton">❚❚</button>
+                        <div id='timeDisplay' class="time-display"></div>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-end;">
+                        <input type="number" id="manualTime" min="0" max="10000" step="0.1" placeholder="Start time">
+                        <button id="resetButton">↻</button>
+                    </div>
+                </div>
+            </div>
+            <div class="editor-container">
+                <form>
+                    <div id="editor"></div>
+                </form>
+            </div>
+        </div>
+        <div class="button-container">
+            <button type="button" class="runner" onclick="buttonClick(this); runShader()">Run</button>
+        </div>
+    </main>
+
+    <section class="comment-section">
+        <h1 class="sub-title">Alternative Solutions</h1>
+        <div class="comments" id="comments">
+            <div class="comment">
+                <div class="comment-header">
+                    <p class="comment-user">${comment.account.username}</p>
+                    <button type="button" class="copy-button"
+                        onclick="buttonClick(this); copyToClipboard('${comment.code}'); copyButtonClicked(this);">Copy
+                        Code</button>
+                </div>
+                <p class="comment-text">${comment.content}</p>
+            </div>
+            <div class="comment">
+                <div class="comment-header">
+                    <p class="comment-user">${comment.account.username}</span>
+                        <button type="button" class="copy-button"
+                            onclick="buttonClick(this); copyToClipboard('${comment.code}'); copyButtonClicked(this);">Copy
+                            Code</button>
+                </div>
+                <p class="comment-text">${comment.content} ${comment.content} ${comment . content} ${comment.content}
+                    ${comment.content} ${comment.content} ${comment.content} ${comment.content}</p>
+            </div>
+            <div class="comment">
+                <div class="comment-header">
+                    <p class="comment-user">${comment.account.username}</span>
+                        <button type="button" class="copy-button"
+                            onclick="buttonClick(this); copyToClipboard('${comment.code}'); copyButtonClicked(this);">Copy
+                            Code</button>
+                </div>
+                <p class="comment-text">${comment.content} ${comment.content} ${comment . content} ${comment.content}
+                    ${comment.content} ${comment.content} ${comment.content} ${comment.content}</p>
+            </div>
+            <div class="comment">
+                <div class="comment-header">
+                    <p class="comment-user">${comment.account.username}</span>
+                        <button type="button" class="copy-button"
+                            onclick="buttonClick(this); copyToClipboard('${comment.code}'); copyButtonClicked(this);">Copy
+                            Code</button>
+                </div>
+                <p class="comment-text">${comment.content} ${comment.content} ${comment . content} ${comment.content}
+                    ${comment.content} ${comment.content} ${comment.content} ${comment.content}</p>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="post-comment-section">
+        <h1 class="sub-title">Post Your Own Solution</h1>
+        <form onsubmit="return postComment(event)" method="POST">
+            <textarea placeholder="Paste code" rows="10" cols="auto" id="code-post" name="code-post"></textarea>
+            <input type="text" id='content-post' name="content-post"
+                placeholder="Describe your solution and its improvements in brief" />
+            <button type="submit" class="submit-button" onclick="buttonClick(this)">Submit</button>
+        </form>
+    </section>
+
+    <div id="error-modal" class="error-modal">
+        <div class="error-modal-content">
+            <p id="error-modal-message"></p>
+            <span id="close-error-ModalBtn" class="close-error">&times;</span>
+        </div>
+    </div>
+
+    <script id="page-constants">
+        const redirectUrl = "../login.html?redirect=solutions/1.html"
+        const fragmentShaderSourceBody = `
+void main() {
+vec2 uv = gl_FragCoord.xy / u_resolution; // Normalize pixel coordinates
+vec4 color = texture2D(u_texture, uv);    // Sample the texture
+gl_FragColor = color;                     // Set the fragment color
+}
+`
+    </script>
+    <script src="../../scripts/errorModal.js"></script>
+    <script src="../../scripts/account_verify.js"></script>
+    <script src="../../scripts/button.js"></script>
+    <script src="../../scripts/shaderControllers.js"></script>
+
+    <script src="../../lib/ace/ace.js"></script>
+    <script src="../../lib/ace/mode.js"></script>
+    <script src="../../lib/ace/theme.js"></script>
+    <script src="../../scripts/editor-setup.js"></script>
+    <script src="../../scripts/problem.js"></script>
+    <script src="../../scripts/imageLoader.js"></script>
+    <script src="../../lib/sha256.js"></script>
+    <script src="../../scripts/shaderFunctions.js"></script>
+    <script src="../../scripts/loadScreen.js"></script>
+    <script src="../../scripts/shader.js"></script>
+
+    <script src="../../scripts/discussion.js"></script>
+</body>
+
+</html>
