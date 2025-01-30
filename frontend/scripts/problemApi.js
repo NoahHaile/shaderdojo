@@ -1,5 +1,5 @@
 async function verifyShaderOutput(finalRes) {
-    const res = await fetch(`https://shaderdojo.tech:7090/problems/verify`, {
+    const res = await fetch(`https://shaderdojo.tech/app/problems/verify`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -21,7 +21,7 @@ async function verifyShaderOutput(finalRes) {
 }
 
 async function updateProblemStatus() {
-    const problemStatus = await fetch(`https://shaderdojo.tech:7090/account/status/${id}`, {
+    const problemStatus = await fetch(`https://shaderdojo.tech/app/account/status/${id}`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`
