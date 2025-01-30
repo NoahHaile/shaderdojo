@@ -1,3 +1,6 @@
+CREATE DATABASE shader_dojo;
+\c shader_dojo;
+
 CREATE TABLE account
 (
     id         VARCHAR(512) PRIMARY KEY,
