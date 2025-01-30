@@ -5,7 +5,7 @@ if (token == null) {
 
 
 async function verifyToken() {
-    await fetch(`http://localhost:7090/account/verify_account`, {
+    await fetch(`http://shaderdojo.tech:7090/account/verify_account`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`

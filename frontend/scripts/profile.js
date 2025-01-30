@@ -10,7 +10,7 @@ async function accountInfo(event) {
             alert('Passwords do not match!');
             return false;
         }
-        const response = await fetch('http://localhost:7090/account/account_info', {
+        const response = await fetch('http://shaderdojo.tech:7090/account/account_info', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ async function profileInfo(event) {
     const bio = document.getElementById('bio').innerText;
     const country = document.getElementById('country').innerText;
     try {
-        const response = await fetch('http://localhost:7090/account/profile_info', {
+        const response = await fetch('http://shaderdojo.tech:7090/account/profile_info', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -67,7 +67,7 @@ async function profileInfo(event) {
 async function retrieveAccountData() {
 
     try {
-        const response = await fetch('http://localhost:7090/account', {
+        const response = await fetch('http://shaderdojo.tech:7090/account', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
