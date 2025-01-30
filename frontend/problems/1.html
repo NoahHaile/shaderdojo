@@ -5,15 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShaderDojo</title>
-    <link rel="stylesheet" href="../../css/common.css">
-    <link rel="stylesheet" href="../../css/problem.css">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/problem.css">
 </head>
 
 <body>
     <header>
         <a href="../index.html" class="title-link">
             <div class="title-container">
-                <img src="../../imgs/DojoLogo.png" class="logo" />
+                <img src="../imgs/DojoLogo.png" class="logo" />
                 <h1 class="title">ShaderDojo</h1>
             </div>
         </a>
@@ -31,30 +31,25 @@
         <a href="../solutions.html" onclick="closeDrawer()">Discussion</a>
         <a href="../profile.html" onclick="closeDrawer()">Profile</a>
     </div>
-    <script src="../../scripts/drawer.js"></script>
+    <script src="../scripts/drawer.js"></script>
 
     <section class="problem-title-container" onclick="toggleExpand()">
-        <img src="../../imgs/right-arrow-svgrepo-com.svg" class="expand-arrow" />
-        <h1 class="problem-title">Vertical Image Flip</h1>
+        <img src="../imgs/right-arrow-svgrepo-com.svg" class="expand-arrow" />
+        <h1 class="problem-title">Red to Green Screen</h1>
         <p class="expansion-instruction">Collapse</p>
     </section>
 
-    <img src="../../imgs/problem-8.png" class="problem-image" />
+    <img src="../imgs/problem-1.png" class="problem-image" />
     <div class="problem-description">
-        <p>In the example, you see a plain image. You can access this texture in the editor below using
-            <code>u_texture</code>. By mapping it to <code>gl_FragColor</code>, you can display the texture on the
-            canvas. However, the output of the shader below appears flipped upside down.
-        </p>
-        <p>WebGL textures are displayed upside down by default after processing by the GPU. This occurs due to
-            differences in coordinate systems: WebGL's default texture coordinate system places the origin (0, 0) at the
-            bottom-left, while most image formats (such as PNG and JPEG) and canvas elements in JavaScript have their
-            origin at the top-left.</p>
-        <p>This issue is typically resolved by adjusting the coordinate system in WebGL before uploading the texture.
-            However, in this task, you are asked to flip the texture vertically within the fragment shader. The fragment
-            shader should take the texture and output the same texture, but flipped vertically, so it appears correctly
-            on the screen, as shown in the example.</p>
+        <p>In the example, you see a green screen. However, the fragment shader below is currently displaying a red
+            screen by
+            setting <code>gl_FragColor</code> to a red color.</p>
+        <p>Your task is to modify the fragment shader to display a green screen instead. This involves changing the
+            color values in <code>gl_FragColor</code> to produce a green output.</p>
+        <p>Remember, colors in GLSL are represented as <code>vec4(r, g, b, a)</code>, where each component ranges from
+            0.0 to 1.0. To create a green screen, you need to set the green component to 1.0 and the red and blue
+            components to 0.0.</p>
     </div>
-
 
     <div class="shader-canvas-container">
         <canvas id="shaderCanvas"></canvas>
@@ -98,37 +93,32 @@
     </div>
 
     <script id="page-constants">
-        const id = "a0037a03-2c8e-4e51-a70b-66eb4471250d"
+        const id = "5cd2a9af-879b-4c96-913d-41ea35519e8f"
         const redirectUrl = "../login.html?redirect=problems/1.html"
         const fragmentShaderSourceBody = `
 void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution; // Normalize pixel coordinates
-    vec4 color = texture2D(u_texture, uv);    // Sample the texture
-    gl_FragColor = color;                     // Set the fragment color
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red screen
 }
 `
         const timeList = [0, 0.001, 1, 5, 20000, 2000000, 2000000000];
-        const pageUrl = "problems/8.html";
+        const pageUrl = "problems/1.html";
     </script>
-    <script src="../../scripts/errorModal.js"></script>
-    <script src="../../scripts/modal.js"></script>
-    <script src="../../scripts/account_verify.js"></script>
-    <script src="../../scripts/problemApi.js"></script>
-    <script src="../../scripts/button.js"></script>
-    <script src="../../scripts/shaderControllers.js"></script>
+    <script src="../scripts/errorModal.js"></script>
+    <script src="../scripts/modal.js"></script>
+    <script src="../scripts/account_verify.js"></script>
+    <script src="../scripts/problemApi.js"></script>
+    <script src="../scripts/button.js"></script>
+    <script src="../scripts/shaderControllers.js"></script>
 
-    <script src="../../lib/ace/ace.js"></script>
-    <script src="../../lib/ace/mode.js"></script>
-    <script src="../../lib/ace/theme.js"></script>
-    <script src="../../scripts/editor-setup.js"></script>
-    <script src="../../scripts/problem.js"></script>
-    <script src="../../scripts/imageLoader.js"></script>
-    <script src="../../lib/sha256.js"></script>
-    <script src="../../scripts/shaderFunctions.js"></script>
-    <script src="../../scripts/loadScreen.js"></script>
-    <script src="../../scripts/shader.js"></script>
-
-
+    <script src="../lib/ace/ace.js"></script>
+    <script src="../lib/ace/mode.js"></script>
+    <script src="../lib/ace/theme.js"></script>
+    <script src="../scripts/editor-setup.js"></script>
+    <script src="../scripts/problem.js"></script>
+    <script src="../scripts/imageLoader.js"></script>
+    <script src="../lib/sha256.js"></script>
+    <script src="../scripts/shaderFunctions.js"></script>
+    <script src="../scripts/shader.js"></script>
 </body>
 
 </html>

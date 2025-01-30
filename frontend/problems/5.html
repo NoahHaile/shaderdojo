@@ -5,15 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShaderDojo</title>
-    <link rel="stylesheet" href="../../css/common.css">
-    <link rel="stylesheet" href="../../css/problem.css">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/problem.css">
 </head>
 
 <body>
     <header>
         <a href="../index.html" class="title-link">
             <div class="title-container">
-                <img src="../../imgs/DojoLogo.png" class="logo" />
+                <img src="../imgs/DojoLogo.png" class="logo" />
                 <h1 class="title">ShaderDojo</h1>
             </div>
         </a>
@@ -31,32 +31,30 @@
         <a href="../solutions.html" onclick="closeDrawer()">Discussion</a>
         <a href="../profile.html" onclick="closeDrawer()">Profile</a>
     </div>
-    <script src="../../scripts/drawer.js"></script>
+    <script src="../scripts/drawer.js"></script>
 
     <section class="problem-title-container" onclick="toggleExpand()">
-        <img src="../../imgs/right-arrow-svgrepo-com.svg" class="expand-arrow" />
-        <h1 class="problem-title">Smooth Diagonal Line</h1>
+        <img src="../imgs/right-arrow-svgrepo-com.svg" class="expand-arrow" />
+        <h1 class="problem-title">Diagonal Line</h1>
         <p class="expansion-instruction">Collapse</p>
     </section>
 
-    <img src="../../imgs/problem-6.png" class="problem-image" />
+    <img src="../imgs/problem-5.png" class="problem-image" />
     <div class="problem-description">
-        <p>In this task, you will create a <strong>
-                smooth</strong> diagonal line that extends from the <strong>top-left
-                corner</strong>
-            to the <strong>bottom-right corner</strong>. Instead of using a sharp transition, you will use the
-            <code>smoothstep</code> function to blend between black and white smoothly.
+        <p>In this task, you will create a diagonal line that extends from the <strong>top-left corner</strong> to the
+            <strong>bottom-right corner</strong>. The fragment shader currently displays a diagonal line extending from
+            the <strong>top-right corner</strong> to the <strong>bottom-left corner</strong>.
         </p>
 
-        <p>To achieve this, calculate the diagonal line using the <code>x</code> and <code>y</code> coordinates of each
-            pixel (normalized to a range of <code>0.0</code> to <code>1.0</code>). Use the difference between
-            <code>x</code> and <code>y</code> to define the diagonal. Then, apply the <code>smoothstep</code> function
-            with two threshold values to create a gradient that smoothly transitions from black to white across the
-            diagonal line.
+        <p>Modify the conditional with the <code>if</code> statement to determine whether each pixel is within the
+            defined range of the diagonal line. Pixels that meet the condition should be colored black, while the rest
+            of the screen should remain white.
         </p>
 
-        <p>By the end, the screen should display a smooth black-to-white gradient along the diagonal line.</p>
+        <p>By the end, the screen should display a black diagonal line of your specified width against a white
+            background.</p>
     </div>
+
 
     <div class="shader-canvas-container">
         <canvas id="shaderCanvas"></canvas>
@@ -100,8 +98,8 @@
     </div>
 
     <script id="page-constants">
-        const id = "6c3d0fbb-8a45-472b-8f92-1234example";
-        const redirectUrl = "../login.html?redirect=problems/6.html";
+        const id = "7df8b2ac-22f4-4f83-a2e6-5678abcdef90";
+        const redirectUrl = "../login.html?redirect=problems/5.html";
         const fragmentShaderSourceBody = `
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution; // Normalize pixel coordinates
@@ -109,33 +107,33 @@ void main() {
     vec4 white = vec4(1.0, 1.0, 1.0, 1.0);   // White color
     vec4 black = vec4(0.0, 0.0, 0.0, 1.0);   // Black color
 
-    float toleranceStart = 0.00;             // Start of gradient
-    float toleranceEnd = 0.02;               // End of gradient
-
-    // Calculate smooth gradient along the diagonal
-    float gradient = smoothstep(toleranceStart, toleranceEnd, abs(uv.x - uv.y));
-    gl_FragColor = mix(black, white, gradient); // Blend from black to white
+    float tolerance = 0.01;                  // Tolerance for line width
+    if (abs(uv.x - uv.y) < tolerance) {
+        gl_FragColor = black;                // Color pixels near the diagonal line black
+    } else {
+        gl_FragColor = white;                // Color the rest white
+    }
 }
 `;
         const timeList = [0, 0.001, 1, 5, 20000, 2000000, 2000000000];
-        const pageUrl = "problems/6.html";
+        const pageUrl = "problems/5.html";
     </script>
-    <script src="../../scripts/errorModal.js"></script>
-    <script src="../../scripts/modal.js"></script>
-    <script src="../../scripts/account_verify.js"></script>
-    <script src="../../scripts/problemApi.js"></script>
-    <script src="../../scripts/button.js"></script>
-    <script src="../../scripts/shaderControllers.js"></script>
+    <script src="../scripts/errorModal.js"></script>
+    <script src="../scripts/modal.js"></script>
+    <script src="../scripts/account_verify.js"></script>
+    <script src="../scripts/problemApi.js"></script>
+    <script src="../scripts/button.js"></script>
+    <script src="../scripts/shaderControllers.js"></script>
 
-    <script src="../../lib/ace/ace.js"></script>
-    <script src="../../lib/ace/mode.js"></script>
-    <script src="../../lib/ace/theme.js"></script>
-    <script src="../../scripts/editor-setup.js"></script>
-    <script src="../../scripts/problem.js"></script>
-    <script src="../../scripts/imageLoader.js"></script>
-    <script src="../../lib/sha256.js"></script>
-    <script src="../../scripts/shaderFunctions.js"></script>
-    <script src="../../scripts/shader.js"></script>
+    <script src="../lib/ace/ace.js"></script>
+    <script src="../lib/ace/mode.js"></script>
+    <script src="../lib/ace/theme.js"></script>
+    <script src="../scripts/editor-setup.js"></script>
+    <script src="../scripts/problem.js"></script>
+    <script src="../scripts/imageLoader.js"></script>
+    <script src="../lib/sha256.js"></script>
+    <script src="../scripts/shaderFunctions.js"></script>
+    <script src="../scripts/shader.js"></script>
 </body>
 
 </html>

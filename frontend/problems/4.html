@@ -5,15 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShaderDojo</title>
-    <link rel="stylesheet" href="../../css/common.css">
-    <link rel="stylesheet" href="../../css/problem.css">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/problem.css">
 </head>
 
 <body>
     <header>
         <a href="../index.html" class="title-link">
             <div class="title-container">
-                <img src="../../imgs/DojoLogo.png" class="logo" />
+                <img src="../imgs/DojoLogo.png" class="logo" />
                 <h1 class="title">ShaderDojo</h1>
             </div>
         </a>
@@ -31,28 +31,26 @@
         <a href="../solutions.html" onclick="closeDrawer()">Discussion</a>
         <a href="../profile.html" onclick="closeDrawer()">Profile</a>
     </div>
-    <script src="../../scripts/drawer.js"></script>
+    <script src="../scripts/drawer.js"></script>
 
     <section class="problem-title-container" onclick="toggleExpand()">
-        <img src="../../imgs/right-arrow-svgrepo-com.svg" class="expand-arrow" />
-        <h1 class="problem-title">Red to Blue Gradient</h1>
+        <img src="../imgs/right-arrow-svgrepo-com.svg" class="expand-arrow" />
+        <h1 class="problem-title">Colored Diagonal Gradient</h1>
         <p class="expansion-instruction">Collapse</p>
     </section>
 
-    <img src="../../imgs/problem-3.png" class="problem-image" />
+    <img src="../imgs/problem-4.png" class="problem-image" />
     <div class="problem-description">
-        <p>In this task, you will create a smooth horizontal gradient that transitions from <strong>red on the
-                left</strong> to <strong>blue on the right</strong>. The fragment shader currently displays a solid
-            color, but your goal is to modify it to create this color gradient.</p>
+        <p>In this task, you will create a diagonal gradient that transitions from <strong>red in the bottom-left
+                corner</strong> to <strong>blue in the top-right corner</strong>. The fragment shader currently displays
+            a solid red color, but your goal is to modify it to create this diagonal gradient.</p>
 
-        <p>To achieve this, you’ll use the <code>x-coordinate</code> of each pixel (normalized to a range of
-            <code>0.0</code> to <code>1.0</code>) to interpolate between red (<code>vec4(1.0, 0.0, 0.0, 1.0)</code>) and
-            blue (<code>vec4(0.0, 0.0, 1.0, 1.0)</code>). The <code>mix()</code> function will help you blend these two
-            colors seamlessly based on the pixel’s horizontal position.
-        </p>
+        <p>To achieve this, you’ll need to use both the <code>x</code> and <code>y</code> coordinates of each pixel
+            (normalized to a range of <code>0.0</code> to <code>1.0</code>) to calculate the interpolation factor. The
+            <code>mix()</code> function will help you blend between red and blue based on this factor.</p>
 
-        <p>By the end, the screen should display a smooth gradient where the left edge is completely red, the right edge
-            is completely blue, and the middle transitions smoothly between the two.</p>
+        <p>By the end, the screen should display a smooth gradient where the bottom-left corner is completely red, the
+            top-right corner is completely blue, and the middle transitions smoothly between the two.</p>
     </div>
 
     <div class="shader-canvas-container">
@@ -98,37 +96,36 @@
 
     <script id="page-constants">
         const id = "5cd2a9af-879b-4c96-913d-41ea35519e8f"
-        const redirectUrl = "../login.html?redirect=problems/3.html"
+        const redirectUrl = "../login.html?redirect=problems/4.html"
         const fragmentShaderSourceBody = `
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution; // Normalize pixel coordinates
     vec4 red = vec4(1.0, 0.0, 0.0, 1.0);     // Red color
     vec4 blue = vec4(0.0, 0.0, 1.0, 1.0);    // Blue color
 
-    // Hint: Use the mix() function to interpolate between red and blue based on the x-coordinate (uv.x)
-
+    // Hint: float factor = (uv.x + uv.y) / 2.0;
     gl_FragColor = red; // Currently displaying a solid red screen
 }
 `
         const timeList = [0, 0.001, 1, 5, 20000, 2000000, 2000000000];
-        const pageUrl = "problems/3.html";
+        const pageUrl = "problems/4.html";
     </script>
-    <script src="../../scripts/errorModal.js"></script>
-    <script src="../../scripts/modal.js"></script>
-    <script src="../../scripts/account_verify.js"></script>
-    <script src="../../scripts/problemApi.js"></script>
-    <script src="../../scripts/button.js"></script>
-    <script src="../../scripts/shaderControllers.js"></script>
+    <script src="../scripts/errorModal.js"></script>
+    <script src="../scripts/modal.js"></script>
+    <script src="../scripts/account_verify.js"></script>
+    <script src="../scripts/problemApi.js"></script>
+    <script src="../scripts/button.js"></script>
+    <script src="../scripts/shaderControllers.js"></script>
 
-    <script src="../../lib/ace/ace.js"></script>
-    <script src="../../lib/ace/mode.js"></script>
-    <script src="../../lib/ace/theme.js"></script>
-    <script src="../../scripts/editor-setup.js"></script>
-    <script src="../../scripts/problem.js"></script>
-    <script src="../../scripts/imageLoader.js"></script>
-    <script src="../../lib/sha256.js"></script>
-    <script src="../../scripts/shaderFunctions.js"></script>
-    <script src="../../scripts/shader.js"></script>
+    <script src="../lib/ace/ace.js"></script>
+    <script src="../lib/ace/mode.js"></script>
+    <script src="../lib/ace/theme.js"></script>
+    <script src="../scripts/editor-setup.js"></script>
+    <script src="../scripts/problem.js"></script>
+    <script src="../scripts/imageLoader.js"></script>
+    <script src="../lib/sha256.js"></script>
+    <script src="../scripts/shaderFunctions.js"></script>
+    <script src="../scripts/shader.js"></script>
 </body>
 
 </html>

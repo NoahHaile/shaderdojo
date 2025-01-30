@@ -5,15 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShaderDojo</title>
-    <link rel="stylesheet" href="../../css/common.css">
-    <link rel="stylesheet" href="../../css/problem.css">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/problem.css">
 </head>
 
 <body>
     <header>
         <a href="../index.html" class="title-link">
             <div class="title-container">
-                <img src="../../imgs/DojoLogo.png" class="logo" />
+                <img src="../imgs/DojoLogo.png" class="logo" />
                 <h1 class="title">ShaderDojo</h1>
             </div>
         </a>
@@ -31,27 +31,28 @@
         <a href="../solutions.html" onclick="closeDrawer()">Discussion</a>
         <a href="../profile.html" onclick="closeDrawer()">Profile</a>
     </div>
-    <script src="../../scripts/drawer.js"></script>
+    <script src="../scripts/drawer.js"></script>
 
     <section class="problem-title-container" onclick="toggleExpand()">
-        <img src="../../imgs/right-arrow-svgrepo-com.svg" class="expand-arrow" />
-        <h1 class="problem-title">Right-to-Left Black and White Gradient</h1>
+        <img src="../imgs/right-arrow-svgrepo-com.svg" class="expand-arrow" />
+        <h1 class="problem-title">Red to Blue Gradient</h1>
         <p class="expansion-instruction">Collapse</p>
     </section>
 
-    <img src="../../imgs/problem-2.png" class="problem-image" />
+    <img src="../imgs/problem-3.png" class="problem-image" />
     <div class="problem-description">
-        <p>In this task, you will reverse the direction of an existing smooth horizontal gradient. Currently, the
-            gradient transitions from white on the left to black on the right. Your goal is to modify the fragment
-            shader so that the gradient flows in the opposite direction—black on the left to white on the right.</p>
+        <p>In this task, you will create a smooth horizontal gradient that transitions from <strong>red on the
+                left</strong> to <strong>blue on the right</strong>. The fragment shader currently displays a solid
+            color, but your goal is to modify it to create this color gradient.</p>
 
-        <p>To achieve this, you’ll use the x-coordinate of each pixel (normalized to a range of 0.0 to 1.0) to calculate
-            the grayscale value directly. By inverting the relationship between the x-coordinate and the color
-            intensity, you can reverse the gradient.</p>
+        <p>To achieve this, you’ll use the <code>x-coordinate</code> of each pixel (normalized to a range of
+            <code>0.0</code> to <code>1.0</code>) to interpolate between red (<code>vec4(1.0, 0.0, 0.0, 1.0)</code>) and
+            blue (<code>vec4(0.0, 0.0, 1.0, 1.0)</code>). The <code>mix()</code> function will help you blend these two
+            colors seamlessly based on the pixel’s horizontal position.
+        </p>
 
-        <p>By the end, the screen should display a smooth gradient where the left edge is completely black, the right
-            edge is completely white, and the middle transitions smoothly between the two—effectively reversing the
-            original gradient.</p>
+        <p>By the end, the screen should display a smooth gradient where the left edge is completely red, the right edge
+            is completely blue, and the middle transitions smoothly between the two.</p>
     </div>
 
     <div class="shader-canvas-container">
@@ -97,33 +98,37 @@
 
     <script id="page-constants">
         const id = "5cd2a9af-879b-4c96-913d-41ea35519e8f"
-        const redirectUrl = "../login.html?redirect=problems/2.html"
+        const redirectUrl = "../login.html?redirect=problems/3.html"
         const fragmentShaderSourceBody = `
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution; // Normalize pixel coordinates
-    vec3 color = vec3(uv.x);
-    gl_FragColor = vec4(color, 1.0);  // Interpolate based on x-coordinate
+    vec4 red = vec4(1.0, 0.0, 0.0, 1.0);     // Red color
+    vec4 blue = vec4(0.0, 0.0, 1.0, 1.0);    // Blue color
+
+    // Hint: Use the mix() function to interpolate between red and blue based on the x-coordinate (uv.x)
+
+    gl_FragColor = red; // Currently displaying a solid red screen
 }
 `
         const timeList = [0, 0.001, 1, 5, 20000, 2000000, 2000000000];
-        const pageUrl = "problems/2.html";
+        const pageUrl = "problems/3.html";
     </script>
-    <script src="../../scripts/errorModal.js"></script>
-    <script src="../../scripts/modal.js"></script>
-    <script src="../../scripts/account_verify.js"></script>
-    <script src="../../scripts/problemApi.js"></script>
-    <script src="../../scripts/button.js"></script>
-    <script src="../../scripts/shaderControllers.js"></script>
+    <script src="../scripts/errorModal.js"></script>
+    <script src="../scripts/modal.js"></script>
+    <script src="../scripts/account_verify.js"></script>
+    <script src="../scripts/problemApi.js"></script>
+    <script src="../scripts/button.js"></script>
+    <script src="../scripts/shaderControllers.js"></script>
 
-    <script src="../../lib/ace/ace.js"></script>
-    <script src="../../lib/ace/mode.js"></script>
-    <script src="../../lib/ace/theme.js"></script>
-    <script src="../../scripts/editor-setup.js"></script>
-    <script src="../../scripts/problem.js"></script>
-    <script src="../../scripts/imageLoader.js"></script>
-    <script src="../../lib/sha256.js"></script>
-    <script src="../../scripts/shaderFunctions.js"></script>
-    <script src="../../scripts/shader.js"></script>
+    <script src="../lib/ace/ace.js"></script>
+    <script src="../lib/ace/mode.js"></script>
+    <script src="../lib/ace/theme.js"></script>
+    <script src="../scripts/editor-setup.js"></script>
+    <script src="../scripts/problem.js"></script>
+    <script src="../scripts/imageLoader.js"></script>
+    <script src="../lib/sha256.js"></script>
+    <script src="../scripts/shaderFunctions.js"></script>
+    <script src="../scripts/shader.js"></script>
 </body>
 
 </html>
