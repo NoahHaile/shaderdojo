@@ -11,7 +11,7 @@ async function register(event) {
     }
 
     try {
-        const response = await fetch('http://shaderdojo.tech:7091/register', {
+        const response = await fetch('https://shaderdojo.tech:7091/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ async function login(event) {
     const password = document.getElementById('password').value;
 
     try {
-        const response = await fetch('http://shaderdojo.tech:7091/login', {
+        const response = await fetch('https://shaderdojo.tech:7091/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

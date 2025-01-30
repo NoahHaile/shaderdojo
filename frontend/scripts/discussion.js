@@ -22,7 +22,7 @@ function copyButtonClicked(button) {
 
 async function fetchComments() {
     try {
-        const response = await fetch(`http://shaderdojo.tech:7090/comments/${id}`, {
+        const response = await fetch(`https://shaderdojo.tech:7090/comments/${id}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -64,7 +64,7 @@ async function postComment(event) {
     const content = document.getElementById('content-post').value;
     const code = document.getElementById('code-post').value;
     try {
-        const response = await fetch(`http://shaderdojo.tech:7090/account/comment/${id}`, {
+        const response = await fetch(`https://shaderdojo.tech:7090/account/comment/${id}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
