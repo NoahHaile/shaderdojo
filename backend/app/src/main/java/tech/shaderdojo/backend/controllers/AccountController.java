@@ -45,7 +45,11 @@ public class AccountController {
         comment.setContent(commentRequest.content());
 
         accountRepository.findById(userId).ifPresent(comment::setAccount);
-        comment.setProblem(problemRepository.findById(problemId).orElseThrow());
+        try {
+            comment.setProblem(problemRepository.findById(problemId).orElseThrow());
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         return new ResponseEntity<>(commentRepository.save(comment), HttpStatus.CREATED);
     }
 
