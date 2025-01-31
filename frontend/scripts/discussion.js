@@ -85,4 +85,4 @@ async function postComment(event) {
     return false;
 }
 
-// fetchComments();
+fetchComments();
