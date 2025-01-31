@@ -43,7 +43,7 @@ async function fetchComments() {
                 <div class="comment-header">
                     <p class="comment-user">${comment.account.username}</p>
                     <button type="button" class="copy-button"
-                        onclick="buttonClick(this); copyToClipboard('${comment.code}'); copyButtonClicked(this);">Copy
+                        onclick="buttonClick(this); copyToClipboard(\`${comment.code}\`); copyButtonClicked(this);">Copy
                         Code</button>
                 </div>
                 <p class="comment-text">${comment.content}</p>
