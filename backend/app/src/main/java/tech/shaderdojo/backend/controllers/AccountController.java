@@ -6,10 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import tech.shaderdojo.backend.dtos.AccountRequest;
-import tech.shaderdojo.backend.dtos.AccountResponse;
-import tech.shaderdojo.backend.dtos.AttemptResponse;
-import tech.shaderdojo.backend.dtos.ProfileRequest;
+import tech.shaderdojo.backend.dtos.*;
 import tech.shaderdojo.backend.models.Account;
 import tech.shaderdojo.backend.models.Attempt;
 import tech.shaderdojo.backend.models.Comment;
@@ -40,8 +37,12 @@ public class AccountController {
     private PasswordEncoder passwordEncoder;
 
     @PostMapping("/comment/{problemId}")
-    public ResponseEntity<Comment> createComment(@RequestBody Comment comment, @PathVariable String problemId, Authentication authentication) {
+    public ResponseEntity<Comment> createComment(@RequestBody CommentRequest commentRequest, @PathVariable String problemId, Authentication authentication) {
         String userId = extractUserIdFromJwt(authentication);
+
+        Comment comment = new Comment();
+        comment.setCode(commentRequest.code());
+        comment.setContent(commentRequest.content());
 
         accountRepository.findById(userId).ifPresent(comment::setAccount);
         comment.setProblem(problemRepository.findById(problemId).orElseThrow());
