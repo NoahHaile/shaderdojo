@@ -45,8 +45,9 @@ function createProgram(gl, vertexSource, fragmentSource) {
 }
 
 
-var editor = ace.edit("editor");
+
 function buildFragmentShader() {
+    var editor = ace.edit("editor");
     let text = fragmentShaderHeader;
     if (typeof loadTexture !== "undefined" && loadTexture) {
         text += `
@@ -128,8 +129,6 @@ function attachPositionBuffer() {
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
 }
-
-let currentProcess = 0;
 
 async function cleanupWebGL() {
     currentProcess++;

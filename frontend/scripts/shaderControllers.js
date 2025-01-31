@@ -15,6 +15,8 @@ let offset = 0;
 
 let startTime;
 
+let currentProcess = 0;
+
 
 function togglePause() {
     paused = !paused;

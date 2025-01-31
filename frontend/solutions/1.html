@@ -45,7 +45,7 @@
     </script>
 
     <main class="solution">
-        <h1 class="page-title">Image Flip | Accepted Solution</h1>
+        <h1 class="page-title">Red to Green Screen | Accepted Solution</h1>
         <div class="program">
             <div class="shader-canvas-container">
                 <canvas id="shaderCanvas"></canvas>
@@ -75,46 +75,6 @@
     <section class="comment-section">
         <h1 class="sub-title">Alternative Solutions</h1>
         <div class="comments" id="comments">
-            <div class="comment">
-                <div class="comment-header">
-                    <p class="comment-user">${comment.account.username}</p>
-                    <button type="button" class="copy-button"
-                        onclick="buttonClick(this); copyToClipboard('${comment.code}'); copyButtonClicked(this);">Copy
-                        Code</button>
-                </div>
-                <p class="comment-text">${comment.content}</p>
-            </div>
-            <div class="comment">
-                <div class="comment-header">
-                    <p class="comment-user">${comment.account.username}</span>
-                        <button type="button" class="copy-button"
-                            onclick="buttonClick(this); copyToClipboard('${comment.code}'); copyButtonClicked(this);">Copy
-                            Code</button>
-                </div>
-                <p class="comment-text">${comment.content} ${comment.content} ${comment . content} ${comment.content}
-                    ${comment.content} ${comment.content} ${comment.content} ${comment.content}</p>
-            </div>
-            <div class="comment">
-                <div class="comment-header">
-                    <p class="comment-user">${comment.account.username}</span>
-                        <button type="button" class="copy-button"
-                            onclick="buttonClick(this); copyToClipboard('${comment.code}'); copyButtonClicked(this);">Copy
-                            Code</button>
-                </div>
-                <p class="comment-text">${comment.content} ${comment.content} ${comment . content} ${comment.content}
-                    ${comment.content} ${comment.content} ${comment.content} ${comment.content}</p>
-            </div>
-            <div class="comment">
-                <div class="comment-header">
-                    <p class="comment-user">${comment.account.username}</span>
-                        <button type="button" class="copy-button"
-                            onclick="buttonClick(this); copyToClipboard('${comment.code}'); copyButtonClicked(this);">Copy
-                            Code</button>
-                </div>
-                <p class="comment-text">${comment.content} ${comment.content} ${comment . content} ${comment.content}
-                    ${comment.content} ${comment.content} ${comment.content} ${comment.content}</p>
-            </div>
-
         </div>
     </section>
 
@@ -136,32 +96,35 @@
     </div>
 
     <script id="page-constants">
+        const id = "bae3daec-1879-43d6-93e2-6f397dc911e2"
         const redirectUrl = "../login.html?redirect=solutions/1.html"
         const fragmentShaderSourceBody = `
 void main() {
-vec2 uv = gl_FragCoord.xy / u_resolution; // Normalize pixel coordinates
-vec4 color = texture2D(u_texture, uv);    // Sample the texture
-gl_FragColor = color;                     // Set the fragment color
+    gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0); // Green Screen
 }
 `
     </script>
+    
+    <script src="../scripts/shaderControllers.js"></script>
+    <script src="../scripts/shaderFunctions.js"></script>
+    <script src="../scripts/loadScreen.js"></script>
+
     <script src="../scripts/errorModal.js"></script>
     <script src="../scripts/account_verify.js"></script>
+
+    <script src="../scripts/discussion.js"></script>
     <script src="../scripts/button.js"></script>
-    <script src="../scripts/shaderControllers.js"></script>
 
     <script src="../lib/ace/ace.js"></script>
     <script src="../lib/ace/mode.js"></script>
     <script src="../lib/ace/theme.js"></script>
     <script src="../scripts/editor-setup.js"></script>
     <script src="../scripts/problem.js"></script>
-    <script src="../scripts/imageLoader.js"></script>
+
     <script src="../lib/sha256.js"></script>
-    <script src="../scripts/shaderFunctions.js"></script>
-    <script src="../scripts/loadScreen.js"></script>
     <script src="../scripts/shader.js"></script>
 
-    <script src="../scripts/discussion.js"></script>
+
 </body>
 
 </html>

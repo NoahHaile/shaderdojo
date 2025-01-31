@@ -71,7 +71,11 @@ public class AccountController {
     @GetMapping("/verify_account")
     public ResponseEntity<Boolean> verifyAccount(Authentication authentication) {
         String userId = extractUserIdFromJwt(authentication);
-        return new ResponseEntity<>(accountRepository.existsById(userId), HttpStatus.OK);
+        if(accountRepository.existsById(userId)) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @GetMapping
