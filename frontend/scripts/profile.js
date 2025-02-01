@@ -1,10 +1,9 @@
 
-async function accountInfo(event) {
-    event.preventDefault();
-    const username = document.getElementById('username').innerText;
-    const password = document.getElementById('new-password').innerText;
-    const passwordConfirm = document.getElementById('confirm-password').innerText;
-    const oldPassword = document.getElementById('old-password').innerText;
+async function accountInfo() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('new-password').value;
+    const passwordConfirm = document.getElementById('confirm-password').value;
+    const oldPassword = document.getElementById('old-password').value;
     try {
         if (password !== passwordConfirm) {
             alert('Passwords do not match!');
@@ -34,11 +33,10 @@ async function accountInfo(event) {
     return false;
 }
 
-async function profileInfo(event) {
-    event.preventDefault();
-    const email = document.getElementById('email').innerText;
-    const bio = document.getElementById('bio').innerText;
-    const country = document.getElementById('country').innerText;
+async function profileInfo() {
+    const email = document.getElementById('email').value;
+    const bio = document.getElementById('bio').value;
+    const country = document.getElementById('country').value;
     try {
         const response = await fetch('https://shaderdojo.tech/app/account/profile_info', {
             method: 'POST',

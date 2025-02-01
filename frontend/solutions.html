@@ -47,12 +47,8 @@
 
     <section>
         <h1 class="page-title">Discussions</h1>
-        <p class="description">Lorem ipsum dolor sit amet consectetur adipisicing elit. Exercitationem tempora ipsum
-            earum! Earum,
-            suscipit
-            aliquid asperiores consectetur libero porro officia. Ex, consequuntur itaque. Nostrum tempore fugiat
-            illo
-            dignissimos consequuntur dolor!
+        <p class="description">Hark, valiant scholar! Gather ye here to discourse and unravel the mysteries of past
+            trials. Speak thy wisdom, share thy cunning, and let knowledge be the forge where solutions are tempered!
         </p>
         <table>
             <tr>
@@ -110,15 +106,18 @@
                 to suggest new questions or resources.</p>
             <a href="mailto:noah@noahhaile.com"><button type="button" class="button1"
                     onclick="buttonClick(this)">Suggestion Box</button></a>
-            <a><button type="button" class="button2" onclick="buttonClick(this)">Donate</button></a>
+            <a href="https://buymeacoffee.com/noah_hg"><button type="button" class="button2"
+                    onclick="buttonClick(this)">Donate</button></a>
         </div>
         <div class="email-list">
             <h1 class="notification-title">Stay Notified</h1>
             <p class="notification-description">We update our problemset every week. Make it habit by staying
                 up-to-date.
             </p>
-            <input type="email" placeholder="Enter your email" class="email-input" />
-            <a><button type="button" class="email-button" onclick="buttonClick(this)">Get Updates</button></a>
+            <form action="https://formspree.io/f/movjwwkd" method="post">
+                <input type="email" placeholder="Enter your email" class="email-input" name="email" />
+                <button type="submit" class="email-button" onclick="buttonClick(this)">Get Updates</button>
+            </form>
         </div>
     </aside>
     <script src="./scripts/button.js"></script>
