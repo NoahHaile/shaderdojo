@@ -46,7 +46,7 @@
     </script>
 
     <main class="solution">
-        <h1 class="page-title">Red to Green Screen | Accepted Solution</h1>
+        <h1 class="page-title">Right-to-Left Black and White Gradient | Accepted Solution</h1>
         <div class="program">
             <div class="shader-canvas-container">
                 <canvas id="shaderCanvas"></canvas>
@@ -97,15 +97,18 @@
     </div>
 
     <script id="page-constants">
-        const id = "bae3daec-1879-43d6-93e2-6f397dc911e2"
-        const redirectUrl = "../login.html?redirect=solutions/1.html"
+        const id = "614887e1-0596-49c1-970d-7ee7f26f40de"
+        const redirectUrl = "../login.html?redirect=solutions/2.html"
         const fragmentShaderSourceBody = `
 void main() {
-    gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0); // Green Screen
+    vec2 uv = gl_FragCoord.xy / u_resolution; // Normalize pixel coordinates
+    vec3 color = vec3(1.0 - uv.x);
+    gl_FragColor = vec4(color, 1.0);  // Interpolate based on x-coordinate
 }
+
 `
     </script>
-    
+
     <script src="../scripts/shaderControllers.js"></script>
     <script src="../scripts/shaderFunctions.js"></script>
     <script src="../scripts/loadScreen.js"></script>

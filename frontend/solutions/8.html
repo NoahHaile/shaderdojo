@@ -46,7 +46,7 @@
     </script>
 
     <main class="solution">
-        <h1 class="page-title">Red to Green Screen | Accepted Solution</h1>
+        <h1 class="page-title">Vertical Image Flip | Accepted Solution</h1>
         <div class="program">
             <div class="shader-canvas-container">
                 <canvas id="shaderCanvas"></canvas>
@@ -97,15 +97,19 @@
     </div>
 
     <script id="page-constants">
-        const id = "bae3daec-1879-43d6-93e2-6f397dc911e2"
-        const redirectUrl = "../login.html?redirect=solutions/1.html"
+        const id = "f88f39a6-e995-4f8c-91e9-90ecbe077b53"
+        const redirectUrl = "../login.html?redirect=solutions/8.html"
         const fragmentShaderSourceBody = `
 void main() {
-    gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0); // Green Screen
+    vec2 uv = gl_FragCoord.xy / u_resolution; // Normalize pixel coordinates
+    uv.y = 1.0 - uv.y;
+    vec4 color = texture2D(u_texture, uv);    // Sample the texture
+    gl_FragColor = color;                     // Set the fragment color
 }
 `
     </script>
-    
+
+    <script src="../scripts/imageLoader.js"></script>
     <script src="../scripts/shaderControllers.js"></script>
     <script src="../scripts/shaderFunctions.js"></script>
     <script src="../scripts/loadScreen.js"></script>

@@ -46,7 +46,7 @@
     </script>
 
     <main class="solution">
-        <h1 class="page-title">Red to Green Screen | Accepted Solution</h1>
+        <h1 class="page-title">45-Degree Line with Aspect Ratio | Accepted Solution</h1>
         <div class="program">
             <div class="shader-canvas-container">
                 <canvas id="shaderCanvas"></canvas>
@@ -97,15 +97,29 @@
     </div>
 
     <script id="page-constants">
-        const id = "bae3daec-1879-43d6-93e2-6f397dc911e2"
-        const redirectUrl = "../login.html?redirect=solutions/1.html"
+        const id = "aede53d1-d91a-450d-bcc1-4fdccefab425"
+        const redirectUrl = "../login.html?redirect=solutions/7.html"
         const fragmentShaderSourceBody = `
 void main() {
-    gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0); // Green Screen
+    vec2 uv = gl_FragCoord.xy / u_resolution; // Normalize pixel coordinates
+    float aspectRatio = u_resolution.x / u_resolution.y; // Calculate aspect ratio
+    uv.x *= aspectRatio;
+    // Modify the uv.x to reflect the aspect ratio
+
+    vec4 white = vec4(1.0, 1.0, 1.0, 1.0);   // White color
+    vec4 black = vec4(0.0, 0.0, 0.0, 1.0);   // Black color
+
+    float toleranceStart = 0.0;             // Start of gradient
+    float toleranceEnd = 0.02;               // End of gradient
+
+    // Calculate smooth gradient along the corrected diagonal
+    float gradient = smoothstep(toleranceStart, toleranceEnd, uv.x - uv.y);
+    gl_FragColor = mix(black, white, gradient); // Blend from black to white
 }
+
 `
     </script>
-    
+
     <script src="../scripts/shaderControllers.js"></script>
     <script src="../scripts/shaderFunctions.js"></script>
     <script src="../scripts/loadScreen.js"></script>

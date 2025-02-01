@@ -46,7 +46,7 @@
     </script>
 
     <main class="solution">
-        <h1 class="page-title">Red to Green Screen | Accepted Solution</h1>
+        <h1 class="page-title">Smooth Diagonal Line | Accepted Solution</h1>
         <div class="program">
             <div class="shader-canvas-container">
                 <canvas id="shaderCanvas"></canvas>
@@ -97,15 +97,25 @@
     </div>
 
     <script id="page-constants">
-        const id = "bae3daec-1879-43d6-93e2-6f397dc911e2"
-        const redirectUrl = "../login.html?redirect=solutions/1.html"
+        const id = "dd2797cf-da39-4889-b112-0edd239639a9"
+        const redirectUrl = "../login.html?redirect=solutions/6.html"
         const fragmentShaderSourceBody = `
 void main() {
-    gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0); // Green Screen
+    vec2 uv = gl_FragCoord.xy / u_resolution; // Normalize pixel coordinates
+
+    vec4 white = vec4(1.0, 1.0, 1.0, 1.0);   // White color
+    vec4 black = vec4(0.0, 0.0, 0.0, 1.0);   // Black color
+
+    float toleranceStart = 0.00;             // Start of gradient
+    float toleranceEnd = 0.02;               // End of gradient
+
+    // Calculate smooth gradient along the diagonal
+    float gradient = smoothstep(toleranceStart, toleranceEnd, abs(1.0 - uv.x - uv.y));
+    gl_FragColor = mix(black, white, gradient); // Blend from black to white
 }
 `
     </script>
-    
+
     <script src="../scripts/shaderControllers.js"></script>
     <script src="../scripts/shaderFunctions.js"></script>
     <script src="../scripts/loadScreen.js"></script>
