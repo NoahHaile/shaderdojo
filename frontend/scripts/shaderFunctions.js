@@ -22,8 +22,41 @@ function createShader(gl, type, source) {
     gl.compileShader(shader);
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
         console.error("Shader compilation error:", gl.getShaderInfoLog(shader));
-        gl.deleteShader(shader);
-        return null;
+        setErrorModal("Failed to compile your shader: " + gl.getShaderInfoLog(shader));
+
+        if (type === gl.FRAGMENT_SHADER) {
+            console.warn("Failed to compile shader; attempting default fragment shader.");
+            const defaultFragmentShaderSource = fragmentShaderHeader + `
+        void main() {
+    vec3 c;
+    float l, z = u_time;
+    vec2 fragCoord = gl_FragCoord.xy;
+    
+    for(int i = 0; i < 3; i++) {
+        vec2 uv, p = fragCoord / u_resolution.xy;
+        uv = p;
+        p -= 0.5;
+        p.x *= u_resolution.x / u_resolution.y;
+        z += 0.07;
+        l = length(p);
+        uv += p / l * (sin(z) + 1.0) * abs(sin(l * 9.0 - z - z));
+        c[i] = 0.01 / length(mod(uv, 1.0) - 0.5);
+    }
+    
+    gl_FragColor = vec4(c / l, u_time);
+}`;
+            gl.shaderSource(shader, defaultFragmentShaderSource);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error("Default shader compilation error:", gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            return shader;
+        } else {
+            gl.deleteShader(shader);
+            return null;
+        }
     }
     return shader;
 }

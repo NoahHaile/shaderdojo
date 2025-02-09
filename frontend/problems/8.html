@@ -8,6 +8,10 @@
     <link rel="icon" type="image/png" href="../imgs/favicon.ico">
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/problem.css">
+    <script id="page-constants">
+        const redirectUrl = "../login.html?redirect=problems/8.html"
+    </script>
+    <script src="../scripts/account_verify.js"></script>
 </head>
 
 <body>
@@ -100,7 +104,6 @@
 
     <script id="page-constants">
         const id = "f88f39a6-e995-4f8c-91e9-90ecbe077b53"
-        const redirectUrl = "../login.html?redirect=problems/8.html"
         const fragmentShaderSourceBody = `
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution; // Normalize pixel coordinates
@@ -118,7 +121,6 @@ void main() {
 
     <script src="../scripts/errorModal.js"></script>
     <script src="../scripts/modal.js"></script>
-    <script src="../scripts/account_verify.js"></script>
 
     <script src="../scripts/problemApi.js"></script>
     <script src="../scripts/button.js"></script>

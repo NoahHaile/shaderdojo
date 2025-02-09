@@ -36,22 +36,45 @@ async function fetchComments() {
         const comments = await response.json();
         const commentsContainer = document.getElementById('comments');
         commentsContainer.innerHTML = '';
+
         comments.forEach(comment => {
             const commentElement = document.createElement('div');
             commentElement.classList.add('comment');
-            commentElement.innerHTML = `
-                <div class="comment-header">
-                    <p class="comment-user">${comment.account.username}</p>
-                    <button type="button" class="copy-button"
-                        onclick="buttonClick(this); copyToClipboard(\`${comment.code}\`); copyButtonClicked(this);">Copy
-                        Code</button>
-                </div>
-                <p class="comment-text">${comment.content}</p>
-            `;
+
+            // Create header container
+            const header = document.createElement('div');
+            header.classList.add('comment-header');
+
+            // Username (using textContent to avoid XSS)
+            const usernameP = document.createElement('p');
+            usernameP.classList.add('comment-user');
+            usernameP.textContent = comment.account.username;
+            header.appendChild(usernameP);
+
+            // Copy button without inline HTML event handlers
+            const copyButton = document.createElement('button');
+            copyButton.type = 'button';
+            copyButton.classList.add('copy-button');
+            copyButton.textContent = 'Copy Code';
+            copyButton.addEventListener('click', function () {
+                copyToClipboard(comment.code);
+                copyButtonClicked(copyButton);
+            });
+            header.appendChild(copyButton);
+
+            commentElement.appendChild(header);
+
+            // Comment text (using textContent to avoid XSS)
+            const commentText = document.createElement('p');
+            commentText.classList.add('comment-text');
+            commentText.textContent = comment.content;
+            commentElement.appendChild(commentText);
+
             commentsContainer.appendChild(commentElement);
         });
-        if (comments.length == 0) {
-            commentsContainer.innerHTML = '<p>No comments yet.</p>';
+
+        if (comments.length === 0) {
+            commentsContainer.textContent = 'No comments yet.';
         }
     } catch (error) {
         console.error('Error:', error);

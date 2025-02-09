@@ -200,6 +200,55 @@ header {
     filter: invert(0%);
 }
 
+.error-modal {
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    /* Above other elements */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Semi-transparent background */
+}
+
+.error-modal-content {
+    position: absolute;
+    top: 0%;
+    left: 50%;
+
+
+    background-color: var(--primary-color);
+    color: var(--font-color);
+    padding: var(--small-padding) var(--normal-padding);
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--small-padding);
+
+    max-width: 80%;
+}
+
+.close-error {
+
+    font-size: var(--larger-font-size);
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-error:hover {
+    color: var(--link-color);
+}
+
+#error-modal-message {
+    font-size: var(--normal-font-size);
+    color: var(--font-color);
+}
+
 
 @media (max-width: 1050px) {
     .nav-link {
@@ -222,6 +271,13 @@ header {
         --normal-font-size: 16px;
         --small-font-size: 12px;
         --smaller-font-size: 10px;
+
+        --tiny-padding: 6px;
+        --small-padding: 12px;
+        --normal-padding: 20px;
+        --large-padding: 40px;
+        --larger-padding: 80px;
+        --huge-padding: 160px;
     }
 
     .logo {

@@ -145,6 +145,13 @@
         </div>
     </footer>
 
+    <div id="error-modal" class="error-modal">
+        <div class="error-modal-content">
+            <p id="error-modal-message"></p>
+            <span id="close-error-ModalBtn" class="close-error">&times;</span>
+        </div>
+    </div>
+
     <script id="page-constants">
         const fragmentShaderSourceBody = `
 // Original shader by Danilo Guanabara
@@ -169,6 +176,7 @@ void main() {
 `
     </script>
 
+    <script src="./scripts/errorModal.js"></script>
     <script src="./scripts/shaderControllers.js"></script>
     <script src="./scripts/shaderFunctions.js"></script>
     <script src="./scripts/loadScreen.js"></script>
@@ -179,6 +187,7 @@ void main() {
     <script src="./lib/ace/mode.js"></script>
     <script src="./lib/ace/theme.js"></script>
     <script src="./scripts/editor-setup.js"></script>
+    <script src="./scripts/shader.js"></script>
 
 </body>
 

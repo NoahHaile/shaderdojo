@@ -8,6 +8,10 @@
     <link rel="icon" type="image/png" href="../imgs/favicon.ico">
     <link rel="stylesheet" href="../css/common.css">
     <link rel="stylesheet" href="../css/problem.css">
+    <script id="page-constants">
+        const redirectUrl = "../login.html?redirect=problems/1.html"
+    </script>
+    <script src="../scripts/account_verify.js"></script>
 </head>
 
 <body>
@@ -95,7 +99,6 @@
 
     <script id="page-constants">
         const id = "bae3daec-1879-43d6-93e2-6f397dc911e2"
-        const redirectUrl = "../login.html?redirect=problems/1.html"
         const fragmentShaderSourceBody = `
 void main() {
     gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red screen
@@ -110,7 +113,6 @@ void main() {
 
     <script src="../scripts/errorModal.js"></script>
     <script src="../scripts/modal.js"></script>
-    <script src="../scripts/account_verify.js"></script>
 
     <script src="../scripts/problemApi.js"></script>
     <script src="../scripts/button.js"></script>
