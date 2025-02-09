@@ -43,9 +43,9 @@ async function updateProblemStatus() {
     if (problemStatus.status == "UNATTEMPTED") {
         statusText.innerHTML = "Problem Unattempted";
     } else if (problemStatus.status == "SUCCESSFUL") {
-        statusText.innerHTML = "Problem Completed. " + problemStatus.count + " attempts.";
+        statusText.innerHTML = "Problem Completed. " + problemStatus.count + problemStatus.count != 1 ? " attempts." : "attempt.";
     } else if (problemStatus.status == "FAILED") {
-        statusText.innerHTML = "Problem attempted " + problemStatus.count + " times.";
+        statusText.innerHTML = "Problem attempted " + problemStatus.count + problemStatus.count != 1 ? " times." : "time";
     } else {
         statusText.innerHTML = "Failed to fetch.";
     }
