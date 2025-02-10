@@ -108,8 +108,8 @@ void main() {
     vec4 red = vec4(1.0, 0.0, 0.0, 1.0);     // Red color
     vec4 blue = vec4(0.0, 0.0, 1.0, 1.0);    // Blue color
 
-    vec3 col = mix(red.rgb, blue.rgb, uv.x);
-    gl_FragColor = vec4(col, 1.0);
+    float diagonalSpace = (uv.x + uv.y) / 2.0;
+    gl_FragColor = mix(red, blue, diagonalSpace);
 }
 
 `

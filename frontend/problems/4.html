@@ -52,7 +52,8 @@
 
         <p>To achieve this, you’ll need to use both the <code>x</code> and <code>y</code> coordinates of each pixel
             (normalized to a range of <code>0.0</code> to <code>1.0</code>) to calculate the interpolation factor. The
-            <code>mix()</code> function will help you blend between red and blue based on this factor.</p>
+            <code>mix()</code> function will help you blend between red and blue based on this factor.
+        </p>
 
         <p>By the end, the screen should display a smooth gradient where the bottom-left corner is completely red, the
             top-right corner is completely blue, and the middle transitions smoothly between the two.</p>
@@ -111,6 +112,7 @@ void main() {
     gl_FragColor = red; // Currently displaying a solid red screen
 }
 `
+        const pageNumber = 4;
         const timeList = [0, 0.001, 1, 5, 20000, 2000000, 2000000000];
         const pageUrl = "problems/4.html";
     </script>

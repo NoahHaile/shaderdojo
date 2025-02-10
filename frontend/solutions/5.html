@@ -105,11 +105,16 @@
         const fragmentShaderSourceBody = `
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution; // Normalize pixel coordinates
-    vec4 red = vec4(1.0, 0.0, 0.0, 1.0);     // Red color
-    vec4 blue = vec4(0.0, 0.0, 1.0, 1.0);    // Blue color
 
-    vec3 col = mix(red.rgb, blue.rgb, uv.x);
-    gl_FragColor = vec4(col, 1.0);
+    vec4 white = vec4(1.0, 1.0, 1.0, 1.0);   // White color
+    vec4 black = vec4(0.0, 0.0, 0.0, 1.0);   // Black color
+
+    float tolerance = 0.01;                  // Tolerance for line width
+    if (abs(1.0 - uv.x - uv.y) < tolerance) {
+        gl_FragColor = black;                // Color pixels near the diagonal line black
+    } else {
+        gl_FragColor = white;                // Color the rest white
+    }
 }
 
 `

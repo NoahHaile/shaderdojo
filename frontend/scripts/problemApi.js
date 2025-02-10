@@ -12,11 +12,12 @@ async function verifyShaderOutput(finalRes) {
         } else {
             modalFail();
         }
-        updateProblemStatus()
+
     }).catch(err => {
         setErrorModal("An error occurred while verifying the shader output. Please try again later.");
         closeModal();
-        updateProblemStatus();
+    }).finally(() => {
+        updateProblemStatus()
     });
 }
 
@@ -43,9 +44,9 @@ async function updateProblemStatus() {
     if (problemStatus.status == "UNATTEMPTED") {
         statusText.innerHTML = "Problem Unattempted";
     } else if (problemStatus.status == "SUCCESSFUL") {
-        statusText.innerHTML = "Problem Completed. " + problemStatus.count + problemStatus.count != 1 ? " attempts." : "attempt.";
+        statusText.innerHTML = "Problem Completed. " + problemStatus.count + (problemStatus.count != 1 ? " attempts." : "attempt.");
     } else if (problemStatus.status == "FAILED") {
-        statusText.innerHTML = "Problem attempted " + problemStatus.count + problemStatus.count != 1 ? " times." : "time";
+        statusText.innerHTML = "Problem attempted " + problemStatus.count + (problemStatus.count != 1 ? " times." : "time");
     } else {
         statusText.innerHTML = "Failed to fetch.";
     }
