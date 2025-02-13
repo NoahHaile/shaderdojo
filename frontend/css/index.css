@@ -5,6 +5,7 @@ body {
     grid-template-areas:
         "header"
         "main"
+        "instructions"
         "resources"
         "footer";
 
@@ -75,6 +76,28 @@ body {
     text-decoration: none;
     color: var(--link-color);
     font-weight: bold;
+}
+
+.instructions {
+    grid-area: instructions;
+    padding-top: calc(var(--tiny-padding) / 2);
+    padding-bottom: calc(var(--tiny-padding) / 2);
+    padding-left: calc(75px + var(--tiny-padding));
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.instruction-list {
+    list-style: none;
+}
+
+.instruction-element {
+    font-size: var(--small-font-size);
+    color: var(--font-color);
+    text-align: center;
 }
 
 .resources {

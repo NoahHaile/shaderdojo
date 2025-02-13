@@ -32,6 +32,7 @@ function modalFail() {
 
 function closeModal() {
     modal.style.display = 'none';
+    modalButtonContainer.innerHTML = '';
 }
 
 function setModalMessage(message) {
