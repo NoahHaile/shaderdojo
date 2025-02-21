@@ -1,9 +1,10 @@
 body {
     display: grid;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: auto auto 1fr auto;
     grid-template-columns: 1fr;
     grid-template-areas:
         "header"
+        "intro"
         "main"
         "footer";
 
@@ -26,6 +27,22 @@ section {
 
     gap: var(--huge-padding);
 }
+
+.auth-header {
+    grid-area: intro;
+    justify-self: center;
+    text-align: center;
+    font-size: var(--normal-font-size);
+    color: var(--font-color);
+    background-color: var(--background-light);
+    border: 1px solid var(--font-color-light);
+    padding: var(--tiny-padding);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--tiny-padding);
+    max-width: 500px;
+    width: 90%;
+}
+
 
 form {
     display: flex;
@@ -65,7 +82,9 @@ form {
     flex-direction: column;
 }
 
-input, textarea, select {
+input,
+textarea,
+select {
     padding: calc(var(--tiny-padding) / 2);
 }
 
@@ -89,5 +108,10 @@ input, textarea, select {
         flex-direction: column;
         gap: var(--normal-padding);
     }
-    
+
+    .auth-header {
+        padding: var(--normal-padding);
+        
+    }
+
 }
