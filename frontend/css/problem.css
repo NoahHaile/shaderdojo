@@ -225,6 +225,16 @@ form {
 
 }
 
+#codeResetButton {
+    font-size: var(--normal-font-size);
+    cursor: pointer;
+
+    padding-left: calc(var(--tiny-padding) / 4);
+    padding-right: calc(var(--tiny-padding) / 4);
+
+    color: var(--secondary-color);
+
+}
 
 
 .modal {

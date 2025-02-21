@@ -1,27 +1,61 @@
+async function verifyToken() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = redirectUrl;
+        return false;
+    }
+    try {
+        const response = await fetch(`https://shaderdojo.tech/app/account/verify_account`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!response.ok) {
+            window.location.href = redirectUrl;
+            return false;
+        }
+        return true;
+    } catch (err) {
+        setErrorModal("An error occurred while verifying your account. Your work might not be saved.");
+        return false;
+    }
+}
+
 async function verifyShaderOutput(finalRes) {
-    const res = await fetch(`https://shaderdojo.tech/app/problems/verify`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ hash: finalRes, problemId: id }),
-    }).then(response => {
-        if (response.status === 200) {
+    const isTokenValid = await verifyToken();
+    if (!isTokenValid) return;
+
+    const token = localStorage.getItem('token');
+    try {
+        const response = await fetch(`https://shaderdojo.tech/app/problems/verify`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ hash: finalRes, problemId: id }),
+        });
+        if (response.ok) {
             modalSuccess();
         } else {
             modalFail();
         }
-
-    }).catch(err => {
+    } catch (err) {
         setErrorModal("An error occurred while verifying the shader output. Please try again later.");
         closeModal();
-    }).finally(() => {
-        updateProblemStatus()
-    });
+    } finally {
+        updateProblemStatus();
+    }
 }
 
 async function updateProblemStatus() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        const statusText = document.querySelector(".status-text");
+        statusText.innerHTML = "No Account";
+        return;
+    }
     const problemStatus = await fetch(`https://shaderdojo.tech/app/account/status/${id}`, {
         method: 'GET',
         headers: {
@@ -29,7 +63,7 @@ async function updateProblemStatus() {
         }
     }).then(response => {
         if (response.status != 200) {
-            setErrorModal("An error occurred while fetching problem attempts.");
+            statusText.innerHTML = "Account not Valid";
         }
         return response.json();
     }).catch(err => {

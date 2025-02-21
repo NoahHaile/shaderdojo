@@ -226,6 +226,8 @@ body {
 
 }
 
+
+
 @media (max-width: 1200px) {
     body {
         gap: 0 var(--tiny-padding);

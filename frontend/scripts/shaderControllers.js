@@ -4,6 +4,7 @@ const timeDisplay = document.getElementById('timeDisplay');
 const manualTime = document.getElementById('manualTime');
 const resetButton = document.getElementById('resetButton');
 
+
 let trackedTime;
 
 let paused = false;

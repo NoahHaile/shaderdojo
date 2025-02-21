@@ -56,6 +56,14 @@ async function submitShader() {
     const processId = currentProcess;
 
     buildProgram();
+    // Kill function if shader compilation fails
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        console.error("Shader compilation failed");
+        gl.deleteProgram(program);
+        runNewShader();
+        return;
+    }
+
     attachPositionBuffer();
     const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
     const timeLocation = gl.getUniformLocation(program, "u_time");
@@ -73,7 +81,6 @@ async function submitShader() {
             console.error("WebGL Error:", error);
             return "error";
         }
-
 
         if (typeof textureReady !== 'undefined' && textureReady != null && textureReady == false) {
             console.log("Texture not ready");

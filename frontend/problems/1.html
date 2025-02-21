@@ -11,7 +11,6 @@
     <script id="page-constants">
         const redirectUrl = "../login.html?redirect=problems/1.html"
     </script>
-    <script src="../scripts/account_verify.js"></script>
 </head>
 
 <body>
@@ -71,9 +70,14 @@
         </div>
     </div>
     <div class="editor-container">
-        <p class="status-text">Problem Unattempted</p>
+        <p class="status-text">Fetching Status...</p>
         <form>
-            <div id="editor"></div>
+            <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                <div id="editor"></div>
+                <div>
+                    <button id="codeResetButton" type="button">↻</button>
+                </div>
+            </div>
             <div class="button-container">
                 <button type="button" class="button1" onclick="buttonClick(this); runNewShader()">Run</button>
                 <button type="button" class="button2" onclick="buttonClick(this); submitShader()">Submit</button>
