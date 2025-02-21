@@ -84,16 +84,35 @@
 
     <section class="instructions">
         <h1 class="sub-title">Essentials</h1>
-        <ul class="instruction-list">
-            <li class="instruction-element">u_time: Tracks how long the shader has been running. (eg. 4.32, 8.13, 0.1)
-            </li>
-            <li class="instruction-element">u_resolution: Stores the width and height the rendering canvas. (eg. [800,
-                600])</li>
-            <li class="instruction-element">gl_FragColor: Sets the final normalized RGBA color of each pixel. (eg. [1.0,
-                0.0, 0.0, 1.0] red)</li>
-        </ul>
+        <p class="description">
+            Before you dive into shaders, you need two things: <strong class="inner-link">patience</strong> and <strong
+                class="inner-link">curiosity</strong>.
+            Learn how a piece works and meet it where it's at. The best shader artists know how to embrace the process,
+            bending light and math to create something beautiful.
         </p>
+
+
+        <ul class="instruction-list">
+            <li class="instruction-element">
+                <strong>u_time</strong>: Tracks how long the shader has been running (e.g., <code>4.32</code>,
+                <code>8.13</code>, <code>0.1</code> seconds)
+            </li>
+            <li class="instruction-element">
+                <strong>u_resolution</strong>: Stores the width and height of the rendering canvas (e.g.,
+                <code>[800, 600]</code>)
+            </li>
+            <li class="instruction-element">
+                <strong>gl_FragColor</strong>: Sets the final normalized RGBA color of each pixel (e.g.,
+                <code>[1.0, 0.0, 0.0, 1.0]</code> for red)
+            </li>
+            <li class="instruction-element">
+                <strong>Vectors and Mathematics</strong>: Use highly optimized <a class="inner-link"
+                    href="https://docs.isf.video/ref_functions.html#standard-glsl-functions">built-in functions</a> for
+                efficient trigonometric and arithmetic operations.
+            </li>
+        </ul>
     </section>
+
 
     <section class="resources">
         <h1 class="sub-title">Resources</h1>

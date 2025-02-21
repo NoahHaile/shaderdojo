@@ -40,6 +40,7 @@ body {
     margin: 0;
     margin-bottom: calc(var(--tiny-padding)/2);
 
+    text-align: left;
     align-self: flex-start;
 }
 
@@ -92,6 +93,7 @@ body {
 
 .instruction-list {
     list-style: none;
+    margin-top: var(--tiny-padding);
 }
 
 .instruction-element {
@@ -250,6 +252,12 @@ body {
     .resources {
         padding-left: 0;
     }
+
+    .page-title {
+
+        text-align: center;
+        align-self: center;
+    }
 }
 
 @media (max-width: 800px) {
@@ -266,6 +274,7 @@ body {
         height: calc((60.3333333333vw * 9) / 16);
         width: 60.3333333333vw;
     }
+
 }
 
 @media (max-width: 600px) {
