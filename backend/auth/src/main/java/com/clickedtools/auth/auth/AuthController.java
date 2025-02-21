@@ -43,7 +43,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
         String encodedPassword = passwordEncoder.encode(request.password());
-        Account account = new Account(request.email(), request.username(), encodedPassword);
+        Account account = new Account(request.username(), encodedPassword, request.email());
         try {
             accountRepository.save(account);
         } catch (Exception e) {
