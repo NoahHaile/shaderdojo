@@ -13,13 +13,15 @@ public class Account {
     @Column(unique = true)
     private String username;
     private String password;
+    private String email;
 
     public Account() {
     }
 
-    public Account(String username, String password) {
+    public Account(String username, String password, String email) {
         this.password = password;
         this.username = username;
+        this.email = email;
     }
 
     public void setId(String id) {
@@ -34,6 +36,10 @@ public class Account {
         this.password = password;
     }
 
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public String getId() {
         return id;
     }
@@ -44,5 +50,9 @@ public class Account {
 
     public String getPassword() {
         return password;
+    }
+
+    public String getEmail() {
+        return email;
     }
 }

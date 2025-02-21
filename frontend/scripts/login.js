@@ -1,6 +1,7 @@
 async function register(event) {
     event.preventDefault();
 
+    const email = document.getElementById('email-signup').value;
     const username = document.getElementById('username-signup').value;
     const password = document.getElementById('password-signup').value;
     const confirmPassword = document.getElementById('confirm-password').value;
@@ -16,7 +17,7 @@ async function register(event) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ username, password, captcha: "123", captchaHash: "sdfasf" }),
+            body: JSON.stringify({ email, username, password, captcha: "123", captchaHash: "sdfasf" }),
         });
         if (!response.ok) {
             throw new Error(`${response.status}`);

@@ -28,7 +28,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequest request) throws IOException {
-        Optional<Account> optionalAccount = accountRepository.findByUsername(request.username());
+        Optional<Account> optionalAccount = accountRepository.findByUsernameOrEmail(request.username(), request.username());
         if (optionalAccount.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
@@ -43,7 +43,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
         String encodedPassword = passwordEncoder.encode(request.password());
-        Account account = new Account(request.username(), encodedPassword);
+        Account account = new Account(request.email(), request.username(), encodedPassword);
         try {
             accountRepository.save(account);
         } catch (Exception e) {

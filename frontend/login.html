@@ -50,7 +50,7 @@
             <h1 class="page-title">Login</h1>
             <div class="input-container">
                 <div class="form-group">
-                    <label for="username">Username</label>
+                    <label for="username">Username/Email</label>
                     <input type="text" id="username" name="username" required>
                 </div>
                 <div class="form-group">
@@ -63,6 +63,10 @@
         <form onsubmit="buttonClick(this); return register(event)" method="POST">
             <h1 class="page-title">Sign-up</h1>
             <div class="input-container">
+                <div class="form-group">
+                    <label for="email-signup">Email</label>
+                    <input type="email" id="email-signup" name="email" required>
+                </div>
                 <div class="form-group">
                     <label for="username-signup">Username</label>
                     <input type="text" id="username-signup" name="username" required>
