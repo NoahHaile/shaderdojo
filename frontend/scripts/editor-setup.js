@@ -18,6 +18,7 @@ const codeResetButton = document.getElementById('codeResetButton');
 codeResetButton.addEventListener('click', () => {
     editor.setValue(fragmentShaderSourceBody);
     editor.clearSelection();
+    runNewShader();
 });
 
 // Save the code to local storage every time it changes

@@ -74,7 +74,7 @@ async function fetchComments() {
         });
 
         if (comments.length === 0) {
-            commentsContainer.textContent = 'No comments yet.';
+            commentsContainer.textContent = 'No alternative solutions posted';
         }
     } catch (error) {
         console.error('Error:', error);

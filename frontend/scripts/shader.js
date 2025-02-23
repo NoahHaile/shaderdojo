@@ -32,10 +32,13 @@ function runShader() {
         }
 
         if (!paused) {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = canvas.clientWidth * dpr;
+            canvas.height = canvas.clientHeight * dpr;
             gl.viewport(0, 0, canvas.width, canvas.height);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-
             gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
+            
+            gl.clear(gl.COLOR_BUFFER_BIT);
             if (!startTime) {
                 startTime = time * 0.001 - offset;
             }
