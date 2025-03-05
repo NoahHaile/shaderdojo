@@ -1,9 +1,31 @@
 
 const canvas = document.getElementById("shaderCanvas");
-const gl = canvas.getContext("webgl");
+const gl = canvas.getContext('webgl2', {
+    // Core precision settings
+    alpha: false,                     // Disable alpha channel for better performance
+    antialias: false,                 // Disable AA for consistent results
+    depth: false,                     // Disable depth buffer if not needed
+    stencil: false,                   // Disable stencil buffer if not needed
+    preserveDrawingBuffer: false,     // Prevent memory leaks
+    powerPreference: 'high-performance', // Prioritize performance
+    failIfMajorPerformanceCaveat: true // Reject if performance is inadequate
+}) || canvas.getContext('webgl', {    // Fallback to WebGL1
+    alpha: false,
+    antialias: false,
+    depth: false,
+    stencil: false,
+    preserveDrawingBuffer: false,
+    powerPreference: 'high-performance',
+    failIfMajorPerformanceCaveat: true
+});
+
+if (!gl) {
+    throw new Error('WebGL not supported');
+}
 
 const vertexShaderSource = `
   attribute vec4 a_position;
+  precision highp float;
   void main() {
     gl_Position = a_position;
   }
