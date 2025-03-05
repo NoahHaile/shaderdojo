@@ -107,7 +107,7 @@ async function submitShader() {
             gl.readPixels(0, 0, 800, 600, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
 
             for (let i = 0; i < pixels.length; i++) {
-                pixels[i] = Math.round(pixels[i] / 4);
+                pixels[i] = Math.round(pixels[i] / 8) * 8;
             }
 
             console.log(pixels);
