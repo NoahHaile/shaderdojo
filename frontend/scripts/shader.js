@@ -105,7 +105,7 @@ async function submitShader() {
             gl.drawArrays(gl.TRIANGLES, 0, 6);
             const pixels = new Uint8Array(800 * 600 * 4); // RGBA
             gl.readPixels(0, 0, 800, 600, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-
+            console.log(pixels);
             return sha256(pixels);
         }));
 
@@ -116,6 +116,7 @@ async function submitShader() {
     const results = await renderLoop();
     const pixelString = results.join('');
 
+    
     const finalRes = sha256(pixelString);
     console.log(finalRes);
 
