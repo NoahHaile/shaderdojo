@@ -110,6 +110,8 @@ async function submitShader() {
                 pixels[i] = Math.round(pixels[i] / 4);
             }
 
+            console.log(pixelString);
+
             return sha256(pixels);
         }));
 
