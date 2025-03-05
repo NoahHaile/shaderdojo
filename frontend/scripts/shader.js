@@ -95,7 +95,11 @@ async function submitShader() {
             attachImageTexture();
         }
         const results = await Promise.all(timeList.map(async t => {
-            gl.viewport(0, 0, canvas.width, canvas.height);
+            const pbo = gl.createBuffer();
+            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, pbo);
+            gl.bufferData(gl.PIXEL_PACK_BUFFER, 800 * 600 * 4, gl.STREAM_READ);
+
+            gl.viewport(0, 0, 800, 600);
             gl.clearColor(0, 0, 0, 1);
             gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -103,15 +107,17 @@ async function submitShader() {
             gl.uniform1f(timeLocation, t);
 
             gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+            gl.readPixels(0, 0, 800, 600, gl.RGBA, gl.UNSIGNED_BYTE, 0);
+
             const pixels = new Uint8Array(800 * 600 * 4); // RGBA
-            gl.readPixels(0, 0, 800, 600, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+            gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, pixels);
+            gl.bindBuffer(gl.PIXEL_PACK_BUFFER, null);
 
             for (let i = 0; i < pixels.length; i++) {
-                pixels[i] = Math.round(pixels[i] / 8) * 8;
+                pixels[i] = Math.round(pixels[i] / 8);
             }
-
             console.log(pixels);
-
             return sha256(pixels);
         }));
 
@@ -121,6 +127,7 @@ async function submitShader() {
     modalProcessStart();
     const results = await renderLoop();
     const pixelString = results.join('');
+
 
 
     const finalRes = sha256(pixelString);

@@ -1,14 +1,6 @@
 
 const canvas = document.getElementById("shaderCanvas");
-const gl = canvas.getContext('webgl', {    // Fallback to WebGL1
-    alpha: false,
-    antialias: false,
-    depth: false,
-    stencil: false,
-    preserveDrawingBuffer: false,
-    powerPreference: 'high-performance',
-    failIfMajorPerformanceCaveat: true
-});
+const gl = canvas.getContext('webgl2');
 
 if (!gl) {
     throw new Error('WebGL not supported');
