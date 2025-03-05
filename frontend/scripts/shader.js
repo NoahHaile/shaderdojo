@@ -37,7 +37,7 @@ function runShader() {
             canvas.height = canvas.clientHeight * dpr;
             gl.viewport(0, 0, canvas.width, canvas.height);
             gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
-            
+
             gl.clear(gl.COLOR_BUFFER_BIT);
             if (!startTime) {
                 startTime = time * 0.001 - offset;
@@ -105,7 +105,11 @@ async function submitShader() {
             gl.drawArrays(gl.TRIANGLES, 0, 6);
             const pixels = new Uint8Array(800 * 600 * 4); // RGBA
             gl.readPixels(0, 0, 800, 600, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-            console.log(pixels);
+
+            for (let i = 0; i < pixels.length; i++) {
+                pixels[i] = Math.round(pixels[i] / 4);
+            }
+
             return sha256(pixels);
         }));
 
@@ -116,7 +120,7 @@ async function submitShader() {
     const results = await renderLoop();
     const pixelString = results.join('');
 
-    
+
     const finalRes = sha256(pixelString);
     console.log(finalRes);
 
