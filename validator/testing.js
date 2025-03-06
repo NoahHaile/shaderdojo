@@ -52,7 +52,7 @@ app.post('/execute-shader', async (req, res) => {
     <title>WebGL Shader</title>
     <style>
       body { margin: 0; }
-      canvas { display: block; }
+      canvas { display: block; width: 400px; height: 400px; }
     </style>
   </head>
   <body>
