@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const puppeteer = require('puppeteer');
 const crypto = require('crypto');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const port = 3000;
