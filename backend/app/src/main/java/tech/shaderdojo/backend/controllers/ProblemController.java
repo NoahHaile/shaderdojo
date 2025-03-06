@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import tech.shaderdojo.backend.dtos.AccountResponse;
 import tech.shaderdojo.backend.dtos.VerifyProblemRequest;
 import tech.shaderdojo.backend.models.Attempt;
@@ -16,7 +17,9 @@ import tech.shaderdojo.backend.repositories.AttemptRepository;
 import tech.shaderdojo.backend.repositories.CommentRepository;
 import tech.shaderdojo.backend.repositories.ProblemRepository;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static tech.shaderdojo.backend.utils.WebsiteUtils.extractUserIdFromJwt;
 
@@ -47,7 +50,21 @@ public class ProblemController {
         if (problem == null) {
             return new ResponseEntity<>("Problem not found", HttpStatus.NOT_FOUND);
         }
-        if (problem.getHashedAnswer().equals(request.hash())) {
+
+        // Create the request payload
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("vertexShader", request.vertexShader());
+        payload.put("fragmentShader", request.fragmentShader());
+        payload.put("time", request.time());
+
+        // Make the request to the external service
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Map> response = restTemplate.postForEntity("http://localhost:3000/execute-shader", payload, Map.class);
+
+        // Extract the hash from the response
+        String responseHash = (String) response.getBody().get("hash");
+
+        if (problem.getHashedAnswer().equals(responseHash)) {
             attemptRepository.save(new Attempt(problem, account, AttemptStatus.SUCCESSFUL));
             return new ResponseEntity<>("Correct hash.", HttpStatus.OK);
         }

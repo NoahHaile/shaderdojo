@@ -1,7 +1,9 @@
 package tech.shaderdojo.backend.dtos;
 
 public record VerifyProblemRequest(
-        String hash,
-        String problemId
+        String problemId,
+        String vertexShader,
+        String fragmentShader,
+        double time
 ) {
 }
