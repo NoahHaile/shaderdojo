@@ -57,6 +57,7 @@ app.post('/execute-shader', async (req, res) => {
   </head>
   <body>
     <canvas id="glcanvas"></canvas>
+    Hello
     <script>
       const canvas = document.getElementById('glcanvas');
       const gl = canvas.getContext('webgl');
@@ -136,7 +137,7 @@ app.post('/execute-shader', async (req, res) => {
         await page.goto(`file://${htmlFilePath}`);
 
         // Wait for rendering
-        await new Promise(resolve => setTimeout(resolve, 6000));
+        await new Promise(resolve => setTimeout(resolve, 12000));
 
         // Capture screenshot to a buffer
         const screenshotBuffer = await page.screenshot({ encoding: 'binary' });
