@@ -1,9 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const puppeteer = require('puppeteer');
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto'); // For generating random file names
+const crypto = require('crypto');
 
 const app = express();
 const port = 3000;
@@ -13,6 +11,15 @@ app.use(bodyParser.json());
 
 // Serve static files (e.g., HTML, CSS, JS)
 app.use(express.static('public'));
+
+// Global browser instance
+let browser;
+(async () => {
+    browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+})();
 
 // Endpoint to execute shader code
 app.post('/execute-shader', async (req, res) => {
@@ -25,10 +32,7 @@ app.post('/execute-shader', async (req, res) => {
     // Generate unique file names
     const randomId = crypto.randomBytes(8).toString('hex'); // Random ID for this request
     const htmlFileName = `shader_${randomId}.html`;
-    const screenshotFileName = `output_${randomId}.png`;
-
     const htmlFilePath = path.join(__dirname, 'temp', htmlFileName);
-    const screenshotFilePath = path.join(__dirname, 'temp', screenshotFileName);
 
     try {
         // Generate the HTML file for the shader
@@ -40,7 +44,7 @@ app.post('/execute-shader', async (req, res) => {
         <title>WebGL Shader</title>
         <style>
           body { margin: 0; }
-          canvas { display: block; }
+          canvas { display: block; height: calc(100vw * 9 / 16); width: 100vw; }
         </style>
       </head>
       <body>
@@ -122,29 +126,36 @@ app.post('/execute-shader', async (req, res) => {
         // Write the HTML file
         fs.writeFileSync(htmlFilePath, htmlContent);
 
+        // Track rendering start time
+        const startTime = Date.now();
+
         // Launch Puppeteer and capture the output
-        const browser = await puppeteer.launch({
-            headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
-        });
         const page = await browser.newPage();
         await page.goto(`file://${htmlFilePath}`);
 
         // Wait for rendering
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 6000));
 
-        // Capture screenshot
-        await page.screenshot({ path: screenshotFilePath });
+        // Capture screenshot to a buffer
+        const screenshotBuffer = await page.screenshot({ encoding: 'binary' });
 
-        await browser.close();
+        // Track rendering end time
+        const endTime = Date.now();
 
-        // Send the screenshot back to the client
-        res.sendFile(screenshotFilePath);
+        await page.close();
 
-        // Clean up temporary files after sending the response
-        res.on('finish', () => {
-            fs.unlinkSync(htmlFilePath); // Delete the HTML file
-            fs.unlinkSync(screenshotFilePath); // Delete the screenshot file
+        // Hash the buffer
+        const hash = crypto.createHash('sha256').update(screenshotBuffer).digest('hex');
+
+        // Clean up the HTML file
+        fs.unlinkSync(htmlFilePath);
+
+        // Send the response
+        res.json({
+            hash,
+            startTime,
+            endTime,
+            renderingTime: endTime - startTime, // Time taken to render (in milliseconds)
         });
     } catch (error) {
         console.error('Error executing shader:', error);
@@ -152,7 +163,6 @@ app.post('/execute-shader', async (req, res) => {
 
         // Clean up temporary files in case of an error
         if (fs.existsSync(htmlFilePath)) fs.unlinkSync(htmlFilePath);
-        if (fs.existsSync(screenshotFilePath)) fs.unlinkSync(screenshotFilePath);
     }
 });
 
