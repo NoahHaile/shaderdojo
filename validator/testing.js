@@ -14,6 +14,12 @@ app.use(bodyParser.json());
 // Serve static files (e.g., HTML, CSS, JS)
 app.use(express.static('public'));
 
+// Ensure the temp directory exists
+const tempDir = path.join(__dirname, 'temp');
+if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir);
+}
+
 // Global browser instance
 let browser;
 (async () => {
@@ -34,7 +40,7 @@ app.post('/execute-shader', async (req, res) => {
     // Generate unique file names
     const randomId = crypto.randomBytes(8).toString('hex'); // Random ID for this request
     const htmlFileName = `shader_${randomId}.html`;
-    const htmlFilePath = path.join(__dirname, 'temp', htmlFileName);
+    const htmlFilePath = path.join(tempDir, htmlFileName);
 
     try {
         // Generate the HTML file for the shader
@@ -46,7 +52,7 @@ app.post('/execute-shader', async (req, res) => {
     <title>WebGL Shader</title>
     <style>
       body { margin: 0; }
-      canvas { display: block; height: calc(100vw * 9 / 16); width: 100vw; }
+      canvas { display: block; }
     </style>
   </head>
   <body>
@@ -135,6 +141,11 @@ app.post('/execute-shader', async (req, res) => {
         // Capture screenshot to a buffer
         const screenshotBuffer = await page.screenshot({ encoding: 'binary' });
 
+        // Save the screenshot to a file
+        const screenshotFileName = `screenshot_${randomId}.png`;
+        const screenshotFilePath = path.join(tempDir, screenshotFileName);
+        fs.writeFileSync(screenshotFilePath, screenshotBuffer);
+
         // Track rendering end time
         const endTime = Date.now();
 
@@ -142,6 +153,9 @@ app.post('/execute-shader', async (req, res) => {
 
         // Clean up the HTML file
         fs.unlinkSync(htmlFilePath);
+
+        // Optionally log timing and saved file path
+        console.log(`Shader rendered in ${endTime - startTime}ms. Screenshot saved to ${screenshotFilePath}`);
 
         // Send the image buffer as the response
         res.set('Content-Type', 'image/png');
