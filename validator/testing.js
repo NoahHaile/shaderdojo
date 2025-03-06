@@ -149,7 +149,7 @@ app.post('/execute-shader', async (req, res) => {
         await page.goto(`file://${htmlFilePath}`);
 
         // Wait for rendering (adjust delay as needed)
-        await new Promise(resolve => setTimeout(resolve, 12000));
+        await new Promise(resolve => setTimeout(resolve, 44000));
 
         // Capture screenshot to a buffer
         const screenshotBuffer = await page.screenshot({ encoding: 'binary' });
