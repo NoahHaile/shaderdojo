@@ -146,19 +146,12 @@ app.post('/execute-shader', async (req, res) => {
 
         await page.close();
 
-        // Hash the buffer
-        const hash = crypto.createHash('sha256').update(screenshotBuffer).digest('hex');
-
         // Clean up the HTML file
         fs.unlinkSync(htmlFilePath);
 
-        // Send the response
-        res.json({
-            hash,
-            startTime,
-            endTime,
-            renderingTime: endTime - startTime, // Time taken to render (in milliseconds)
-        });
+        // Send the image buffer as the response
+        res.set('Content-Type', 'image/png');
+        res.send(screenshotBuffer);
     } catch (error) {
         console.error('Error executing shader:', error);
         res.status(500).json({ error: 'Failed to execute shader.' });
