@@ -22,7 +22,7 @@ async function verifyToken() {
     }
 }
 
-async function verifyShaderOutput(finalRes) {
+async function verifyShaderOutput() {
     const isTokenValid = await verifyToken();
     if (!isTokenValid) return;
 
@@ -34,7 +34,7 @@ async function verifyShaderOutput(finalRes) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ hash: finalRes, problemId: id }),
+            body: JSON.stringify({ fragmentShader: buildFragmentShader(), vertexShader: vertexShaderSource, problemId: id, time: 20 }),
         });
         if (response.ok) {
             modalSuccess();
