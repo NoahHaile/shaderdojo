@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const puppeteer = require('puppeteer');
 const crypto = require('crypto');
+const path = require('path');
 
 const app = express();
 const port = 3000;
