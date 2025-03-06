@@ -39,85 +39,101 @@ app.post('/execute-shader', async (req, res) => {
     try {
         // Generate the HTML file for the shader
         const htmlContent = `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <title>WebGL Shader</title>
-          <style>
-            body { margin: 0; }
-            canvas { display: block; }
-          </style>
-        </head>
-        <body>
-          <canvas id="glcanvas"></canvas>
-          <script>
-            const canvas = document.getElementById('glcanvas');
-            const gl = canvas.getContext('webgl');
-      
-            // Vertex Shader
-            const vsSource = \`${vertexShader}\`;
-      
-            // Fragment Shader
-            const fsSource = \`${fragmentShader}\`;
-      
-            // Compile Shader
-            function compileShader(gl, source, type) {
-              const shader = gl.createShader(type);
-              gl.shaderSource(shader, source);
-              gl.compileShader(shader);
-              if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-                console.error('Shader compilation error:', gl.getShaderInfoLog(shader));
-                gl.deleteShader(shader);
-                return null;
-              }
-              return shader;
-            }
-      
-            const vertexShader = compileShader(gl, vsSource, gl.VERTEX_SHADER);
-            const fragmentShader = compileShader(gl, fsSource, gl.FRAGMENT_SHADER);
-      
-            // Create Program
-            const shaderProgram = gl.createProgram();
-            gl.attachShader(shaderProgram, vertexShader);
-            gl.attachShader(shaderProgram, fragmentShader);
-            gl.linkProgram(shaderProgram);
-            if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-              console.error('Program linking error:', gl.getProgramInfoLog(shaderProgram));
-            }
-      
-            gl.useProgram(shaderProgram);
-      
-            // Set Up Geometry
-            const positionBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-            const positions = [
-              -1.0, -1.0,
-               1.0, -1.0,
-              -1.0,  1.0,
-               1.0,  1.0,
-            ];
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-      
-            const positionAttributeLocation = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
-            gl.enableVertexAttribArray(positionAttributeLocation);
-            gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
-      
-            // Uniforms
-            const timeUniformLocation = gl.getUniformLocation(shaderProgram, 'uTime');
-      
-            // Render at the exact time
-            const time = ${time ? time : '0.0'};
-            gl.uniform1f(timeUniformLocation, time);
-            gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      
-            // Signal that rendering is complete
-            window.renderComplete = true;
-          </script>
-        </body>
-        </html>
-      `;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WebGL Shader</title>
+  <style>
+    body { margin: 0; }
+    /* Optional CSS styling */
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <!-- Set the canvas dimensions with attributes -->
+  <canvas id="glcanvas" width="400" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById('glcanvas');
+    const gl = canvas.getContext('webgl');
+    if (!gl) {
+      console.error('WebGL not supported');
+    }
+    
+    // Set the viewport to match the canvas dimensions
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    
+    // Set a default clear color (black) and clear the canvas
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    // Vertex Shader source
+    const vsSource = \`${vertexShader}\`;
+
+    // Fragment Shader source
+    const fsSource = \`${fragmentShader}\`;
+
+    // Compile Shader Function
+    function compileShader(gl, source, type) {
+      const shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.error('Shader compilation error:', gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+        return null;
+      }
+      return shader;
+    }
+
+    const vertexShaderObj = compileShader(gl, vsSource, gl.VERTEX_SHADER);
+    const fragmentShaderObj = compileShader(gl, fsSource, gl.FRAGMENT_SHADER);
+
+    // Create and link the shader program
+    const shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vertexShaderObj);
+    gl.attachShader(shaderProgram, fragmentShaderObj);
+    gl.linkProgram(shaderProgram);
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+      console.error('Program linking error:', gl.getProgramInfoLog(shaderProgram));
+    }
+
+    gl.useProgram(shaderProgram);
+
+    // Set up geometry (a simple rectangle covering the canvas)
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    const positions = [
+      -1.0, -1.0,
+       1.0, -1.0,
+      -1.0,  1.0,
+       1.0,  1.0,
+    ];
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+    // Look up the attribute location in the shader
+    const positionAttributeLocation = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
+    gl.enableVertexAttribArray(positionAttributeLocation);
+    gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+
+    // Set uniforms (if your shader expects a uTime uniform)
+    const timeUniformLocation = gl.getUniformLocation(shaderProgram, 'u_time');
+    const timeValue = ${time ? time : '0.0'};
+    gl.uniform1f(timeUniformLocation, timeValue);
+
+    const resolutionUniformLocation = gl.getUniformLocation(shaderProgram, 'u_resolution');
+    gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
+
+    // Clear and draw the rectangle
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    // Signal that rendering is complete
+    window.renderComplete = true;
+  </script>
+</body>
+</html>
+`;
 
         // Write the HTML file
         fs.writeFileSync(htmlFilePath, htmlContent);
