@@ -123,9 +123,12 @@ app.post('/execute-shader', async (req, res) => {
     gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
 
     // Set uniforms (if your shader expects a uTime uniform)
-    const timeUniformLocation = gl.getUniformLocation(shaderProgram, 'uTime');
+    const timeUniformLocation = gl.getUniformLocation(shaderProgram, 'u_time');
     const timeValue = ${time ? time : '0.0'};
     gl.uniform1f(timeUniformLocation, timeValue);
+
+    const resolutionUniformLocation = gl.getUniformLocation(shaderProgram, 'u_resolution');
+    gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
 
     // Clear and draw the rectangle
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -149,7 +152,7 @@ app.post('/execute-shader', async (req, res) => {
         await page.goto(`file://${htmlFilePath}`);
 
         // Wait for rendering (adjust delay as needed)
-        await new Promise(resolve => setTimeout(resolve, 44000));
+        await new Promise(resolve => setTimeout(resolve, 6000));
 
         // Capture screenshot to a buffer
         const screenshotBuffer = await page.screenshot({ encoding: 'binary' });
