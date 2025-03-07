@@ -59,7 +59,7 @@ public class ProblemController {
 
         // Make the request to the external service
         RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<Map> response = restTemplate.postForEntity("http://localhost:3000/execute-shader", payload, Map.class);
+        ResponseEntity<Map> response = restTemplate.postForEntity("http://app2:3000/execute-shader", payload, Map.class);
 
         // Extract the hash from the response
         String responseHash = (String) response.getBody().get("hash");
