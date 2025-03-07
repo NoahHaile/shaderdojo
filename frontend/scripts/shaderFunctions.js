@@ -7,15 +7,15 @@ if (!gl) {
 }
 
 const vertexShaderSource = `
-  attribute vec4 a_position;
-  precision highp float;
+  attribute vec4 aVertexPosition;
+  precision mediump float;
   void main() {
-    gl_Position = a_position;
+    gl_Position = aVertexPosition;
   }
 `;
 
 const fragmentShaderHeader = `
-precision highp float;
+precision mediump float;
 uniform vec2 u_resolution;
 uniform float u_time;
 
@@ -162,7 +162,7 @@ buildPositionBuffer();
 
 
 function attachPositionBuffer() {
-    const positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+    const positionAttributeLocation = gl.getAttribLocation(program, "aVertexPosition");
     gl.enableVertexAttribArray(positionAttributeLocation);
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
