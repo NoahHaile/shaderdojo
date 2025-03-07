@@ -72,7 +72,7 @@ public class ProblemController {
 
         // Extract the hash from the response
         String responseHash = (String) response.getBody().get("hash");
-        logger.debug("Response hash: {}, Problem hash: {}", responseHash, problem.getHashedAnswer());
+        logger.error("Response hash: {}, Problem hash: {}", responseHash, problem.getHashedAnswer());
 
         if (problem.getHashedAnswer().equals(responseHash)) {
             attemptRepository.save(new Attempt(problem, account, AttemptStatus.SUCCESSFUL));
