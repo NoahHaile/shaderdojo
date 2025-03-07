@@ -10,6 +10,7 @@ function modalSetup() {
 }
 
 function modalProcessStart() {
+    closeModal();
     modal.style.display = 'block';
     modalHeader.innerHTML = "Processing...";
     modalStatus.innerHTML = "Running Shader...";
