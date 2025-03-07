@@ -57,7 +57,7 @@ runNewShader();
 async function submitShader() {
 
     modalProcessStart();
-    verifyShaderOutput(finalRes);
+    verifyShaderOutput();
     setModalMessage("Verifying With Server...");
 
 
