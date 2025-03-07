@@ -1,5 +1,7 @@
 package tech.shaderdojo.backend.controllers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -41,6 +43,9 @@ public class ProblemController {
     @Value("${api.key}")
     private String apiKey;
 
+    private static final Logger logger = LoggerFactory.getLogger(ProblemController.class);
+
+
     @PostMapping("/verify")
     public ResponseEntity<String> verifyProblem(@RequestBody VerifyProblemRequest request, Authentication authentication) {
         String userId = extractUserIdFromJwt(authentication);
@@ -67,7 +72,7 @@ public class ProblemController {
 
         // Extract the hash from the response
         String responseHash = (String) response.getBody().get("hash");
-        System.out.println(responseHash + " " + problem.getHashedAnswer());
+        logger.debug("Response hash: {}, Problem hash: {}", responseHash, problem.getHashedAnswer());
 
         if (problem.getHashedAnswer().equals(responseHash)) {
             attemptRepository.save(new Attempt(problem, account, AttemptStatus.SUCCESSFUL));
