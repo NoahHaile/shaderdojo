@@ -61,9 +61,13 @@ public class ProblemController {
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<Map> response = restTemplate.postForEntity("http://host.docker.internal:3000/execute-shader", payload, Map.class);
 
+        if (response.getStatusCode() != HttpStatus.OK) {
+            return new ResponseEntity<>("Error from external service", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
         // Extract the hash from the response
         String responseHash = (String) response.getBody().get("hash");
-
+        
         if (problem.getHashedAnswer().equals(responseHash)) {
             attemptRepository.save(new Attempt(problem, account, AttemptStatus.SUCCESSFUL));
             return new ResponseEntity<>("Correct hash.", HttpStatus.OK);
