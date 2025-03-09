@@ -17,28 +17,28 @@ app.use(express.static('public'));
 // Global browser instance
 let browser;
 (async () => {
-    browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+  browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
 })();
 
 // Endpoint to execute shader code
 app.post('/execute-shader', async (req, res) => {
-    const { vertexShader, fragmentShader, time } = req.body;
+  const { vertexShader, fragmentShader, time } = req.body;
 
-    if (!vertexShader || !fragmentShader) {
-        return res.status(400).json({ error: 'Vertex and fragment shaders are required.' });
-    }
+  if (!vertexShader || !fragmentShader) {
+    return res.status(400).json({ error: 'Vertex and fragment shaders are required.' });
+  }
 
-    // Generate unique file names
-    const randomId = crypto.randomBytes(8).toString('hex'); // Random ID for this request
-    const htmlFileName = `shader_${randomId}.html`;
-    const htmlFilePath = path.join(__dirname, 'temp', htmlFileName);
+  // Generate unique file names
+  const randomId = crypto.randomBytes(8).toString('hex'); // Random ID for this request
+  const htmlFileName = `shader_${randomId}.html`;
+  const htmlFilePath = path.join(__dirname, 'temp', htmlFileName);
 
-    try {
-        // Generate the HTML file for the shader
-        const htmlContent = `
+  try {
+    // Generate the HTML file for the shader
+    const htmlContent = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -135,50 +135,50 @@ app.post('/execute-shader', async (req, res) => {
 </html>
 `;
 
-        // Write the HTML file
-        fs.writeFileSync(htmlFilePath, htmlContent);
+    // Write the HTML file
+    fs.writeFileSync(htmlFilePath, htmlContent);
 
-        // Track rendering start time
-        const startTime = Date.now();
+    // Track rendering start time
+    const startTime = Date.now();
 
-        // Launch Puppeteer and capture the output
-        const page = await browser.newPage();
-        await page.goto(`file://${htmlFilePath}`);
+    // Launch Puppeteer and capture the output
+    const page = await browser.newPage();
+    await page.goto(`file://${htmlFilePath}`);
 
-        // Wait for rendering
-        await new Promise(resolve => setTimeout(resolve, 6000));
+    // Wait for rendering
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
-        // Capture screenshot to a buffer
-        const screenshotBuffer = await page.screenshot({ encoding: 'binary' });
+    // Capture screenshot to a buffer
+    const screenshotBuffer = await page.screenshot({ encoding: 'binary' });
 
-        // Track rendering end time
-        const endTime = Date.now();
+    // Track rendering end time
+    const endTime = Date.now();
 
-        await page.close();
+    await page.close();
 
-        // Hash the buffer
-        const hash = crypto.createHash('sha256').update(screenshotBuffer).digest('hex');
+    // Hash the buffer
+    const hash = crypto.createHash('sha256').update(screenshotBuffer).digest('hex');
 
-        // Clean up the HTML file
-        fs.unlinkSync(htmlFilePath);
+    // Clean up the HTML file
+    fs.unlinkSync(htmlFilePath);
 
-        // Send the response
-        res.json({
-            hash,
-            startTime,
-            endTime,
-            renderingTime: endTime - startTime, // Time taken to render (in milliseconds)
-        });
-    } catch (error) {
-        console.error('Error executing shader:', error);
-        res.status(500).json({ error: 'Failed to execute shader.' });
+    // Send the response
+    res.json({
+      hash,
+      startTime,
+      endTime,
+      renderingTime: endTime - startTime, // Time taken to render (in milliseconds)
+    });
+  } catch (error) {
+    console.error('Error executing shader:', error);
+    res.status(500).json({ error: 'Failed to execute shader.' });
 
-        // Clean up temporary files in case of an error
-        if (fs.existsSync(htmlFilePath)) fs.unlinkSync(htmlFilePath);
-    }
+    // Clean up temporary files in case of an error
+    if (fs.existsSync(htmlFilePath)) fs.unlinkSync(htmlFilePath);
+  }
 });
 
 // Start the server
 app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server running at http://localhost:${port}`);
 });
