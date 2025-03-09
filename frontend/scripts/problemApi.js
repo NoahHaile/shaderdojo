@@ -38,8 +38,11 @@ async function verifyShaderOutput() {
         });
         if (response.ok) {
             modalSuccess();
-        } else {
+        } else if( response.status == 400) {
             modalFail();
+        } else {
+            setErrorModal("An error occurred while verifying the shader output. Please try again later.");
+            closeModal();    
         }
     } catch (err) {
         setErrorModal("An error occurred while verifying the shader output. Please try again later.");
