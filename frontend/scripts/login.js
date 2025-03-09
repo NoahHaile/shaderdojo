@@ -20,7 +20,11 @@ async function register(event) {
             body: JSON.stringify({ email, username, password, captcha: "123", captchaHash: "sdfasf" }),
         });
         if (!response.ok) {
-            throw new Error(`${response.status}`);
+            if(response.status === 409) {
+                setErrorModal('Account already exists. Input a different username or email.');
+            } else {
+                setErrorModal('Unknown Error Occurred. Please Try Again Later.');
+            }
         }
         const token = await response.text();
         localStorage.setItem('token', token);
@@ -33,7 +37,7 @@ async function register(event) {
             window.location.href = 'index.html';
     } catch (error) {
         console.error('Error:', error);
-        alert('An error occurred while creating your account.');
+        setErrorModal('An error occurred while creating your account. Please check your network and try again.');
     }
 
     return false;
@@ -56,7 +60,7 @@ async function login(event) {
         });
 
         if (!response.ok) {
-            throw new Error(`${response.status}`);
+            setErrorModal('Unknown Error Occurred. Please Try Again Later.');
         }
         const token = await response.text();
         localStorage.setItem('token', token);
@@ -69,7 +73,7 @@ async function login(event) {
             window.location.href = 'index.html';
     } catch (error) {
         console.error('Error:', error);
-        alert('An error occurred while creating your account.');
+        setErrorModal('An error occurred while creating your account. Please check your network and try again.');
     }
 
     return false;

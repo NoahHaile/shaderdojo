@@ -12,6 +12,7 @@ async function verifyToken() {
         }
     }).then(response => {
         if (response.status != 200) {
+            closeModal();
             window.location.href = redirectUrl;
         }
     }).catch(err => {
