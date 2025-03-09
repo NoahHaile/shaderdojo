@@ -1,3 +1,29 @@
+
+const express = require('express');
+const bodyParser = require('body-parser');
+const puppeteer = require('puppeteer');
+const crypto = require('crypto');
+const path = require('path');
+const fs = require('fs');
+
+const app = express();
+const port = 3000;
+
+// Middleware to parse JSON bodies
+app.use(bodyParser.json());
+
+// Serve static files (e.g., HTML, CSS, JS)
+app.use(express.static('public'));
+
+// Global browser instance
+let browser;
+(async () => {
+  browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
+})();
+
 let locked = false; // Lock flag
 const MAX_RETRIES = 5; // Maximum retry attempts
 
