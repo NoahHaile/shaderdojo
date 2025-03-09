@@ -15,7 +15,8 @@ async function verifyToken() {
             window.location.href = redirectUrl;
         }
     }).catch(err => {
-        setErrorModal("An error occurred while verifying your account. Your work might not be saved.");
+        setErrorModal("An error occurred while verifying your account. Please check your network connection.");
+        closeModal();
     })
 };
 
