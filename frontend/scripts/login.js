@@ -20,11 +20,12 @@ async function register(event) {
             body: JSON.stringify({ email, username, password, captcha: "123", captchaHash: "sdfasf" }),
         });
         if (!response.ok) {
-            if(response.status === 409) {
+            if (response.status === 409) {
                 setErrorModal('Account already exists. Input a different username or email.');
             } else {
                 setErrorModal('Unknown Error Occurred. Please Try Again Later.');
             }
+            return false;
         }
         const token = await response.text();
         localStorage.setItem('token', token);
@@ -61,6 +62,7 @@ async function login(event) {
 
         if (!response.ok) {
             setErrorModal('Unknown Error Occurred. Please Try Again Later.');
+            return false;
         }
         const token = await response.text();
         localStorage.setItem('token', token);
