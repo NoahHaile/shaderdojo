@@ -13,15 +13,16 @@ const AceEditor = lazy(async () => {
 interface Props {
     value: string;
     onChange: (next: string) => void;
-    /** Tailwind classes for the wrapper, controls editor size. */
     className?: string;
-    /** Height passed directly to AceEditor. Defaults to 100%. */
+    /** Height passed to AceEditor AND set on the wrapper. Ace needs a parent
+     *  with a definite height to compute its content area, so we mirror the
+     *  prop onto an inline style. */
     height?: string;
 }
 
 export function Editor({ value, onChange, className, height = '100%' }: Props) {
     return (
-        <div className={'min-h-[240px] ' + (className ?? '')}>
+        <div className={'w-full ' + (className ?? '')} style={{ height }}>
             <Suspense fallback={<EditorSkeleton />}>
                 <AceEditor
                     mode="glsl"
@@ -30,12 +31,12 @@ export function Editor({ value, onChange, className, height = '100%' }: Props) {
                     onChange={onChange}
                     name="lesson-editor"
                     width="100%"
-                    height={height}
+                    height="100%"
                     fontSize={14}
                     tabSize={2}
                     showPrintMargin={false}
                     setOptions={{
-                        useWorker: false,           // workers in Vite need extra wiring; off keeps it simple
+                        useWorker: false,
                         showLineNumbers: true,
                         highlightActiveLine: true,
                     }}
@@ -47,7 +48,7 @@ export function Editor({ value, onChange, className, height = '100%' }: Props) {
 
 function EditorSkeleton() {
     return (
-        <div className="w-full h-full min-h-[240px] flex items-center justify-center bg-cream border border-muted/30 rounded-md text-muted text-sm">
+        <div className="w-full h-full flex items-center justify-center bg-cream text-muted text-sm">
             Loading editor…
         </div>
     );

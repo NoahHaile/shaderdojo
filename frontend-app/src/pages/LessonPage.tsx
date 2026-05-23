@@ -15,6 +15,8 @@ import { FRAGMENT_HEADER } from '../shader-pipeline';
 type Verdict = 'idle' | 'verifying' | 'correct' | 'incorrect' | 'error';
 
 const PANE_HEIGHT = 460;
+const PANE_HEADER_HEIGHT = 40;          // matches `h-10` on the pane header
+const PANE_BODY_HEIGHT = PANE_HEIGHT - PANE_HEADER_HEIGHT;
 
 export function LessonPage() {
     const { id = '' } = useParams();
@@ -168,7 +170,7 @@ export function LessonPage() {
                         </button>
                     </div>
                     <div className="flex-1 min-h-0">
-                        <Editor value={code} onChange={setCode} height="100%" />
+                        <Editor value={code} onChange={setCode} height={`${PANE_BODY_HEIGHT}px`} />
                     </div>
                 </section>
 
