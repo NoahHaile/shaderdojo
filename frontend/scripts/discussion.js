@@ -1,4 +1,9 @@
 
+window.SHADERDOJO_API = window.SHADERDOJO_API || {
+    auth: `${location.origin}/auth`,
+    app:  `${location.origin}/app`,
+};
+
 function copyToClipboard(text) {
     // Use the Clipboard API to copy the text
     navigator.clipboard.writeText(text)
@@ -22,7 +27,7 @@ function copyButtonClicked(button) {
 
 async function fetchComments() {
     try {
-        const response = await fetch(`https://shaderdojo.tech/app/comments/${id}`, {
+        const response = await fetch(`${SHADERDOJO_API.app}/comments/${id}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -48,7 +53,7 @@ async function fetchComments() {
             // Username (using textContent to avoid XSS)
             const usernameP = document.createElement('p');
             usernameP.classList.add('comment-user');
-            usernameP.textContent = comment.account.username;
+            usernameP.textContent = comment.username || '';
             header.appendChild(usernameP);
 
             // Copy button without inline HTML event handlers
@@ -87,7 +92,7 @@ async function postComment(event) {
     const content = document.getElementById('content-post').value;
     const code = document.getElementById('code-post').value;
     try {
-        const response = await fetch(`https://shaderdojo.tech/app/account/comment/${id}`, {
+        const response = await fetch(`${SHADERDOJO_API.app}/account/comment/${id}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

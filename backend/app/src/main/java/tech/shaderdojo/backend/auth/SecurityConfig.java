@@ -19,6 +19,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import jakarta.annotation.PostConstruct;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Configuration
@@ -27,22 +29,29 @@ public class SecurityConfig {
     @Value("${jwt.key}")
     private String jwtKey;
 
+    @Value("${app.cors.allowed-origins:}")
+    private List<String> corsAllowedOrigins;
+
+    @PostConstruct
+    void validateJwtKey() {
+        if (jwtKey == null || jwtKey.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException(
+                    "jwt.key must be set and at least 32 bytes (256 bits) for HS256. " +
+                    "Configure JWT_KEY env var with a strong random value.");
+        }
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .cors(cors -> cors.configurationSource(request -> {
-                    var corsConfiguration = new org.springframework.web.cors.CorsConfiguration();
-                    corsConfiguration.addAllowedOrigin("*");
-                    corsConfiguration.addAllowedMethod("*");
-                    corsConfiguration.addAllowedHeader("*");
-                    return corsConfiguration;
-                }))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/problems/**").permitAll()
-                        .requestMatchers("/comments/**").permitAll()
+                        // Public read-only listings
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/comments/**").permitAll()
+                        // Everything else (including /problems/verify and admin endpoints) requires a JWT
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 ->
@@ -55,13 +64,29 @@ public class SecurityConfig {
     }
 
     @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        var config = new CorsConfiguration();
+        if (corsAllowedOrigins != null && !corsAllowedOrigins.isEmpty()) {
+            config.setAllowedOrigins(corsAllowedOrigins);
+        } else {
+            config.addAllowedOriginPattern("*");
+        }
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Admin-Authorization"));
+        var source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+    @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         return new JwtAuthenticationConverter();
     }
 
     @Bean
     JwtDecoder jwtDecoder() {
-        return NimbusJwtDecoder.withSecretKey(new ImmutableSecret<>(jwtKey.getBytes()).getSecretKey())
+        var secret = new ImmutableSecret<>(jwtKey.getBytes(StandardCharsets.UTF_8)).getSecretKey();
+        return NimbusJwtDecoder.withSecretKey(secret)
                 .macAlgorithm(MacAlgorithm.HS256)
                 .build();
     }

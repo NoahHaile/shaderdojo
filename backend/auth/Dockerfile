@@ -1,14 +1,21 @@
-# Use OpenJDK 21 LTS slim image as the base
-FROM openjdk:23-jdk-slim
+FROM eclipse-temurin:23-jdk AS build
+WORKDIR /workspace
 
-# Set the working directory inside the container
+COPY .mvn .mvn
+COPY mvnw mvnw
+COPY pom.xml ./
+RUN chmod +x mvnw && ./mvnw -B dependency:go-offline
+
+COPY src src
+RUN ./mvnw -B -DskipTests package
+
+FROM eclipse-temurin:23-jre
 WORKDIR /app
+COPY --from=build /workspace/target/auth-1.0.jar app.jar
 
-# Copy the JAR file into the container
-COPY target/auth-1.0.jar app.jar
+RUN groupadd --system app && useradd --system --gid app app \
+    && chown -R app:app /app
+USER app
 
-# Expose the application's port (default Spring Boot port is 8080)
 EXPOSE 8080
-
-# Run the JAR file
 ENTRYPOINT ["java", "-jar", "app.jar"]

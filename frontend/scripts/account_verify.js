@@ -1,3 +1,8 @@
+window.SHADERDOJO_API = window.SHADERDOJO_API || {
+    auth: `${location.origin}/auth`,
+    app:  `${location.origin}/app`,
+};
+
 const token = localStorage.getItem('token');
 if (token == null) {
     window.location.href = redirectUrl;
@@ -5,7 +10,7 @@ if (token == null) {
 
 
 async function verifyToken() {
-    await fetch(`https://shaderdojo.tech/app/account/verify_account`, {
+    await fetch(`${SHADERDOJO_API.app}/account/verify_account`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`

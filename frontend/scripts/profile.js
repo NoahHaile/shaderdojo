@@ -1,4 +1,9 @@
 
+window.SHADERDOJO_API = window.SHADERDOJO_API || {
+    auth: `${location.origin}/auth`,
+    app:  `${location.origin}/app`,
+};
+
 async function accountInfo() {
     const username = document.getElementById('username').value;
     const password = document.getElementById('new-password').value;
@@ -9,7 +14,7 @@ async function accountInfo() {
             alert('Passwords do not match!');
             return false;
         }
-        const response = await fetch('https://shaderdojo.tech/app/account/account_info', {
+        const response = await fetch(`${SHADERDOJO_API.app}/account/account_info`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -38,7 +43,7 @@ async function profileInfo() {
     const bio = document.getElementById('bio').value;
     const country = document.getElementById('country').value;
     try {
-        const response = await fetch('https://shaderdojo.tech/app/account/profile_info', {
+        const response = await fetch(`${SHADERDOJO_API.app}/account/profile_info`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -65,7 +70,7 @@ async function profileInfo() {
 async function retrieveAccountData() {
 
     try {
-        const response = await fetch('https://shaderdojo.tech/app/account', {
+        const response = await fetch(`${SHADERDOJO_API.app}/account`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

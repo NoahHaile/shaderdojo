@@ -1,3 +1,8 @@
+window.SHADERDOJO_API = window.SHADERDOJO_API || {
+    auth: `${location.origin}/auth`,
+    app:  `${location.origin}/app`,
+};
+
 async function verifyToken() {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -5,7 +10,7 @@ async function verifyToken() {
         return false;
     }
     try {
-        const response = await fetch(`https://shaderdojo.tech/app/account/verify_account`, {
+        const response = await fetch(`${SHADERDOJO_API.app}/account/verify_account`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -28,7 +33,7 @@ async function verifyShaderOutput() {
 
     const token = localStorage.getItem('token');
     try {
-        const response = await fetch(`https://shaderdojo.tech/app/problems/verify`, {
+        const response = await fetch(`${SHADERDOJO_API.app}/problems/verify`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -59,7 +64,7 @@ async function updateProblemStatus() {
         statusText.innerHTML = "No Account";
         return;
     }
-    const problemStatus = await fetch(`https://shaderdojo.tech/app/account/status/${id}`, {
+    const problemStatus = await fetch(`${SHADERDOJO_API.app}/account/status/${id}`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`

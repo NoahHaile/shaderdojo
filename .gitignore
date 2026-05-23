@@ -1,1 +1,21 @@
-backend/docker-compose.yml
+# Environment files — never commit secrets
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# Build artifacts
+target/
+node_modules/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

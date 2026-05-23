@@ -1,3 +1,8 @@
+window.SHADERDOJO_API = window.SHADERDOJO_API || {
+    auth: `${location.origin}/auth`,
+    app:  `${location.origin}/app`,
+};
+
 async function register(event) {
     event.preventDefault();
 
@@ -12,12 +17,12 @@ async function register(event) {
     }
 
     try {
-        const response = await fetch('https://shaderdojo.tech/auth/register', {
+        const response = await fetch(`${SHADERDOJO_API.auth}/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ email, username, password, captcha: "123", captchaHash: "sdfasf" }),
+            body: JSON.stringify({ email, username, password }),
         });
         if (!response.ok) {
             if (response.status === 409) {
@@ -52,7 +57,7 @@ async function login(event) {
     const password = document.getElementById('password').value;
 
     try {
-        const response = await fetch('https://shaderdojo.tech/auth/login', {
+        const response = await fetch(`${SHADERDOJO_API.auth}/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

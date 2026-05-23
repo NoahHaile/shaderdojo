@@ -1,39 +1,44 @@
 package tech.shaderdojo.backend.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tech.shaderdojo.backend.models.Comment;
+import tech.shaderdojo.backend.dtos.CommentResponse;
 import tech.shaderdojo.backend.repositories.CommentRepository;
-import tech.shaderdojo.backend.repositories.ProblemRepository;
+import tech.shaderdojo.backend.utils.AdminAuth;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/comments")
 public class CommentController {
-    @Autowired
-    private CommentRepository commentRepository;
-    @Autowired
-    private ProblemRepository problemRepository;
 
-    @Value("${api.key}")
-    private String apiKey;
+    private final CommentRepository commentRepository;
+    private final String apiKey;
 
+    public CommentController(CommentRepository commentRepository,
+                             @Value("${api.key}") String apiKey) {
+        this.commentRepository = commentRepository;
+        this.apiKey = apiKey;
+    }
 
     @GetMapping("/{problemId}")
-    public ResponseEntity<List<Comment>> getComments(@PathVariable String problemId) {
-        return new ResponseEntity<>(commentRepository.findAllByProblemId(problemId), HttpStatus.OK);
+    public ResponseEntity<List<CommentResponse>> getComments(@PathVariable String problemId) {
+        List<CommentResponse> comments = commentRepository.findAllByProblemId(problemId)
+                .stream()
+                .map(CommentResponse::from)
+                .toList();
+        return new ResponseEntity<>(comments, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteComment(@PathVariable String id, @RequestHeader("Admin-Authorization") String token) {
-        if (!token.equals(apiKey)) {
+    public ResponseEntity<Void> deleteComment(@PathVariable String id,
+                                              @RequestHeader("Admin-Authorization") String token) {
+        if (!AdminAuth.matches(token, apiKey)) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         commentRepository.deleteById(id);
-        return new ResponseEntity<>(HttpStatus.GONE);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
