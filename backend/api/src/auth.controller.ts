@@ -48,13 +48,20 @@ export class AuthController {
         try {
             await this.accounts.save(account);
         } catch (e: any) {
-            // Postgres unique_violation = SQLSTATE 23505. Only that is "username taken".
-            // Anything else is a real bug we want to see in the logs.
-            if (e?.code === '23505' || e?.driverError?.code === '23505') {
+            const code   = e?.code ?? e?.driverError?.code;
+            const detail = e?.detail ?? e?.driverError?.detail;
+            const constraint = e?.constraint ?? e?.driverError?.constraint;
+            const table  = e?.table ?? e?.driverError?.table;
+            // Log every failure with enough context to identify the constraint.
+            this.log.error(
+                `register failed username=${body.username} code=${code} ` +
+                `table=${table} constraint=${constraint} detail=${detail} message=${e?.message}`,
+            );
+            // Only a unique_violation (23505) on the username constraint should look
+            // like a 409 to the client; anything else is a real server error.
+            if (code === '23505') {
                 throw new ConflictException('Username already exists');
             }
-            this.log.error(`register failed for username=${body.username}: ${e?.message || e}`,
-                e?.stack);
             throw new InternalServerErrorException('Registration failed.');
         }
         return this.tokens.issue(account.id, 'user');
