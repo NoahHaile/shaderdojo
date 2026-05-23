@@ -121,26 +121,53 @@ docker compose down -v
 
 ---
 
-## Bootstrapping the first admin / problems
+## Populating lesson answer hashes (mandatory after first deploy / new lessons)
 
-Every endpoint that mutates problems requires both a valid JWT **and** the `Admin-Authorization: $API_KEY` header. Quick smoke:
+`init.sql` ships three courses (Basics, Shaping, Color) with 15 lessons. Each lesson has a `canonical_fragment_shader` but **no `hashed_answer`** — that hash depends on what the validator's Chromium build actually produces, so it has to be computed on the running box.
+
+After `docker compose up -d --build`, hit the admin batch endpoint:
 
 ```sh
-# Register a user
-curl -X POST http://<host>/auth/register \
-  -H 'Content-Type: application/json' \
-  -d '{"username":"admin","password":"<pw>","email":"admin@example.com"}'
-# -> returns a JWT
-
-# Create a problem (paste JWT and API_KEY values)
-curl -X POST http://<host>/app/problems \
-  -H "Authorization: Bearer <JWT>" \
-  -H "Admin-Authorization: <API_KEY>" \
-  -H 'Content-Type: application/json' \
-  -d '{"hashedAnswer":"<sha256 of expected PNG>"}'
+API_KEY=$(grep ^API_KEY .env | cut -d= -f2-)
+curl -sS -X POST http://localhost/app/lessons/recompute-hashes \
+  -H "Admin-Authorization: $API_KEY" | jq
 ```
 
-To populate the `hashedAnswer`, render the canonical solution through the validator once and copy the returned `imageHash`.
+The endpoint walks every lesson, renders its canonical shader through the validator, and writes `hashed_answer`. Response:
+
+```json
+{
+  "updated": [{ "id": "...", "title": "Hello, color", "hash": "..." }],
+  "skipped": [],
+  "failed": [],
+  "verificationTime": 20.0
+}
+```
+
+It's idempotent — re-run any time you add a lesson or change a canonical answer. Lessons without a hash appear as `Explore` in the UI and reject `POST /lessons/verify`. Lessons with a hash appear as `Verified`.
+
+### Adding more lessons
+
+You don't need to edit `init.sql` after the initial deploy — use the admin REST endpoints (which DO require a JWT, unlike `recompute-hashes` which is admin-key-only):
+
+```sh
+TOKEN=$(curl -sS -X POST http://localhost/auth/login -H 'Content-Type: application/json' \
+  -d '{"username":"admin","password":"<pw>"}')
+
+# Create a course
+curl -X POST http://localhost/app/courses \
+  -H "Authorization: Bearer $TOKEN" -H "Admin-Authorization: $API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"slug":"shapes-2","title":"Shapes II","displayOrder":3}'
+
+# Create a lesson (the response from the call above gives the course id)
+curl -X POST http://localhost/app/lessons \
+  -H "Authorization: Bearer $TOKEN" -H "Admin-Authorization: $API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"courseId":"<course-id>","slug":"my-lesson","displayOrder":0,"title":"My lesson","description":"...","starterFragmentShader":"void main(){...}","canonicalFragmentShader":"void main(){...}"}'
+
+# Then run recompute-hashes to populate the new lesson's hashed_answer.
+```
 
 ---
 

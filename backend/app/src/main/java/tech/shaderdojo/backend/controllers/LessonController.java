@@ -25,6 +25,9 @@ import tech.shaderdojo.backend.repositories.LessonRepository;
 import tech.shaderdojo.backend.services.ShaderValidatorClient;
 import tech.shaderdojo.backend.utils.AdminAuth;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static tech.shaderdojo.backend.utils.WebsiteUtils.extractUserIdFromJwt;
@@ -34,6 +37,24 @@ import static tech.shaderdojo.backend.utils.WebsiteUtils.extractUserIdFromJwt;
 public class LessonController {
 
     private static final Logger logger = LoggerFactory.getLogger(LessonController.class);
+
+    /**
+     * The frontend's shaderFunctions.js prepends this header before submitting the editor body.
+     * It must stay byte-identical to the JS constant or canonical hashes won't match.
+     * Source of truth: frontend/scripts/shaderFunctions.js (`fragmentShaderHeader`).
+     */
+    private static final String FRAGMENT_HEADER =
+            "\nprecision mediump float;\nuniform vec2 u_resolution;\nuniform float u_time;\n\n";
+
+    /**
+     * Vertex shader the frontend always submits. Source of truth:
+     * frontend/scripts/shaderFunctions.js (`vertexShaderSource`).
+     */
+    private static final String VERTEX_SHADER =
+            "\n  attribute vec4 aVertexPosition;\n  precision mediump float;\n  void main() {\n    gl_Position = aVertexPosition;\n  }\n";
+
+    /** All verification runs the shader at this fixed u_time so animated lessons produce a stable hash. */
+    private static final double VERIFICATION_TIME = 20.0;
 
     private final LessonRepository lessonRepository;
     private final CourseRepository courseRepository;
@@ -76,8 +97,7 @@ public class LessonController {
     @Transactional
     public ResponseEntity<String> verify(@RequestBody VerifyLessonRequest request,
                                          Authentication authentication) {
-        if (request == null || request.lessonId() == null
-                || request.vertexShader() == null || request.fragmentShader() == null) {
+        if (request == null || request.lessonId() == null || request.fragmentShader() == null) {
             return new ResponseEntity<>("Invalid request.", HttpStatus.BAD_REQUEST);
         }
 
@@ -94,12 +114,14 @@ public class LessonController {
         Lesson lesson = lessonOpt.get();
 
         if (lesson.getHashedAnswer() == null) {
-            return new ResponseEntity<>("This lesson is exploratory and cannot be verified.",
+            return new ResponseEntity<>("This lesson isn't graded yet — try again after the admin runs the hash sync.",
                     HttpStatus.BAD_REQUEST);
         }
 
+        // Force a fixed time + canonical vertex shader so user submissions are comparable
+        // to whatever the canonical answer was hashed at.
         var result = validatorClient.executeShader(
-                request.vertexShader(), request.fragmentShader(), request.time());
+                VERTEX_SHADER, request.fragmentShader(), VERIFICATION_TIME);
 
         if (!result.isOk()) {
             if (result.compileError()) {
@@ -117,6 +139,58 @@ public class LessonController {
         return correct
                 ? new ResponseEntity<>("Correct.", HttpStatus.OK)
                 : new ResponseEntity<>("Incorrect.", HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Admin-only. Walks every lesson that has a canonical fragment shader, renders it through
+     * the validator at the fixed verification time, and stores the resulting image hash as the
+     * lesson's hashed_answer. Idempotent — re-run after adding lessons.
+     *
+     * Auth: requires the Admin-Authorization header. The path is permitAll in SecurityConfig
+     * because the constant-time check inside is the actual gate.
+     */
+    @PostMapping("/recompute-hashes")
+    @Transactional
+    public ResponseEntity<Map<String, Object>> recomputeHashes(
+            @RequestHeader("Admin-Authorization") String token) {
+        if (!AdminAuth.matches(token, apiKey)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        List<Map<String, Object>> updated = new ArrayList<>();
+        List<Map<String, Object>> skipped = new ArrayList<>();
+        List<Map<String, Object>> failed  = new ArrayList<>();
+
+        for (Lesson lesson : lessonRepository.findAll()) {
+            String body = lesson.getCanonicalFragmentShader();
+            if (body == null || body.isBlank()) {
+                skipped.add(Map.of("id", lesson.getId(), "title", lesson.getTitle(),
+                        "reason", "no canonical shader"));
+                continue;
+            }
+
+            var result = validatorClient.executeShader(
+                    VERTEX_SHADER, FRAGMENT_HEADER + body, VERIFICATION_TIME);
+
+            if (!result.isOk()) {
+                failed.add(Map.of("id", lesson.getId(), "title", lesson.getTitle(),
+                        "error", result.error() == null ? "unknown" : result.error()));
+                continue;
+            }
+
+            lesson.setHashedAnswer(result.imageHash());
+            lessonRepository.save(lesson);
+            updated.add(Map.of("id", lesson.getId(), "title", lesson.getTitle(),
+                    "hash", result.imageHash()));
+        }
+
+        Map<String, Object> summary = Map.of(
+                "updated", updated,
+                "skipped", skipped,
+                "failed",  failed,
+                "verificationTime", VERIFICATION_TIME
+        );
+        return ResponseEntity.ok(summary);
     }
 
     @PostMapping

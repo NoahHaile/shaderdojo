@@ -29,7 +29,7 @@ CREATE TABLE course
 CREATE INDEX idx_course_display_order ON course (display_order);
 
 -- ---------- lesson ----------
--- A "lesson" is the per-step problem the user solves. hashed_answer NULL = exploratory step (no verification).
+-- hashed_answer NULL = exploratory (no verification) OR awaiting `recompute-hashes`.
 CREATE TABLE lesson
 (
     id                        VARCHAR(36) PRIMARY KEY,
@@ -73,37 +73,417 @@ CREATE TABLE attempt
 
 CREATE INDEX idx_attempt_account_lesson ON attempt (account, lesson);
 
--- ---------- seed: one example course with one lesson ----------
--- Lets you smoke-test the platform end-to-end without first authoring content.
--- Replace via the admin endpoints once you have something real.
+-- ===========================================================
+-- COURSES
+-- ===========================================================
+
 INSERT INTO course (id, slug, title, description, display_order) VALUES
-    ('11111111-1111-1111-1111-111111111111',
-     'getting-started',
-     'Getting Started',
-     'A single warm-up lesson so you can confirm the platform works on a fresh deploy. Delete this course once you start authoring real content.',
-     0);
+    ('11111111-0001-0000-0000-000000000000',
+     'basics',
+     'Basics',
+     'Output color. Read coordinates. Move with time. Five lessons covering everything a fragment shader actually does.',
+     0),
+    ('11111111-0002-0000-0000-000000000000',
+     'shaping',
+     'Shaping',
+     'Step, smoothstep, distance fields. The toolkit for drawing shapes without conditionals.',
+     1),
+    ('11111111-0003-0000-0000-000000000000',
+     'color',
+     'Color',
+     'Mix, gradient, HSV — the vocabulary for painting with shaders.',
+     2);
+
+-- ===========================================================
+-- LESSON helpers — every lesson uses the same passthrough VS.
+-- starter_vertex_shader column is informational; the frontend
+-- ships its own vertex shader and verification uses the same.
+-- ===========================================================
+
+-- ===========================================================
+-- COURSE 1: Basics
+-- ===========================================================
 
 INSERT INTO lesson (
     id, course_id, slug, display_order, title, description,
-    starter_vertex_shader, starter_fragment_shader,
-    canonical_fragment_shader, hashed_answer
+    starter_vertex_shader, starter_fragment_shader, canonical_fragment_shader
 ) VALUES (
-    '22222222-2222-2222-2222-222222222222',
-    '11111111-1111-1111-1111-111111111111',
-    'hello-green',
+    'a0000001-0001-0001-0000-000000000000',
+    '11111111-0001-0000-0000-000000000000',
+    'hello-color',
     0,
-    'Hello, Green Screen',
-    'Output a solid green color for every pixel. Edit `gl_FragColor` so that the canvas renders pure green (R=0, G=1, B=0, A=1).',
-    'attribute vec2 aVertexPosition;
+    'Hello, color',
+    'Every fragment shader sets gl_FragColor, a four-component (R, G, B, A) value. Components run 0.0 to 1.0. Edit gl_FragColor so the canvas renders pure GREEN.',
+    'attribute vec4 aVertexPosition;
+void main() { gl_Position = aVertexPosition; }',
+    'void main() {
+    // TODO: change this to opaque green.
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+}',
+    'void main() {
+    gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+}'
+);
+
+INSERT INTO lesson (
+    id, course_id, slug, display_order, title, description,
+    starter_vertex_shader, starter_fragment_shader, canonical_fragment_shader
+) VALUES (
+    'a0000001-0002-0001-0000-000000000000',
+    '11111111-0001-0000-0000-000000000000',
+    'half-and-half',
+    1,
+    'Half and half',
+    'gl_FragCoord.xy gives the pixel''s screen position. u_resolution.xy gives the canvas size. Make the left half of the screen RED and the right half BLUE. Hint: divide gl_FragCoord by u_resolution to get a 0..1 coordinate.',
+    'attribute vec4 aVertexPosition;
+void main() { gl_Position = aVertexPosition; }',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    // TODO: pick red when uv.x < 0.5, blue otherwise.
+    vec3 color = vec3(uv.x);
+    gl_FragColor = vec4(color, 1.0);
+}',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    vec3 color = uv.x < 0.5 ? vec3(1.0, 0.0, 0.0) : vec3(0.0, 0.0, 1.0);
+    gl_FragColor = vec4(color, 1.0);
+}'
+);
+
+INSERT INTO lesson (
+    id, course_id, slug, display_order, title, description,
+    starter_vertex_shader, starter_fragment_shader, canonical_fragment_shader
+) VALUES (
+    'a0000001-0003-0001-0000-000000000000',
+    '11111111-0001-0000-0000-000000000000',
+    'uv-gradient',
+    2,
+    'UV as color',
+    'Render the normalized coordinates directly: red increases with x, green increases with y. This is the canonical "see what your UVs look like" debug view.',
+    'attribute vec4 aVertexPosition;
+void main() { gl_Position = aVertexPosition; }',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    // TODO: red on x, green on y, blue 0.
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+}',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    gl_FragColor = vec4(uv.x, uv.y, 0.0, 1.0);
+}'
+);
+
+INSERT INTO lesson (
+    id, course_id, slug, display_order, title, description,
+    starter_vertex_shader, starter_fragment_shader, canonical_fragment_shader
+) VALUES (
+    'a0000001-0004-0001-0000-000000000000',
+    '11111111-0001-0000-0000-000000000000',
+    'pulse-with-time',
+    3,
+    'Pulse with time',
+    'u_time is a uniform float that increases every frame. Verification runs at t = 20.0 exactly. Render a single uniform grey whose brightness is 0.5 + 0.5 * sin(u_time) — your whole canvas should be one shade of grey.',
+    'attribute vec4 aVertexPosition;
+void main() { gl_Position = aVertexPosition; }',
+    'void main() {
+    // TODO: brightness = 0.5 + 0.5 * sin(u_time).
+    float brightness = 1.0;
+    gl_FragColor = vec4(vec3(brightness), 1.0);
+}',
+    'void main() {
+    float brightness = 0.5 + 0.5 * sin(u_time);
+    gl_FragColor = vec4(vec3(brightness), 1.0);
+}'
+);
+
+INSERT INTO lesson (
+    id, course_id, slug, display_order, title, description,
+    starter_vertex_shader, starter_fragment_shader, canonical_fragment_shader
+) VALUES (
+    'a0000001-0005-0001-0000-000000000000',
+    '11111111-0001-0000-0000-000000000000',
+    'diagonal-gradient',
+    4,
+    'Diagonal gradient',
+    'Combine x and y into a single value to produce a corner-to-corner greyscale gradient: brightness = (uv.x + uv.y) * 0.5.',
+    'attribute vec4 aVertexPosition;
+void main() { gl_Position = aVertexPosition; }',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    // TODO: brightness from (uv.x + uv.y) * 0.5.
+    float brightness = uv.x;
+    gl_FragColor = vec4(vec3(brightness), 1.0);
+}',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    float brightness = (uv.x + uv.y) * 0.5;
+    gl_FragColor = vec4(vec3(brightness), 1.0);
+}'
+);
+
+-- ===========================================================
+-- COURSE 2: Shaping
+-- ===========================================================
+
+INSERT INTO lesson (
+    id, course_id, slug, display_order, title, description,
+    starter_vertex_shader, starter_fragment_shader, canonical_fragment_shader
+) VALUES (
+    'a0000002-0001-0002-0000-000000000000',
+    '11111111-0002-0000-0000-000000000000',
+    'step-edge',
+    0,
+    'A hard edge with step()',
+    'step(edge, x) returns 0.0 when x < edge and 1.0 otherwise. Use it to draw the right half of the screen white and the left half black.',
+    'attribute vec4 aVertexPosition;
+void main() { gl_Position = aVertexPosition; }',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    // TODO: use step() to make uv.x >= 0.5 white.
+    float mask = uv.x;
+    gl_FragColor = vec4(vec3(mask), 1.0);
+}',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    float mask = step(0.5, uv.x);
+    gl_FragColor = vec4(vec3(mask), 1.0);
+}'
+);
+
+INSERT INTO lesson (
+    id, course_id, slug, display_order, title, description,
+    starter_vertex_shader, starter_fragment_shader, canonical_fragment_shader
+) VALUES (
+    'a0000002-0002-0002-0000-000000000000',
+    '11111111-0002-0000-0000-000000000000',
+    'smoothstep-edge',
+    1,
+    'A soft edge with smoothstep()',
+    'smoothstep(a, b, x) ramps 0 → 1 across the [a, b] range with a smooth Hermite curve. Use smoothstep(0.4, 0.6, uv.x) for a soft vertical transition.',
+    'attribute vec4 aVertexPosition;
+void main() { gl_Position = aVertexPosition; }',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    // TODO: smoothstep with edges 0.4 and 0.6.
+    float mask = step(0.5, uv.x);
+    gl_FragColor = vec4(vec3(mask), 1.0);
+}',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    float mask = smoothstep(0.4, 0.6, uv.x);
+    gl_FragColor = vec4(vec3(mask), 1.0);
+}'
+);
+
+INSERT INTO lesson (
+    id, course_id, slug, display_order, title, description,
+    starter_vertex_shader, starter_fragment_shader, canonical_fragment_shader
+) VALUES (
+    'a0000002-0003-0002-0000-000000000000',
+    '11111111-0002-0000-0000-000000000000',
+    'horizontal-band',
+    2,
+    'A horizontal band',
+    'Stack two smoothsteps back-to-back to draw a thin glowing band centered at y = 0.5. Subtract one from the other: smoothstep(0.49, 0.5, uv.y) - smoothstep(0.5, 0.51, uv.y).',
+    'attribute vec4 aVertexPosition;
+void main() { gl_Position = aVertexPosition; }',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    // TODO: bright band centered at y = 0.5, thickness ~0.02.
+    float band = 0.0;
+    gl_FragColor = vec4(vec3(band), 1.0);
+}',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    float band = smoothstep(0.49, 0.5, uv.y) - smoothstep(0.5, 0.51, uv.y);
+    gl_FragColor = vec4(vec3(band), 1.0);
+}'
+);
+
+INSERT INTO lesson (
+    id, course_id, slug, display_order, title, description,
+    starter_vertex_shader, starter_fragment_shader, canonical_fragment_shader
+) VALUES (
+    'a0000002-0004-0002-0000-000000000000',
+    '11111111-0002-0000-0000-000000000000',
+    'circle',
+    3,
+    'A filled circle',
+    'A distance field gives you a continuous "how far am I from this point?" value. length(uv - center) is the SDF for a circle. Combine with smoothstep to draw a filled disc of radius 0.3 centered at (0.5, 0.5).',
+    'attribute vec4 aVertexPosition;
+void main() { gl_Position = aVertexPosition; }',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    // TODO: 1.0 inside radius 0.3, 0.0 outside; antialiased.
+    float mask = 0.0;
+    gl_FragColor = vec4(vec3(mask), 1.0);
+}',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    float d = length(uv - vec2(0.5));
+    float mask = 1.0 - smoothstep(0.29, 0.31, d);
+    gl_FragColor = vec4(vec3(mask), 1.0);
+}'
+);
+
+INSERT INTO lesson (
+    id, course_id, slug, display_order, title, description,
+    starter_vertex_shader, starter_fragment_shader, canonical_fragment_shader
+) VALUES (
+    'a0000002-0005-0002-0000-000000000000',
+    '11111111-0002-0000-0000-000000000000',
+    'plot-parabola',
+    4,
+    'Plot a parabola',
+    'Draw the curve y = x² as a thin line. For each fragment, compare uv.y to the curve''s value and use a pair of smoothsteps to draw a 1 px line where they meet.',
+    'attribute vec4 aVertexPosition;
+void main() { gl_Position = aVertexPosition; }',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    // TODO: draw a line where uv.y = uv.x * uv.x.
+    float plot = 0.0;
+    gl_FragColor = vec4(vec3(plot), 1.0);
+}',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    float y = uv.x * uv.x;
+    float plot = smoothstep(y - 0.01, y, uv.y) - smoothstep(y, y + 0.01, uv.y);
+    gl_FragColor = vec4(vec3(plot), 1.0);
+}'
+);
+
+-- ===========================================================
+-- COURSE 3: Color
+-- ===========================================================
+
+INSERT INTO lesson (
+    id, course_id, slug, display_order, title, description,
+    starter_vertex_shader, starter_fragment_shader, canonical_fragment_shader
+) VALUES (
+    'a0000003-0001-0003-0000-000000000000',
+    '11111111-0003-0000-0000-000000000000',
+    'mix-red-blue',
+    0,
+    'Mix two colors',
+    'mix(a, b, t) does linear interpolation: 0 returns a, 1 returns b, anything between blends. Render a horizontal ramp from red on the left to blue on the right.',
+    'attribute vec4 aVertexPosition;
+void main() { gl_Position = aVertexPosition; }',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    // TODO: mix red and blue using uv.x.
+    vec3 color = vec3(1.0, 0.0, 0.0);
+    gl_FragColor = vec4(color, 1.0);
+}',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    vec3 color = mix(vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), uv.x);
+    gl_FragColor = vec4(color, 1.0);
+}'
+);
+
+INSERT INTO lesson (
+    id, course_id, slug, display_order, title, description,
+    starter_vertex_shader, starter_fragment_shader, canonical_fragment_shader
+) VALUES (
+    'a0000003-0002-0003-0000-000000000000',
+    '11111111-0003-0000-0000-000000000000',
+    'three-color',
+    1,
+    'Three-color gradient',
+    'Chain two mixes to pass through three colors: red → green at the halfway point, then green → blue at the end. Use smoothstep to control where each transition happens.',
+    'attribute vec4 aVertexPosition;
+void main() { gl_Position = aVertexPosition; }',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    // TODO: red -> green -> blue along x.
+    vec3 color = vec3(uv.x);
+    gl_FragColor = vec4(color, 1.0);
+}',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    vec3 c1 = mix(vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), smoothstep(0.0, 0.5, uv.x));
+    vec3 c2 = mix(c1, vec3(0.0, 0.0, 1.0), smoothstep(0.5, 1.0, uv.x));
+    gl_FragColor = vec4(c2, 1.0);
+}'
+);
+
+INSERT INTO lesson (
+    id, course_id, slug, display_order, title, description,
+    starter_vertex_shader, starter_fragment_shader, canonical_fragment_shader
+) VALUES (
+    'a0000003-0003-0003-0000-000000000000',
+    '11111111-0003-0000-0000-000000000000',
+    'hsv-rainbow',
+    2,
+    'HSV rainbow',
+    'HSV (hue, saturation, value) is a colour space that puts the rainbow on a single axis. Map uv.x to hue, hold saturation and value at 1.0, then convert HSV → RGB. The classic conversion is a six-line trick.',
+    'attribute vec4 aVertexPosition;
+void main() { gl_Position = aVertexPosition; }',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    // TODO: render hsv(uv.x, 1, 1) as RGB. See description for the conversion.
+    vec3 color = vec3(uv.x);
+    gl_FragColor = vec4(color, 1.0);
+}',
+    'vec3 hsv2rgb(vec3 c) {
+    vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
+    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
 void main() {
-  gl_Position = vec4(aVertexPosition, 0.0, 1.0);
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    vec3 color = hsv2rgb(vec3(uv.x, 1.0, 1.0));
+    gl_FragColor = vec4(color, 1.0);
+}'
+);
+
+INSERT INTO lesson (
+    id, course_id, slug, display_order, title, description,
+    starter_vertex_shader, starter_fragment_shader, canonical_fragment_shader
+) VALUES (
+    'a0000003-0004-0003-0000-000000000000',
+    '11111111-0003-0000-0000-000000000000',
+    'vignette',
+    3,
+    'Vignette',
+    'Darken the edges, keep the center bright. Compute distance from center and use smoothstep(0.3, 0.7, d) to falloff. Subtract from 1.0 so the center is full white.',
+    'attribute vec4 aVertexPosition;
+void main() { gl_Position = aVertexPosition; }',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    // TODO: 1.0 in the middle, fades to 0.0 in the corners.
+    float vig = 1.0;
+    gl_FragColor = vec4(vec3(vig), 1.0);
 }',
     'void main() {
-  // TODO: set gl_FragColor to opaque green.
-  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    float d = length(uv - vec2(0.5));
+    float vig = 1.0 - smoothstep(0.3, 0.7, d);
+    gl_FragColor = vec4(vec3(vig), 1.0);
+}'
+);
+
+INSERT INTO lesson (
+    id, course_id, slug, display_order, title, description,
+    starter_vertex_shader, starter_fragment_shader, canonical_fragment_shader
+) VALUES (
+    'a0000003-0005-0003-0000-000000000000',
+    '11111111-0003-0000-0000-000000000000',
+    'coord-color-time',
+    4,
+    'Color from coordinates + time',
+    'Pack three signals into one vec3: red = uv.x, green = uv.y, blue = 0.5 + 0.5 * sin(u_time). Verification runs at t = 20.0.',
+    'attribute vec4 aVertexPosition;
+void main() { gl_Position = aVertexPosition; }',
+    'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    // TODO: r=uv.x, g=uv.y, b=0.5+0.5*sin(u_time).
+    vec3 color = vec3(uv.x, uv.y, 0.0);
+    gl_FragColor = vec4(color, 1.0);
 }',
     'void main() {
-  gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
-}',
-    NULL -- populate via admin after running the canonical shader through the validator
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    vec3 color = vec3(uv.x, uv.y, 0.5 + 0.5 * sin(u_time));
+    gl_FragColor = vec4(color, 1.0);
+}'
 );

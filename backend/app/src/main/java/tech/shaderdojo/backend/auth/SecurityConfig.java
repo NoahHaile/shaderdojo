@@ -54,6 +54,8 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/courses", "/courses/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/lessons/*", "/lessons/*/solution").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/comments/**").permitAll()
+                        // Admin batch endpoint — gated by constant-time Admin-Authorization check in the controller.
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/lessons/recompute-hashes").permitAll()
                         // Everything else (verify, comment POST, admin CRUD) requires a JWT
                         .anyRequest().authenticated()
                 )
