@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { coursesApi, type Course, type Difficulty } from '../api';
-import { getCompletedLessons } from '../completion';
+import { useCompletedLessons } from '../completion';
 import { ProgressBar } from '../components/ProgressBar';
 
 export function CoursesPage() {
@@ -47,9 +47,7 @@ export function CoursesPage() {
         });
     }, [courses]);
 
-    // Source of truth for completion: localStorage. Reading on every render is
-    // cheap and ensures the bar updates after solving a lesson + navigating back.
-    const completedAll = getCompletedLessons();
+    const completedAll = useCompletedLessons();
     const completedCountFor = (c: Course) =>
         c.lessons.reduce((n, l) => n + (completedAll.has(l.id) ? 1 : 0), 0);
 
@@ -113,7 +111,7 @@ export function CoursesPage() {
 
 function CourseDetail({ course }: { course: Course }) {
     const total = course.lessons.length;
-    const completed = getCompletedLessons();
+    const completed = useCompletedLessons();
     const doneCount = course.lessons.reduce((n, l) => n + (completed.has(l.id) ? 1 : 0), 0);
     const pct = total === 0 ? 0 : Math.round((doneCount / total) * 100);
 

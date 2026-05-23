@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { authApi, getToken, setToken as persistToken } from './api';
+import { accountApi, authApi, getToken, setToken as persistToken } from './api';
+import { mergeCompletedLessons } from './completion';
 
 interface AuthState {
     token: string | null;
@@ -15,6 +16,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [token, setTokenState] = useState<string | null>(() => getToken());
 
     useEffect(() => { persistToken(token); }, [token]);
+
+    // Hydrate completed-lessons cache from the server whenever we have a token.
+    // Union with whatever localStorage already holds — never replaces.
+    useEffect(() => {
+        if (!token) return;
+        let cancelled = false;
+        accountApi.completedLessons()
+            .then(ids => { if (!cancelled) mergeCompletedLessons(ids); })
+            .catch(() => { /* offline / 401 — fall back to localStorage */ });
+        return () => { cancelled = true; };
+    }, [token]);
 
     const login = useCallback(async (username: string, password: string) => {
         const t = await authApi.login(username, password);

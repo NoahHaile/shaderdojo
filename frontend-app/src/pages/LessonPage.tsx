@@ -7,8 +7,8 @@ import {
 } from '../api';
 import { useAuth } from '../auth';
 import {
-    clearLessonCode, getCompletedLessons, isLocallyCompleted, loadLessonCode,
-    markLocallyCompleted, saveLessonCode,
+    clearLessonCode, isLocallyCompleted, loadLessonCode,
+    markLocallyCompleted, saveLessonCode, useCompletedLessons,
 } from '../completion';
 import { Editor } from '../components/Editor';
 import { Modal } from '../components/Modal';
@@ -93,16 +93,16 @@ export function LessonPage() {
     }, [course, lesson]);
 
     // Course progress: current lesson position + how many solved so far.
-    // Recompute on every verdict change so the bar advances right after solving.
+    // `completed` comes from the reactive hook so the bar updates when the
+    // server-hydrated set arrives, not only on verdict changes.
+    const completed = useCompletedLessons();
     const progress = useMemo(() => {
         if (!course || !lesson) return null;
         const idx = course.lessons.findIndex(l => l.id === lesson.id);
         const total = course.lessons.length;
-        const completed = getCompletedLessons();
         const doneCount = course.lessons.reduce((n, l) => n + (completed.has(l.id) ? 1 : 0), 0);
         return { position: idx + 1, total, done: doneCount };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [course, lesson, verdict]);
+    }, [course, lesson, completed]);
 
     // ── Autosave the editor body to localStorage whenever it changes ─
     useEffect(() => {

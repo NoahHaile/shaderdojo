@@ -151,6 +151,8 @@ export const accountApi = {
     me: () => request<AccountResponse>('GET', '/app/account', { auth: 'required' }),
     status: (lessonId: string) =>
         request<AttemptResponse>('GET', `/app/account/status/${encodeURIComponent(lessonId)}`, { auth: 'required' }),
+    completedLessons: () =>
+        request<string[]>('GET', '/app/account/completed-lessons', { auth: 'required' }),
     updateProfile: (data: { email?: string; country?: string; bio?: string }) =>
         request<string>('POST', '/app/account/profile_info', { body: data, auth: 'required', raw: true }),
     updateAccount: (data: { username: string; password: string; oldPassword: string }) =>

@@ -1,11 +1,21 @@
 // Tracks which lessons the current visitor has solved.
 //
-// For signed-in users this is just a cache; the source of truth is the
-// `attempt` table on the server (accountApi.status). For anonymous users
-// localStorage IS the source of truth — verify endpoint returns a verdict
-// but doesn't persist anything server-side.
+// For signed-in users this is a cache hydrated on auth-state change from
+// /account/completed-lessons (see AuthProvider). For anonymous users
+// localStorage IS the source of truth.
+//
+// Mutations bump a version counter; useCompletedLessons() subscribes via
+// useSyncExternalStore so the UI re-renders after async server hydration.
+
+import { useSyncExternalStore } from 'react';
 
 const KEY = 'sd:completed-lessons';
+
+let version = 0;
+const listeners = new Set<() => void>();
+function notify() { version++; for (const fn of listeners) fn(); }
+function subscribe(fn: () => void) { listeners.add(fn); return () => { listeners.delete(fn); }; }
+function getSnapshot() { return version; }
 
 function read(): Set<string> {
     try {
@@ -26,11 +36,25 @@ export function isLocallyCompleted(lessonId: string): boolean {
 
 export function markLocallyCompleted(lessonId: string) {
     const s = read();
-    if (!s.has(lessonId)) { s.add(lessonId); write(s); }
+    if (!s.has(lessonId)) { s.add(lessonId); write(s); notify(); }
+}
+
+/** Union the given ids into the locally-stored set. Used to hydrate from server. */
+export function mergeCompletedLessons(ids: string[]) {
+    const s = read();
+    let changed = false;
+    for (const id of ids) if (!s.has(id)) { s.add(id); changed = true; }
+    if (changed) { write(s); notify(); }
 }
 
 /** For UI badges on courses/lessons lists — returns the full set. */
 export function getCompletedLessons(): Set<string> {
+    return read();
+}
+
+/** React hook: re-renders the caller when the completion set changes. */
+export function useCompletedLessons(): Set<string> {
+    useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
     return read();
 }
 

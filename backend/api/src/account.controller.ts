@@ -51,6 +51,18 @@ export class AccountController {
         return { count: rows.length, status: anySuccess ? 'SUCCESSFUL' : 'FAILED' };
     }
 
+    @Get('completed-lessons')
+    async completedLessons(@Req() req: any): Promise<string[]> {
+        const rows = await this.attempts.find({
+            where: { account: { id: req.userId }, status: 'SUCCESSFUL' },
+            relations: ['lesson'],
+            select: { id: true, lesson: { id: true } },
+        });
+        const set = new Set<string>();
+        for (const r of rows) if (r.lesson) set.add(r.lesson.id);
+        return [...set];
+    }
+
     /* Comment posting moved to POST /comments/:lessonId (CommentsController),
        which accepts both signed-in and anonymous users. */
 
