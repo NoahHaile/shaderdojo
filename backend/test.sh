@@ -196,27 +196,40 @@ else
 fi
 
 # ============================================================================
-section "## Comments — post + list"
+section "## Comments — post + list (authed + anonymous)"
 # ============================================================================
+# Authed comment via the new POST /comments/:lessonId
 if [[ -z "$JWT" ]]; then
-    echo "  ${DIM}skipping: no JWT${OFF}"
+    echo "  ${DIM}skipping authed-comment test: no JWT${OFF}"
 else
     COMMENT_BODY=$(jq -n --arg c "void main(){gl_FragColor=vec4(0.0,1.0,0.0,1.0);}" \
-        --arg d "smoke-test from test.sh ($SUFFIX)" \
+        --arg d "authed smoke-test ($SUFFIX)" \
         '{code:$c, content:$d}')
-    http POST "/app/account/comment/$FIRST_LESSON_ID" \
+    http POST "/app/comments/$FIRST_LESSON_ID" \
         -H "Authorization: Bearer $JWT" \
         -H 'Content-Type: application/json' -d "$COMMENT_BODY"
     [[ "$STATUS" == 201 ]] \
-        && pass "POST /app/account/comment/{lessonId} → 201" \
-        || fail "post comment" "status=$STATUS body=$BODY"
-
-    http GET "/app/comments/$FIRST_LESSON_ID"
-    HAS_COMMENT=$(echo "$BODY" | jq --arg s "$SUFFIX" '[.[] | select(.content | test($s))] | length' 2>/dev/null)
-    [[ "$HAS_COMMENT" -ge 1 ]] \
-        && pass "GET /app/comments/{lessonId} contains the posted comment" \
-        || fail "comment list" "didn't find suffix=$SUFFIX"
+        && pass "POST /app/comments/{lessonId} (authed) → 201" \
+        || fail "post authed comment" "status=$STATUS body=$BODY"
 fi
+
+# Anonymous comment — same endpoint, no Authorization header
+ANON_BODY=$(jq -n --arg d "anon smoke-test ($SUFFIX)" '{content:$d}')
+http POST "/app/comments/$FIRST_LESSON_ID" \
+    -H 'Content-Type: application/json' -d "$ANON_BODY"
+[[ "$STATUS" == 201 ]] \
+    && pass "POST /app/comments/{lessonId} (anonymous) → 201" \
+    || fail "post anon comment" "status=$STATUS body=$BODY"
+
+http GET "/app/comments/$FIRST_LESSON_ID"
+HAS_AUTHED=$(echo "$BODY" | jq --arg s "authed smoke-test ($SUFFIX)" \
+    '[.[] | select(.content == $s)] | length' 2>/dev/null)
+HAS_ANON=$(echo "$BODY"   | jq --arg s "anon smoke-test ($SUFFIX)" \
+    '[.[] | select(.content == $s and .username == null)] | length' 2>/dev/null)
+if [[ -z "$JWT" ]]; then HAS_AUTHED=1; fi   # would have been skipped above
+[[ "$HAS_AUTHED" -ge 1 && "$HAS_ANON" -ge 1 ]] \
+    && pass "GET /app/comments/{lessonId} contains both authed + anonymous comments" \
+    || fail "comment list" "authed=$HAS_AUTHED anon=$HAS_ANON"
 
 # ============================================================================
 section "## Admin — recompute-hashes auth"
