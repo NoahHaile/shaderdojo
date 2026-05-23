@@ -1,94 +1,78 @@
-
 window.SHADERDOJO_API = window.SHADERDOJO_API || {
     auth: `${location.origin}/auth`,
     app:  `${location.origin}/app`,
 };
 
 function copyToClipboard(text) {
-    // Use the Clipboard API to copy the text
-    navigator.clipboard.writeText(text)
-        .then(() => {
-
-        })
-        .catch(err => {
-            console.error('Failed to copy text: ', err);
-            alert('Failed to copy text. Please try again.');
-        });
-
+    navigator.clipboard.writeText(text).catch(err => {
+        console.error('Failed to copy text:', err);
+    });
 }
 
 function copyButtonClicked(button) {
-    button.innerHTML = 'Copied!';
-    setTimeout(() => {
-        button.innerHTML = 'Copy Code';
-    }, 1000);
+    const original = button.textContent;
+    button.textContent = 'Copied';
+    setTimeout(() => { button.textContent = original; }, 1000);
 }
 
-
 async function fetchComments() {
+    const commentsContainer = document.getElementById('comments');
     try {
-        const response = await fetch(`${SHADERDOJO_API.app}/comments/${id}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error(`${response.status}`);
-        }
+        const response = await fetch(`${SHADERDOJO_API.app}/comments/${id}`);
+        if (!response.ok) throw new Error(`${response.status}`);
 
         const comments = await response.json();
-        const commentsContainer = document.getElementById('comments');
-        commentsContainer.innerHTML = '';
+        commentsContainer.replaceChildren();
 
-        comments.forEach(comment => {
-            const commentElement = document.createElement('div');
-            commentElement.classList.add('comment');
+        if (!comments.length) {
+            commentsContainer.textContent = 'No alternative solutions posted yet.';
+            return;
+        }
 
-            // Create header container
+        for (const comment of comments) {
+            const commentEl = document.createElement('article');
+            commentEl.className = 'comment';
+
             const header = document.createElement('div');
-            header.classList.add('comment-header');
+            header.className = 'comment-header';
 
-            // Username (using textContent to avoid XSS)
-            const usernameP = document.createElement('p');
-            usernameP.classList.add('comment-user');
-            usernameP.textContent = comment.username || '';
-            header.appendChild(usernameP);
+            const user = document.createElement('p');
+            user.className = 'comment-user';
+            user.textContent = comment.username || 'unknown';
+            header.appendChild(user);
 
-            // Copy button without inline HTML event handlers
-            const copyButton = document.createElement('button');
-            copyButton.type = 'button';
-            copyButton.classList.add('copy-button');
-            copyButton.textContent = 'Copy Code';
-            copyButton.addEventListener('click', function () {
+            const copyBtn = document.createElement('button');
+            copyBtn.type = 'button';
+            copyBtn.className = 'copy-button';
+            copyBtn.textContent = 'Copy code';
+            copyBtn.addEventListener('click', () => {
                 copyToClipboard(comment.code);
-                copyButtonClicked(copyButton);
+                copyButtonClicked(copyBtn);
             });
-            header.appendChild(copyButton);
+            header.appendChild(copyBtn);
 
-            commentElement.appendChild(header);
+            commentEl.appendChild(header);
 
-            // Comment text (using textContent to avoid XSS)
-            const commentText = document.createElement('p');
-            commentText.classList.add('comment-text');
-            commentText.textContent = comment.content;
-            commentElement.appendChild(commentText);
+            const text = document.createElement('p');
+            text.className = 'comment-text';
+            text.textContent = comment.content;
+            commentEl.appendChild(text);
 
-            commentsContainer.appendChild(commentElement);
-        });
-
-        if (comments.length === 0) {
-            commentsContainer.textContent = 'No alternative solutions posted';
+            commentsContainer.appendChild(commentEl);
         }
     } catch (error) {
-        console.error('Error:', error);
-        alert('An error occurred while fetching comments.');
+        commentsContainer.textContent = 'Could not load comments.';
     }
 }
 
 async function postComment(event) {
     event.preventDefault();
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = `login.html?redirect=${encodeURIComponent(location.pathname + location.search)}`;
+        return false;
+    }
+
     const content = document.getElementById('content-post').value;
     const code = document.getElementById('code-post').value;
     try {
@@ -100,15 +84,17 @@ async function postComment(event) {
             },
             body: JSON.stringify({ code, content }),
         });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-        if (!response.ok) {
-            throw new Error(`HTTP Error: ${response.status}`);
-        }
-
+        document.getElementById('content-post').value = '';
+        document.getElementById('code-post').value = '';
         fetchComments();
     } catch (error) {
-        console.error('Error:', error);
-        alert('An error occurred while posting your comment.');
+        if (typeof setErrorModal === 'function') {
+            setErrorModal('Could not post comment. Please try again.');
+        } else {
+            alert('Could not post comment.');
+        }
     }
     return false;
 }

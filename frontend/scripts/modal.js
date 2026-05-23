@@ -17,31 +17,26 @@ function modalProcessStart() {
 }
 
 function lessonBackUrl() {
-    const slug = (window.lessonContext && window.lessonContext.courseSlug);
-    return slug ? `courses.html?slug=${encodeURIComponent(slug)}` : 'problems.html';
-}
-
-function lessonDiscussionUrl() {
-    const lessonId = (window.lessonContext && window.lessonContext.lessonId);
-    return lessonId ? `discussion.html?id=${encodeURIComponent(lessonId)}` : 'solutions.html';
+    return 'courses.html';
 }
 
 function modalSuccess() {
     modal.style.display = 'block';
-    modalHeader.innerText = "Success!";
+    modalHeader.innerText = "Solved";
     modalStatus.innerText = "Nice work. Head back to the course to pick the next lesson.";
-    modalHeader.style.color = "#267E31";
+    modalHeader.style.color = "var(--success)";
     modalButtonContainer.innerHTML =
-        `<button class="button1" onclick="window.location.href='${lessonBackUrl()}'">Back to Course</button>`;
+        `<button class="button1" onclick="window.location.href='${lessonBackUrl()}'">Back to Course</button>` +
+        `<button class="button2" onclick="modal.style.display = 'none'">Keep tweaking</button>`;
 }
 
 function modalFail() {
     modal.style.display = 'block';
-    modalHeader.innerText = "Try Again!";
-    modalStatus.innerText = "Your solution wasn't quite there. Feel free to check the discussion page if you are starting to feel frustrated.";
+    modalHeader.innerText = "Not quite";
+    modalStatus.innerText = "Your output didn't match. Scroll down to see other learners' solutions in the discussion.";
+    modalHeader.style.color = "var(--warning)";
     modalButtonContainer.innerHTML =
-        `<button class="button1" onclick="modal.style.display = 'none'">Keep Grinding</button>` +
-        `<button class="button2" onclick="window.location.href='${lessonDiscussionUrl()}'">Check Solution</button>`;
+        `<button class="button1" onclick="modal.style.display = 'none'">Keep going</button>`;
 }
 
 function closeModal() {

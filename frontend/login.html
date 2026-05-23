@@ -4,130 +4,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShaderDojo</title>
+    <title>Sign in | ShaderDojo</title>
     <link rel="icon" type="image/png" href="./imgs/favicon.ico">
-    <link rel="stylesheet" href="./css/common.css">
-    <link rel="stylesheet" href="./css/login.css">
+    <link rel="stylesheet" href="./css/design.css">
 </head>
 
 <body>
-    <header>
-        <a href="index.html" class="title-link">
-            <div class="title-container">
-                <img src="./imgs/DojoLogo.png" class="logo" />
-                <h1 class="title">ShaderDojo</h1>
-            </div>
-        </a>
-        <nav>
-            <ul class="nav-container">
-                <li><a href="problems.html" class="nav-link">Problems</a></li>
-                <li><a href="solutions.html" class="nav-link">Discussion</a></li>
-                <li><a href="profile.html" class="nav-link">Profile</a></li>
-            </ul>
-        </nav>
-        <div class="menu-button" onclick="toggleDrawer()">☰</div>
+    <header class="app-header">
+        <div class="container">
+            <a href="index.html" class="brand">
+                <span class="brand-mark"></span>
+                ShaderDojo
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="courses.html">Courses</a></li>
+                </ul>
+                <button class="menu-toggle" onclick="toggleDrawer()" aria-label="Menu">☰</button>
+            </nav>
+        </div>
     </header>
     <div id="drawer" class="drawer">
-        <a href="problems.html" onclick="closeDrawer()">Problems</a>
-        <a href="solutions.html" onclick="closeDrawer()">Discussion</a>
-        <a href="profile.html" onclick="closeDrawer()">Profile</a>
+        <a href="courses.html" onclick="closeDrawer()">Courses</a>
     </div>
+    <script src="./scripts/drawer.js"></script>
 
-    <script>
-        const drawer = document.getElementById("drawer");
-
-        function toggleDrawer() {
-            drawer.classList.toggle("open");
-        }
-
-        function closeDrawer() {
-            drawer.classList.remove("open");
-        }
-    </script>
-
-    <div class="auth-header">
-        <p>Log in or sign up to submit your shader code, contribute solutions, and join the discussion!</p>
-    </div>
-    <section>
-
-        <form onsubmit="return login(event)" method="POST">
-            <h1 class="page-title">Login</h1>
-            <div class="input-container">
+    <main class="auth-shell">
+        <div class="container">
+            <form class="card auth-form" onsubmit="return login(event)" method="POST">
+                <h1>Sign in</h1>
                 <div class="form-group">
-                    <label for="username">Username/Email</label>
-                    <input type="text" id="username" name="username" required>
+                    <label for="username">Username or email</label>
+                    <input type="text" id="username" name="username" autocomplete="username" required>
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
+                    <input type="password" id="password" name="password" autocomplete="current-password" required>
                 </div>
-                <button type="submit" class="submit-button" onclick="buttonClick(this)">Sign In</button>
-            </div>
-        </form>
-        <form onsubmit="buttonClick(this); return register(event)" method="POST">
-            <h1 class="page-title">Sign-up</h1>
-            <div class="input-container">
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: var(--s-2);" onclick="buttonClick(this)">Sign in</button>
+            </form>
+
+            <form class="card auth-form" onsubmit="buttonClick(this); return register(event)" method="POST">
+                <h1>Create account</h1>
                 <div class="form-group">
                     <label for="email-signup">Email</label>
-                    <input type="email" id="email-signup" name="email" required>
+                    <input type="email" id="email-signup" name="email" autocomplete="email" required>
                 </div>
                 <div class="form-group">
                     <label for="username-signup">Username</label>
-                    <input type="text" id="username-signup" name="username" required>
+                    <input type="text" id="username-signup" name="username" autocomplete="username" required>
                 </div>
                 <div class="form-group">
                     <label for="password-signup">Password</label>
-                    <input type="password" id="password-signup" name="password" required>
+                    <input type="password" id="password-signup" name="password" autocomplete="new-password" required>
                 </div>
                 <div class="form-group">
-                    <label for="confirm-password">Confirm Password</label>
-                    <input type="password" id="confirm-password" name="confirm-password" required>
+                    <label for="confirm-password">Confirm password</label>
+                    <input type="password" id="confirm-password" name="confirm-password" autocomplete="new-password" required>
                 </div>
-                <button type="submit" class="submit-button" onclick="buttonClick(this)">Create Account</button>
-            </div>
-        </form>
-    </section>
-    <script src="./scripts/button.js"></script>
-
-    <footer class="footer">
-        <div class="footer-content">
-            <div>
-                <p class="footer-text"><span style="font-weight: bold;">Bug Reports & Inquiries:</span> <a
-                        href="mailto:noah@noahhaile.com" class="email-link">noah@noahhaile.com</a></p>
-            </div>
-            <div class="social-icons">
-                <!-- Twitter -->
-                <a href="https://twitter.com/intent/tweet" target="_blank" class="social-link" title="Share on Twitter">
-                    <img src="https://img.icons8.com/ios-filled/24/twitter.png" alt="Twitter">
-                </a>
-                <!-- Facebook -->
-                <a href="https://facebook.com/sharer/sharer.php" target="_blank" class="social-link"
-                    title="Share on Facebook">
-                    <img src="https://img.icons8.com/ios-filled/24/facebook-new.png" alt="Facebook">
-                </a>
-                <!-- Email -->
-                <a href="mailto:?subject" target="_blank" class="social-link" title="Share via Email">
-                    <img src="https://img.icons8.com/ios-filled/24/email.png" alt="Email">
-                </a>
-                <!-- LinkedIn -->
-                <a href="https://www.linkedin.com/sharing/share-offsite" target="_blank" class="social-link"
-                    title="Share on LinkedIn">
-                    <img src="https://img.icons8.com/ios-filled/24/linkedin.png" alt="LinkedIn">
-                </a>
-                <!-- Reddit -->
-                <a href="https://reddit.com/submit" target="_blank" class="social-link" title="Share on Reddit">
-                    <img src="https://img.icons8.com/ios-filled/24/reddit.png" alt="Reddit">
-                </a>
-            </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: var(--s-2);" onclick="buttonClick(this)">Create account</button>
+            </form>
         </div>
-    </footer>
+    </main>
+
     <div id="error-modal" class="error-modal">
         <div class="error-modal-content">
             <p id="error-modal-message"></p>
             <span id="close-error-ModalBtn" class="close-error">&times;</span>
         </div>
     </div>
-    <script src="../scripts/errorModal.js"></script>
+
+    <footer class="app-footer">
+        <div class="container">
+            <span>ShaderDojo</span>
+            <a href="mailto:noah@noahhaile.com">noah@noahhaile.com</a>
+        </div>
+    </footer>
+
+    <script src="./scripts/button.js"></script>
+    <script src="./scripts/errorModal.js"></script>
     <script src="./scripts/login.js"></script>
 </body>
 

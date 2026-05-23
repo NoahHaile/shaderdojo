@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courses | ShaderDojo</title>
+    <link rel="icon" type="image/png" href="./imgs/favicon.ico">
+    <link rel="stylesheet" href="./css/design.css">
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="container">
+            <a href="index.html" class="brand">
+                <span class="brand-mark"></span>
+                ShaderDojo
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="courses.html" class="active">Courses</a></li>
+                    <li><a href="profile.html">Profile</a></li>
+                </ul>
+                <button class="menu-toggle" onclick="toggleDrawer()" aria-label="Menu">☰</button>
+            </nav>
+        </div>
+    </header>
+    <div id="drawer" class="drawer">
+        <a href="courses.html" onclick="closeDrawer()">Courses</a>
+        <a href="profile.html" onclick="closeDrawer()">Profile</a>
+    </div>
+    <script src="./scripts/drawer.js"></script>
+
+    <main class="lesson-shell">
+        <div class="container">
+            <h1 style="margin-bottom: var(--s-2);">Courses</h1>
+            <p style="color: var(--text-dim); margin-bottom: var(--s-6);">Pick a course and work through its lessons in order. Each lesson builds on the last.</p>
+            <div id="course-list">Loading courses…</div>
+        </div>
+    </main>
+
+    <footer class="app-footer">
+        <div class="container">
+            <span>ShaderDojo</span>
+            <a href="mailto:noah@noahhaile.com">noah@noahhaile.com</a>
+        </div>
+    </footer>
+
+    <script>
+        (async function loadCourses() {
+            const root = document.getElementById('course-list');
+            try {
+                const r = await fetch(`${location.origin}/app/courses`);
+                if (!r.ok) throw new Error(r.status);
+                const courses = await r.json();
+
+                root.replaceChildren();
+                if (!courses.length) {
+                    root.textContent = 'No courses available yet.';
+                    return;
+                }
+                for (const course of courses) {
+                    const card = document.createElement('article');
+                    card.className = 'course-card';
+
+                    const header = document.createElement('div');
+                    header.className = 'course-card-header';
+                    const h2 = document.createElement('h2');
+                    h2.textContent = course.title;
+                    const meta = document.createElement('span');
+                    meta.className = 'course-card-meta';
+                    const n = (course.lessons || []).length;
+                    meta.textContent = `${n} lesson${n === 1 ? '' : 's'}`;
+                    header.appendChild(h2);
+                    header.appendChild(meta);
+                    card.appendChild(header);
+
+                    if (course.description) {
+                        const desc = document.createElement('p');
+                        desc.className = 'course-card-desc';
+                        desc.textContent = course.description;
+                        card.appendChild(desc);
+                    }
+
+                    if (course.lessons && course.lessons.length) {
+                        const list = document.createElement('ul');
+                        list.className = 'lesson-list';
+                        course.lessons.forEach((lesson, idx) => {
+                            const li = document.createElement('li');
+                            const num = document.createElement('span');
+                            num.className = 'num';
+                            num.textContent = String(idx + 1).padStart(2, '0');
+                            const a = document.createElement('a');
+                            a.href = `lesson.html?id=${encodeURIComponent(lesson.id)}`;
+                            a.textContent = lesson.title;
+                            const pill = document.createElement('span');
+                            pill.className = lesson.verified ? 'pill pill-verified' : 'pill';
+                            pill.textContent = lesson.verified ? 'Verified' : 'Explore';
+                            li.appendChild(num);
+                            li.appendChild(a);
+                            li.appendChild(pill);
+                            list.appendChild(li);
+                        });
+                        card.appendChild(list);
+                    }
+
+                    root.appendChild(card);
+                }
+            } catch (e) {
+                root.textContent = 'Could not load courses. Check that the API is reachable.';
+            }
+        })();
+    </script>
+</body>
+
+</html>
