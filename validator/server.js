@@ -40,9 +40,16 @@ async function getBrowser() {
         } catch { /* fall through and relaunch */ }
         browserPromise = null;
     }
+    // --no-sandbox / --disable-setuid-sandbox: Ubuntu 22.04+ on most cloud hosts
+    // (incl. DigitalOcean droplets) locks down unprivileged user namespaces via
+    // AppArmor, so Chromium's own sandbox can't initialize. The validator is
+    // already isolated inside a Docker container running as the non-root
+    // `pptruser`, with no network access to the DB or any other service, which
+    // is the effective sandbox boundary. See:
+    //   https://chromium.googlesource.com/chromium/src/+/main/docs/security/apparmor-userns-restrictions.md
     browserPromise = puppeteer.launch({
         headless: 'new',
-        args: ['--disable-dev-shm-usage'],
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
     });
     const b = await browserPromise;
     b.on('disconnected', () => { browserPromise = null; });
