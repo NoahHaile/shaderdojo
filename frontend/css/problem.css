@@ -1,0 +1,304 @@
+body {
+    display: grid;
+    grid-template-rows: auto auto auto auto;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+        "header              header"
+        "problem-title       problem-title"
+        "problem-description problem-description"
+        "editor              shaderCanvas";
+
+    gap: 0 var(--normal-padding);
+}
+
+
+
+/* Problem-title */
+.problem-title-container {
+    grid-area: problem-title;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    gap: var(--tiny-padding);
+
+    padding: 0;
+    margin: 0;
+
+    padding-top: var(--section-y-padding);
+    padding-bottom: var(--section-y-padding);
+
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.expand-arrow {
+    width: 24px;
+    height: 24px;
+
+    margin: 0 var(--tiny-padding);
+
+    transform: rotate(90deg);
+    transition: transform 0.3s;
+}
+
+.problem-title {
+    font-size: var(--large-font-size);
+    font-weight: normal;
+    color: var(--font-color);
+
+    padding: 0;
+    margin: 0;
+}
+
+.expansion-instruction {
+    font-size: var(--smaller-font-size);
+    color: var(--font-color-light);
+    font-style: italic;
+}
+
+
+
+/* Description */
+.problem-description {
+    grid-area: problem-description;
+    padding-top: var(--section-y-padding);
+    padding-bottom: var(--section-y-padding);
+    padding-left: var(--logo-offset);
+    padding-right: var(--small-padding);
+}
+
+.problem-description,
+.problem-description p {
+    font-size: var(--small-font-size);
+    color: var(--font-color);
+    text-align: justify;
+    hyphens: auto;
+    line-height: 1.5;
+}
+
+.problem-description p {
+    margin-bottom: calc(var(--tiny-padding) / 2);
+}
+
+
+/* Editor */
+.editor-container {
+    grid-area: editor;
+    padding-top: var(--section-y-padding);
+    padding-bottom: var(--section-y-padding);
+    padding-left: var(--logo-offset);
+
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--tiny-padding) / 2);
+}
+
+.status-text {
+    font-size: var(--smaller-font-size);
+    color: var(--font-color-light);
+    font-style: italic;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-start;
+    gap: calc(var(--tiny-padding) / 2);
+    width: 100%;
+}
+
+#editor {
+    width: 100%;
+    height: 26vw;
+    min-height: 240px;
+    font-size: var(--small-font-size);
+    line-height: 1.5;
+}
+
+.button-container {
+    display: flex;
+    gap: var(--small-padding);
+}
+
+.button1 {
+    padding: calc(var(--tiny-padding) / 2) var(--small-padding);
+    font-size: var(--normal-font-size);
+    cursor: pointer;
+    background-color: var(--link-color);
+    color: var(--font-color-white);
+    border: 1px solid var(--link-color);
+}
+
+.button2 {
+    padding: calc(var(--tiny-padding) / 2) var(--small-padding);
+    font-size: var(--normal-font-size);
+    cursor: pointer;
+
+    background-color: var(--background-color);
+    border: 1px solid var(--font-color-light);
+}
+
+
+/* Shader Canvas */
+.shader-canvas-container {
+    grid-area: shaderCanvas;
+    padding-top: var(--section-y-padding);
+    padding-bottom: var(--section-y-padding);
+
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: calc(var(--tiny-padding) / 2);
+}
+
+#shaderCanvas {
+    width: 100%;
+    height: 26vw;
+    min-height: 240px;
+}
+
+.shader-controllers {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--background-color);
+
+    border: 1px solid var(--font-color-light);
+
+    box-sizing: border-box;
+
+    padding: calc(var(--tiny-padding) / 4) var(--tiny-padding);
+
+    width: 100%;
+}
+
+#pausePlayButton {
+    font-size: var(--normal-font-size);
+    cursor: pointer;
+
+    padding: 0 calc(var(--tiny-padding) / 4);
+
+    color: var(--secondary-color);
+    margin-right: calc(var(--tiny-padding) / 2);
+}
+
+#timeDisplay {
+
+    font-size: var(--small-font-size);
+    font-style: italic;
+    color: var(--secondary-color);
+}
+
+#manualTime {
+    font-size: var(--small-font-size);
+    cursor: pointer;
+    background-color: var(--background-color);
+    color: var(--secondary-color);
+    padding-left: calc(var(--tiny-padding) / 4);
+    margin-right: calc(var(--tiny-padding) / 2);
+}
+
+#resetButton,
+#codeResetButton {
+    font-size: var(--normal-font-size);
+    cursor: pointer;
+
+    padding: 0 calc(var(--tiny-padding) / 4);
+
+    color: var(--secondary-color);
+    background: transparent;
+    border: 1px solid var(--font-color-light);
+}
+
+
+.modal {
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    /* Above other elements */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    /* Semi-transparent background */
+}
+
+/* Modal Content */
+.modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    background-color: var(--background-color);
+    color: var(--font-color);
+    padding: var(--small-padding) var(--normal-padding);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+
+    text-align: center;
+
+    max-width: calc(100% - var(--normal-padding) * 2);
+    width: calc(var(--large-padding) * 6);
+}
+
+/* Close Button */
+.close {
+
+    align-self: flex-end;
+    font-size: var(--larger-font-size);
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: var(--tiny-padding);
+}
+
+.close:hover {
+    color: var(--link-color);
+}
+
+#result-status {
+    font-size: var(--larger-font-size);
+    font-weight: bold;
+    color: var(--font-color);
+    margin-bottom: var(--tiny-padding);
+}
+
+#processing-status {
+    font-size: var(--small-font-size);
+    color: var(--font-color-light);
+    font-style: italic;
+    margin-bottom: var(--small-padding);
+}
+
+
+
+@media (max-width: 1050px) {
+    body {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .problem-title-container,
+    .problem-description,
+    .editor-container,
+    .shader-canvas-container {
+        padding-left: var(--normal-padding);
+        padding-right: var(--normal-padding);
+    }
+
+    #shaderCanvas,
+    #editor {
+        height: calc((90vw * 9) / 16);
+        width: 100%;
+    }
+}

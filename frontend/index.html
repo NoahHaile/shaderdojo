@@ -6,65 +6,226 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShaderDojo</title>
     <link rel="icon" type="image/png" href="./imgs/favicon.ico">
-    <link rel="stylesheet" href="./css/design.css">
+    <link rel="stylesheet" href="./css/common.css">
+    <link rel="stylesheet" href="./css/index.css">
 </head>
 
 <body>
-    <header class="app-header">
-        <div class="container">
-            <a href="index.html" class="brand">
-                <span class="brand-mark"></span>
-                ShaderDojo
-            </a>
-            <nav>
-                <ul class="nav-links">
-                    <li><a href="courses.html">Courses</a></li>
-                    <li><a href="profile.html">Profile</a></li>
-                </ul>
-                <button class="menu-toggle" onclick="toggleDrawer()" aria-label="Menu">☰</button>
-            </nav>
-        </div>
+    <header>
+        <a href="index.html" class="title-link">
+            <div class="title-container">
+                <img src="./imgs/DojoLogo.png" class="logo" />
+                <h1 class="title">ShaderDojo</h1>
+            </div>
+        </a>
+        <nav>
+            <ul class="nav-container">
+                <li><a href="problems.html" class="nav-link">Problems</a></li>
+                <li><a href="solutions.html" class="nav-link">Discussion</a></li>
+                <li><a href="profile.html" class="nav-link">Profile</a></li>
+            </ul>
+        </nav>
+        <div class="menu-button" onclick="toggleDrawer()">☰</div>
     </header>
     <div id="drawer" class="drawer">
-        <a href="courses.html" onclick="closeDrawer()">Courses</a>
+        <a href="problems.html" onclick="closeDrawer()">Problems</a>
+        <a href="solutions.html" onclick="closeDrawer()">Discussion</a>
         <a href="profile.html" onclick="closeDrawer()">Profile</a>
     </div>
-    <script src="./scripts/drawer.js"></script>
 
-    <main>
-        <section class="container hero">
-            <h1>Learn shaders by writing shaders.</h1>
-            <p>A guided course built around <em>The Book of Shaders</em>. Solve bite-sized GLSL exercises in your browser and watch the picture come together one concept at a time.</p>
-            <div class="hero-cta">
-                <a href="courses.html" class="btn btn-primary btn-lg">Start learning</a>
-                <a href="https://thebookofshaders.com/" target="_blank" rel="noopener" class="btn btn-lg">The Book of Shaders</a>
-            </div>
-        </section>
+    <script>
+        const drawer = document.getElementById("drawer");
 
-        <section class="container" style="padding: var(--s-6) 0 var(--s-9);">
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap: var(--s-4);">
-                <div class="card">
-                    <h3 style="margin-bottom: var(--s-2);">Write, run, verify</h3>
-                    <p style="color: var(--text-dim); font-size: 14px;">Each lesson runs your GLSL in the browser and compares the rendered pixels against the expected output.</p>
-                </div>
-                <div class="card">
-                    <h3 style="margin-bottom: var(--s-2);">One concept per step</h3>
-                    <p style="color: var(--text-dim); font-size: 14px;">Lessons stay short on purpose: uniforms, shaping functions, distance fields, noise — one at a time.</p>
-                </div>
-                <div class="card">
-                    <h3 style="margin-bottom: var(--s-2);">Build something you keep</h3>
-                    <p style="color: var(--text-dim); font-size: 14px;">Courses are sequential. Finish one and you have a portfolio-grade shader, not just a stack of one-offs.</p>
+        function toggleDrawer() {
+            drawer.classList.toggle("open");
+        }
+
+        function closeDrawer() {
+            drawer.classList.remove("open");
+        }
+    </script>
+
+    <main class="hero">
+        <h1 class="page-title">Deconstruct & Transform GPU Code</h1>
+        <div class="program">
+            <div class="shader-canvas-container">
+                <canvas id="shaderCanvas"></canvas>
+                <div class="shader-controllers">
+                    <div style="display: flex; align-items: flex-end;">
+                        <button id="pausePlayButton">❚❚</button>
+                        <div id='timeDisplay' class="time-display"></div>
+                    </div>
+
+                    <div style="display: flex; align-items: flex-end;">
+                        <input type="number" id="manualTime" min="0" max="10000" step="0.1" placeholder="Start time">
+                        <button id="resetButton">↻</button>
+                    </div>
                 </div>
             </div>
-        </section>
+            <div class="editor-container">
+                <form>
+                    <div id="editor"></div>
+                </form>
+            </div>
+        </div>
+        <div class="button-container">
+            <button type="button" class="runner" onclick="buttonClick(this); runNewShader()">Run</button>
+        </div>
+        <p class="description">ShaderDojo is a mix between <a class="inner-link" href="https://shadertoy.com/"
+                target="_blank">ShaderToy</a> and <a class="inner-link" href="https://projecteuler.net/"
+                target="_blank">Project Euler</a>.
+            Take on the challenge of transforming famous shaders, reshaping their style, colors, and effects to match
+            precise creative goals.
+            Start digging through <a class="inner-link" href="problems.html">one of our problems</a> and
+            sharpen your creative coding skills.
+        </p>
     </main>
+    <script src="./scripts/button.js"></script>
 
-    <footer class="app-footer">
-        <div class="container">
-            <span>ShaderDojo</span>
-            <a href="mailto:noah@noahhaile.com">noah@noahhaile.com</a>
+    <section class="instructions">
+        <h1 class="sub-title">Essentials</h1>
+        <p class="description">
+            Before you dive into shaders, you need two things: <strong class="inner-link">patience</strong> and <strong
+                class="inner-link">curiosity</strong>.
+            Learn how a piece works and meet it where it's at. The best shader artists know how to embrace the process,
+            bending light and math to create something beautiful.
+        </p>
+
+
+        <ul class="instruction-list">
+            <li class="instruction-element">
+                <strong>u_time</strong>: Tracks how long the shader has been running (e.g., <code>4.32</code>,
+                <code>8.13</code>, <code>0.1</code> seconds)
+            </li>
+            <li class="instruction-element">
+                <strong>u_resolution</strong>: Stores the width and height of the rendering canvas (e.g.,
+                <code>[800, 600]</code>)
+            </li>
+            <li class="instruction-element">
+                <strong>gl_FragColor</strong>: Sets the final normalized RGBA color of each pixel (e.g.,
+                <code>[1.0, 0.0, 0.0, 1.0]</code> for red)
+            </li>
+            <li class="instruction-element">
+                <strong>gl_FragCoord</strong>: Gives each pixel's coordinates in window space.
+                <code>gl_FragCoord.xy</code> represents the pixel's x and y position.
+            </li>
+            <li class="instruction-element">
+                <strong>Vectors and Mathematics</strong>: Use highly optimized <a class="inner-link"
+                    href="https://docs.isf.video/ref_functions.html#standard-glsl-functions">built-in functions</a> for
+                efficient trigonometric and arithmetic operations.
+            </li>
+        </ul>
+    </section>
+
+
+    <section class="resources">
+        <h1 class="sub-title">Resources</h1>
+        <p class="small-description">Below are beginner-friendly resources to help you get started.
+        </p>
+
+        <div class="video-cards">
+
+            <iframe src="https://www.youtube.com/embed/f4s1h2YETNY?si=90oL2MV1scoKdzp9" title="Tutorial 1"
+                class="video-container" frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen>
+            </iframe>
+
+            <iframe src="https://www.youtube.com/embed/u5HAYVHsasc?si=VLWjzB88hRoMoHlK" title="Tutorial 2"
+                class="video-container" frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen>
+            </iframe>
+
+
+            <iframe src="https://www.youtube.com/embed/khblXafu7iA?si=56vd0fJkYxsUb2KB" title="Tutorial 3"
+                class="video-container" frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen>
+            </iframe>
+
+
+        </div>
+    </section>
+
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div>
+                <p class="footer-text"><span style="font-weight: bold;">Bug Reports & Inquiries:</span> <a
+                        href="mailto:noah@noahhaile.com" class="email-link">noah@noahhaile.com</a></p>
+            </div>
+            <div class="social-icons">
+                <!-- Twitter -->
+                <a href="https://twitter.com/intent/tweet" target="_blank" class="social-link" title="Share on Twitter">
+                    <img src="https://img.icons8.com/ios-filled/24/twitter.png" alt="Twitter">
+                </a>
+                <!-- Facebook -->
+                <a href="https://facebook.com/sharer/sharer.php" target="_blank" class="social-link"
+                    title="Share on Facebook">
+                    <img src="https://img.icons8.com/ios-filled/24/facebook-new.png" alt="Facebook">
+                </a>
+                <!-- Email -->
+                <a href="mailto:?subject" target="_blank" class="social-link" title="Share via Email">
+                    <img src="https://img.icons8.com/ios-filled/24/email.png" alt="Email">
+                </a>
+                <!-- LinkedIn -->
+                <a href="https://www.linkedin.com/sharing/share-offsite" target="_blank" class="social-link"
+                    title="Share on LinkedIn">
+                    <img src="https://img.icons8.com/ios-filled/24/linkedin.png" alt="LinkedIn">
+                </a>
+                <!-- Reddit -->
+                <a href="https://reddit.com/submit" target="_blank" class="social-link" title="Share on Reddit">
+                    <img src="https://img.icons8.com/ios-filled/24/reddit.png" alt="Reddit">
+                </a>
+            </div>
         </div>
     </footer>
+
+    <div id="error-modal" class="error-modal">
+        <div class="error-modal-content">
+            <p id="error-modal-message"></p>
+            <span id="close-error-ModalBtn" class="close-error">&times;</span>
+        </div>
+    </div>
+
+    <script id="page-constants">
+        const fragmentShaderSourceBody = `
+// Original shader by Danilo Guanabara
+void main() {
+    vec3 c;
+    float l, z = u_time;
+    vec2 fragCoord = gl_FragCoord.xy;
+    
+    for(int i = 0; i < 3; i++) {
+        vec2 uv, p = fragCoord / u_resolution.xy;
+        uv = p;
+        p -= 0.5;
+        p.x *= u_resolution.x / u_resolution.y;
+        z += 0.07;
+        l = length(p);
+        uv += p / l * (sin(z) + 1.0) * abs(sin(l * 9.0 - z - z));
+        c[i] = 0.01 / length(mod(uv, 1.0) - 0.5);
+    }
+    
+    gl_FragColor = vec4(c / l, u_time);
+}
+`
+    </script>
+
+    <script src="./scripts/errorModal.js"></script>
+    <script src="./scripts/shaderControllers.js"></script>
+    <script src="./scripts/shaderFunctions.js"></script>
+    <script src="./scripts/loadScreen.js"></script>
+
+    <script src="./scripts/button.js"></script>
+
+    <script src="./lib/ace/ace.js"></script>
+    <script src="./lib/ace/mode.js"></script>
+    <script src="./lib/ace/theme.js"></script>
+    <script src="./scripts/editor-setup.js"></script>
+    <script src="./scripts/shader.js"></script>
+
 </body>
 
 </html>

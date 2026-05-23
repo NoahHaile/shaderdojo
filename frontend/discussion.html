@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShaderDojo</title>
+    <link rel="icon" type="image/png" href="./imgs/favicon.ico">
+    <link rel="stylesheet" href="./css/common.css">
+    <link rel="stylesheet" href="./css/discussion.css">
+</head>
+
+<body>
+    <header>
+        <a href="./index.html" class="title-link">
+            <div class="title-container">
+                <img src="./imgs/DojoLogo.png" class="logo" />
+                <h1 class="title">ShaderDojo</h1>
+            </div>
+        </a>
+        <nav>
+            <ul class="nav-container">
+                <li><a href="./problems.html" class="nav-link">Problems</a></li>
+                <li><a href="./solutions.html" class="nav-link">Discussion</a></li>
+                <li><a href="./profile.html" class="nav-link">Profile</a></li>
+            </ul>
+        </nav>
+        <div class="menu-button" onclick="toggleDrawer()">☰</div>
+    </header>
+    <div id="drawer" class="drawer">
+        <a href="./problems.html" onclick="closeDrawer()">Problems</a>
+        <a href="./solutions.html" onclick="closeDrawer()">Discussion</a>
+        <a href="./profile.html" onclick="closeDrawer()">Profile</a>
+    </div>
+    <script src="./scripts/drawer.js"></script>
+
+    <main class="solution">
+        <h1 class="page-title">Loading…</h1>
+        <div class="program">
+            <div class="shader-canvas-container">
+                <canvas id="shaderCanvas"></canvas>
+                <div class="shader-controllers">
+                    <div style="display: flex; align-items: flex-end;">
+                        <button id="pausePlayButton">❚❚</button>
+                        <div id='timeDisplay' class="time-display"></div>
+                    </div>
+                    <div style="display: flex; align-items: flex-end;">
+                        <input type="number" id="manualTime" min="0" max="10000" step="0.1" placeholder="Start time">
+                        <button id="resetButton">↻</button>
+                    </div>
+                </div>
+            </div>
+            <div class="editor-container">
+                <form>
+                    <div id="editor"></div>
+                </form>
+            </div>
+        </div>
+        <div class="button-container">
+            <button type="button" class="runner" onclick="buttonClick(this); runShader()">Run</button>
+        </div>
+    </main>
+
+    <section class="comment-section">
+        <h1 class="sub-title">Alternative Solutions</h1>
+        <div class="comments" id="comments"></div>
+    </section>
+
+    <section class="post-comment-section">
+        <h1 class="sub-title">Post Your Own Solution</h1>
+        <form onsubmit="return postComment(event)" method="POST">
+            <textarea placeholder="Paste code" rows="10" cols="auto" id="code-post" name="code-post"></textarea>
+            <input type="text" id='content-post' name="content-post"
+                placeholder="Describe your solution and its improvements in brief" />
+            <button type="submit" class="submit-button" onclick="buttonClick(this)">Submit</button>
+        </form>
+    </section>
+
+    <div id="error-modal" class="error-modal">
+        <div class="error-modal-content">
+            <p id="error-modal-message"></p>
+            <span id="close-error-ModalBtn" class="close-error">&times;</span>
+        </div>
+    </div>
+
+    <script>
+        (async function bootstrapDiscussion() {
+            const params = new URLSearchParams(location.search);
+            const lessonId = params.get('id');
+            if (!lessonId) {
+                document.querySelector('.page-title').textContent = 'No lesson selected';
+                return;
+            }
+
+            window.redirectUrl = `login.html?redirect=${encodeURIComponent('discussion.html?id=' + lessonId)}`;
+
+            let solution;
+            try {
+                const r = await fetch(`${location.origin}/app/lessons/${encodeURIComponent(lessonId)}/solution`);
+                if (!r.ok) throw new Error('status ' + r.status);
+                solution = await r.json();
+            } catch (e) {
+                document.querySelector('.page-title').textContent = 'Lesson not found';
+                return;
+            }
+
+            // Globals the legacy scripts expect.
+            window.id = lessonId;
+            window.fragmentShaderSourceBody = solution.canonicalFragmentShader || '';
+            window.pageUrl = `discussion/${lessonId}`;
+
+            document.title = `${solution.title} | Discussion | ShaderDojo`;
+            document.querySelector('.page-title').textContent = `${solution.title} | Accepted Solution`;
+
+            const scripts = [
+                './scripts/account_verify.js',
+                './scripts/shaderControllers.js',
+                './scripts/shaderFunctions.js',
+                './scripts/loadScreen.js',
+                './scripts/errorModal.js',
+                './scripts/discussion.js',
+                './scripts/button.js',
+                './lib/ace/ace.js',
+                './lib/ace/mode.js',
+                './lib/ace/theme.js',
+                './scripts/editor-setup.js',
+                './scripts/problem.js',
+                './lib/sha256.js',
+                './scripts/shader.js',
+            ];
+            for (const src of scripts) {
+                await new Promise((resolve, reject) => {
+                    const s = document.createElement('script');
+                    s.src = src;
+                    s.onload = resolve;
+                    s.onerror = () => reject(new Error('Failed to load ' + src));
+                    document.body.appendChild(s);
+                });
+            }
+        })();
+    </script>
+</body>
+
+</html>

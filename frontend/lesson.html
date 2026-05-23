@@ -4,101 +4,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lesson | ShaderDojo</title>
+    <title>ShaderDojo</title>
+
     <link rel="icon" type="image/png" href="./imgs/favicon.ico">
-    <link rel="stylesheet" href="./css/design.css">
+    <link rel="stylesheet" href="./css/common.css">
+    <link rel="stylesheet" href="./css/problem.css">
 </head>
 
 <body>
-    <header class="app-header">
-        <div class="container">
-            <a href="index.html" class="brand">
-                <span class="brand-mark"></span>
-                ShaderDojo
-            </a>
-            <nav>
-                <ul class="nav-links">
-                    <li><a href="courses.html">Courses</a></li>
-                    <li><a href="profile.html">Profile</a></li>
-                </ul>
-                <button class="menu-toggle" onclick="toggleDrawer()" aria-label="Menu">☰</button>
-            </nav>
-        </div>
+    <header>
+        <a href="./index.html" class="title-link">
+            <div class="title-container">
+                <img src="./imgs/DojoLogo.png" class="logo" />
+                <h1 class="title">ShaderDojo</h1>
+            </div>
+        </a>
+        <nav>
+            <ul class="nav-container">
+                <li><a href="./problems.html" class="nav-link">Problems</a></li>
+                <li><a href="./solutions.html" class="nav-link">Discussion</a></li>
+                <li><a href="./profile.html" class="nav-link">Profile</a></li>
+            </ul>
+        </nav>
+        <div class="menu-button" onclick="toggleDrawer()">☰</div>
     </header>
     <div id="drawer" class="drawer">
-        <a href="courses.html" onclick="closeDrawer()">Courses</a>
-        <a href="profile.html" onclick="closeDrawer()">Profile</a>
+        <a href="./problems.html" onclick="closeDrawer()">Problems</a>
+        <a href="./solutions.html" onclick="closeDrawer()">Discussion</a>
+        <a href="./profile.html" onclick="closeDrawer()">Profile</a>
     </div>
     <script src="./scripts/drawer.js"></script>
 
-    <main class="lesson-shell">
-        <div class="container">
-            <nav class="crumbs">
-                <a href="courses.html">Courses</a>
-                <span class="sep">/</span>
-                <span id="crumb-course" class="text-dim">Course</span>
-                <span class="sep">/</span>
-                <span id="crumb-lesson" style="color: var(--text);">Lesson</span>
-            </nav>
+    <section class="problem-title-container" onclick="toggleExpand()">
+        <img src="./imgs/right-arrow-svgrepo-com.svg" class="expand-arrow" />
+        <h1 class="problem-title">Loading lesson…</h1>
+        <p class="expansion-instruction">Collapse</p>
+    </section>
 
-            <div class="lesson-header">
-                <h1 class="problem-title">Loading lesson…</h1>
-                <p class="status-text">Fetching status…</p>
+    <div class="problem-description"></div>
+
+    <div class="shader-canvas-container">
+        <canvas id="shaderCanvas"></canvas>
+        <div class="shader-controllers">
+            <div style="display: flex; align-items: flex-end;">
+                <button id="pausePlayButton">❚❚</button>
+                <div id='timeDisplay' class="time-display"></div>
             </div>
 
-            <div class="lesson-description problem-description"></div>
-
-            <div class="lesson-workspace">
-                <div class="editor-pane">
-                    <div class="pane-header">
-                        <span>Fragment shader</span>
-                        <button id="codeResetButton" type="button" title="Reset code">↻ Reset</button>
-                    </div>
-                    <form>
-                        <div id="editor"></div>
-                    </form>
-                </div>
-
-                <div class="canvas-pane">
-                    <div class="pane-header"><span>Output</span></div>
-                    <canvas id="shaderCanvas"></canvas>
-                    <div class="shader-controllers">
-                        <div>
-                            <button id="pausePlayButton">❚❚</button>
-                            <div id="timeDisplay" class="time-display"></div>
-                        </div>
-                        <div>
-                            <input type="number" id="manualTime" min="0" max="10000" step="0.1" placeholder="Start t">
-                            <button id="resetButton">↻</button>
-                        </div>
-                    </div>
-                </div>
+            <div style="display: flex; align-items: flex-end;">
+                <input type="number" id="manualTime" min="0" max="10000" step="0.1" placeholder="Start time">
+                <button id="resetButton">↻</button>
             </div>
-
-            <div class="lesson-actions">
-                <span class="status-text" id="lesson-hint"></span>
-                <div class="lesson-buttons">
-                    <button type="button" class="button2" onclick="buttonClick(this); runNewShader()">Run</button>
-                    <button type="button" class="button1" onclick="buttonClick(this); submitShader()">Submit</button>
-                </div>
-            </div>
-
-            <section class="comments-section">
-                <h2>Discussion</h2>
-                <div class="comments" id="comments">Loading comments…</div>
-
-                <div class="post-comment">
-                    <h3 style="margin-bottom: var(--s-3);">Post your own solution</h3>
-                    <form onsubmit="return postComment(event)" method="POST">
-                        <textarea placeholder="Paste your shader code" rows="8" id="code-post" name="code-post"></textarea>
-                        <input type="text" id="content-post" name="content-post"
-                            placeholder="One-line description of what makes your solution different">
-                        <button type="submit" class="submit-button" onclick="buttonClick(this)">Post</button>
-                    </form>
-                </div>
-            </section>
         </div>
-    </main>
+    </div>
+
+    <div class="editor-container">
+        <p class="status-text">Fetching Status...</p>
+        <form>
+            <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                <div id="editor"></div>
+                <div>
+                    <button id="codeResetButton" type="button">↻</button>
+                </div>
+            </div>
+            <div class="button-container">
+                <button type="button" class="button1" onclick="buttonClick(this); runNewShader()">Run</button>
+                <button type="button" class="button2" onclick="buttonClick(this); submitShader()">Submit</button>
+            </div>
+        </form>
+    </div>
 
     <div id="modal" class="modal">
         <div class="modal-content">
@@ -116,21 +90,17 @@
         </div>
     </div>
 
-    <footer class="app-footer">
-        <div class="container">
-            <span>ShaderDojo</span>
-            <a href="mailto:noah@noahhaile.com">noah@noahhaile.com</a>
-        </div>
-    </footer>
-
     <script>
+        // Bootstrap: fetch the lesson, populate page-constants the legacy scripts expect,
+        // then chain-load the shader / editor / API scripts in order.
         (async function bootstrapLesson() {
             const params = new URLSearchParams(location.search);
             const lessonId = params.get('id');
 
             if (!lessonId) {
                 document.querySelector('.problem-title').textContent = 'No lesson selected';
-                document.querySelector('.problem-description').textContent = 'Pick a lesson from the Courses page.';
+                document.querySelector('.problem-description').textContent =
+                    'Pick a lesson from the Problems page.';
                 return;
             }
 
@@ -143,10 +113,12 @@
                 lesson = await r.json();
             } catch (e) {
                 document.querySelector('.problem-title').textContent = 'Lesson not found';
-                document.querySelector('.problem-description').textContent = 'This lesson could not be loaded.';
+                document.querySelector('.problem-description').textContent =
+                    'This lesson could not be loaded. It may have been removed.';
                 return;
             }
 
+            // Globals the legacy scripts read at top-level.
             window.id = lesson.id;
             window.fragmentShaderSourceBody = lesson.starterFragmentShader || '';
             window.pageUrl = `lesson/${lesson.id}`;
@@ -155,22 +127,6 @@
             document.title = `${lesson.title} | ShaderDojo`;
             document.querySelector('.problem-title').textContent = lesson.title;
             document.querySelector('.problem-description').textContent = lesson.description || '';
-
-            const crumbCourse = document.getElementById('crumb-course');
-            if (lesson.courseSlug) {
-                crumbCourse.innerHTML = '';
-                const a = document.createElement('a');
-                a.href = 'courses.html';
-                a.textContent = lesson.courseTitle || lesson.courseSlug;
-                crumbCourse.appendChild(a);
-            } else if (lesson.courseTitle) {
-                crumbCourse.textContent = lesson.courseTitle;
-            }
-            document.getElementById('crumb-lesson').textContent = lesson.title;
-
-            if (!lesson.verified) {
-                document.getElementById('lesson-hint').textContent = 'Exploratory lesson — no automatic grading.';
-            }
 
             const scripts = [
                 './scripts/shaderControllers.js',
@@ -184,9 +140,9 @@
                 './lib/ace/mode.js',
                 './lib/ace/theme.js',
                 './scripts/editor-setup.js',
+                './scripts/problem.js',
                 './lib/sha256.js',
                 './scripts/shader.js',
-                './scripts/discussion.js',
             ];
             for (const src of scripts) {
                 await new Promise((resolve, reject) => {
