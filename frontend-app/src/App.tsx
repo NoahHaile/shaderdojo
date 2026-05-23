@@ -8,6 +8,11 @@ import { LessonPage } from './pages/LessonPage';
 import { DiscussionPage } from './pages/DiscussionPage';
 import { LoginPage } from './pages/LoginPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { AdminLoginPage } from './pages/AdminLoginPage';
+import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import { AdminCourseEditPage } from './pages/AdminCourseEditPage';
+import { AdminLessonEditPage } from './pages/AdminLessonEditPage';
+import { isAdminSignedIn } from './admin-api';
 import type { ReactNode } from 'react';
 
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -15,6 +20,14 @@ function RequireAuth({ children }: { children: ReactNode }) {
     const loc = useLocation();
     if (!isAuthed) {
         return <Navigate to={`/login?from=${encodeURIComponent(loc.pathname + loc.search)}`} replace />;
+    }
+    return <>{children}</>;
+}
+
+function RequireAdmin({ children }: { children: ReactNode }) {
+    const loc = useLocation();
+    if (!isAdminSignedIn()) {
+        return <Navigate to={`/admin/login?from=${encodeURIComponent(loc.pathname + loc.search)}`} replace />;
     }
     return <>{children}</>;
 }
@@ -31,6 +44,13 @@ export function App() {
                     <Route path="/lesson/:id/discussion" element={<DiscussionPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
+
+                    {/* Admin */}
+                    <Route path="/admin/login" element={<AdminLoginPage />} />
+                    <Route path="/admin" element={<RequireAdmin><AdminDashboardPage /></RequireAdmin>} />
+                    <Route path="/admin/courses/:id" element={<RequireAdmin><AdminCourseEditPage /></RequireAdmin>} />
+                    <Route path="/admin/lessons/:id" element={<RequireAdmin><AdminLessonEditPage /></RequireAdmin>} />
+
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </main>

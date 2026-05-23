@@ -6,7 +6,10 @@ import {
     type AttemptResponse, type Course, type Lesson,
 } from '../api';
 import { useAuth } from '../auth';
-import { isLocallyCompleted, markLocallyCompleted } from '../completion';
+import {
+    clearLessonCode, isLocallyCompleted, loadLessonCode,
+    markLocallyCompleted, saveLessonCode,
+} from '../completion';
 import { Editor } from '../components/Editor';
 import { Modal } from '../components/Modal';
 import { RichText } from '../components/RichText';
@@ -63,7 +66,9 @@ export function LessonPage() {
             .then(l => {
                 if (cancelled) return;
                 setLesson(l);
-                setCode(l.starterFragmentShader ?? '');
+                // Prefer the user's last-saved code for this lesson over the starter.
+                const saved = loadLessonCode(l.id);
+                setCode(saved ?? l.starterFragmentShader ?? '');
                 if (l.courseSlug) {
                     coursesApi.bySlug(l.courseSlug)
                         .then(c => { if (!cancelled) setCourse(c); })
@@ -85,6 +90,14 @@ export function LessonPage() {
         const idx = course.lessons.findIndex(l => l.id === lesson.id);
         return (idx >= 0 && idx + 1 < course.lessons.length) ? course.lessons[idx + 1] : null;
     }, [course, lesson]);
+
+    // ── Autosave the editor body to localStorage whenever it changes ─
+    useEffect(() => {
+        if (!lesson) return;
+        // Don't persist the starter — if you haven't touched it, there's nothing to restore.
+        if (code === (lesson.starterFragmentShader ?? '')) clearLessonCode(lesson.id);
+        else saveLessonCode(lesson.id, code);
+    }, [code, lesson]);
 
     // ── Celebrate on successful submission ───────────────────────────
     useEffect(() => {
@@ -146,7 +159,9 @@ export function LessonPage() {
     }, [code, isAuthed, lesson]);
 
     const resetCode = useCallback(() => {
-        if (lesson?.starterFragmentShader) setCode(lesson.starterFragmentShader);
+        if (!lesson) return;
+        setCode(lesson.starterFragmentShader ?? '');
+        clearLessonCode(lesson.id);
     }, [lesson]);
 
     const goToNext = useCallback(() => {

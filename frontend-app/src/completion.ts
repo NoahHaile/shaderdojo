@@ -33,3 +33,22 @@ export function markLocallyCompleted(lessonId: string) {
 export function getCompletedLessons(): Set<string> {
     return read();
 }
+
+// ─── per-lesson code autosave ────────────────────────────────────────
+// Keyed by lesson id so multiple lessons coexist. Cleared by explicit
+// reset in the UI (the ↻ button), not on submit.
+
+const CODE_PREFIX = 'sd:lesson-code:';
+
+export function loadLessonCode(lessonId: string): string | null {
+    try { return localStorage.getItem(CODE_PREFIX + lessonId); }
+    catch { return null; }
+}
+export function saveLessonCode(lessonId: string, code: string) {
+    try { localStorage.setItem(CODE_PREFIX + lessonId, code); }
+    catch { /* quota / private mode */ }
+}
+export function clearLessonCode(lessonId: string) {
+    try { localStorage.removeItem(CODE_PREFIX + lessonId); }
+    catch { /* noop */ }
+}

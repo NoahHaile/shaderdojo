@@ -1,5 +1,7 @@
-import { NavLink, Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { NavLink, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth';
+import { isAdminSignedIn, setAdminKey } from '../admin-api';
 
 const navItem =
     'px-3 py-1.5 rounded-md text-sm font-medium text-ink/70 hover:text-ink hover:bg-cream';
@@ -8,6 +10,11 @@ const navItemActive =
 
 export function Header() {
     const { isAuthed, logout } = useAuth();
+    const loc = useLocation();
+    // Re-read the admin flag on every navigation so the link appears/disappears.
+    const [adminSignedIn, setAdminSignedIn] = useState(isAdminSignedIn());
+    useEffect(() => { setAdminSignedIn(isAdminSignedIn()); }, [loc.pathname]);
+
     return (
         <header className="border-b border-muted/30 bg-white sticky top-0 z-30">
             <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
@@ -32,6 +39,19 @@ export function Header() {
                         <NavLink to="/login" className={({ isActive }) => isActive ? navItemActive : navItem}>
                             Sign in
                         </NavLink>
+                    )}
+                    {adminSignedIn && (
+                        <>
+                            <NavLink to="/admin" className={({ isActive }) => isActive ? navItemActive : navItem}>
+                                Admin
+                            </NavLink>
+                            <button
+                                onClick={() => { setAdminKey(null); setAdminSignedIn(false); }}
+                                className={navItem + ' text-ink/40'}
+                                title="Forget the admin key on this browser">
+                                Lock
+                            </button>
+                        </>
                     )}
                 </nav>
             </div>
