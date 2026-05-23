@@ -1,6 +1,20 @@
 import {
-    Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn,
+    BeforeInsert, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne,
+    PrimaryGeneratedColumn,
 } from 'typeorm';
+import { randomUUID } from 'crypto';
+
+/**
+ * init.sql declares `id VARCHAR(36) PRIMARY KEY` with NO database-side default.
+ * TypeORM's @PrimaryGeneratedColumn('uuid') only generates the UUID client-side
+ * for some driver/column combinations; with VARCHAR(36) and synchronize:false,
+ * Postgres receives `id = null` and rejects (23502).
+ *
+ * Filling it in via @BeforeInsert is the portable workaround.
+ */
+function ensureId(entity: { id?: string }) {
+    if (!entity.id) entity.id = randomUUID();
+}
 
 @Entity('account')
 export class Account {
@@ -11,6 +25,8 @@ export class Account {
     @Column({ nullable: true }) country?: string;
     @Column({ nullable: true }) bio?: string;
     @CreateDateColumn({ name: 'created_at' }) createdAt: Date;
+
+    @BeforeInsert() _id() { ensureId(this); }
 }
 
 @Entity('course')
@@ -21,6 +37,8 @@ export class Course {
     @Column({ type: 'text', nullable: true }) description?: string;
     @Column({ name: 'display_order', default: 0 }) displayOrder: number;
     @CreateDateColumn({ name: 'created_at' }) createdAt: Date;
+
+    @BeforeInsert() _id() { ensureId(this); }
 }
 
 @Entity('lesson')
@@ -49,6 +67,8 @@ export class Lesson {
     hashedAnswer?: string;
 
     @CreateDateColumn({ name: 'created_at' }) createdAt: Date;
+
+    @BeforeInsert() _id() { ensureId(this); }
 }
 
 @Entity('comment')
@@ -66,6 +86,8 @@ export class Comment {
     lesson: Lesson;
 
     @CreateDateColumn({ name: 'created_at' }) createdAt: Date;
+
+    @BeforeInsert() _id() { ensureId(this); }
 }
 
 export type AttemptStatus = 'SUCCESSFUL' | 'FAILED' | 'UNATTEMPTED';
@@ -84,4 +106,6 @@ export class Attempt {
     lesson: Lesson;
 
     @CreateDateColumn({ name: 'created_at' }) createdAt: Date;
+
+    @BeforeInsert() _id() { ensureId(this); }
 }
