@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { coursesApi, type Course, type Difficulty } from '../api';
 import { getCompletedLessons } from '../completion';
+import { ProgressBar } from '../components/ProgressBar';
 
 export function CoursesPage() {
     const [courses, setCourses] = useState<Course[] | null>(null);
@@ -46,6 +47,12 @@ export function CoursesPage() {
         });
     }, [courses]);
 
+    // Source of truth for completion: localStorage. Reading on every render is
+    // cheap and ensures the bar updates after solving a lesson + navigating back.
+    const completedAll = getCompletedLessons();
+    const completedCountFor = (c: Course) =>
+        c.lessons.reduce((n, l) => n + (completedAll.has(l.id) ? 1 : 0), 0);
+
     return (
         <div className="max-w-6xl mx-auto px-4 py-10 grid md:grid-cols-[240px_1fr] gap-8">
             <aside className="md:sticky md:top-20 md:self-start">
@@ -59,21 +66,34 @@ export function CoursesPage() {
                                     {category}
                                 </h3>
                                 <ul className="space-y-1">
-                                    {list.map(c => (
-                                        <li key={c.id}>
-                                            <button
-                                                onClick={() => pickCourse(c.slug)}
-                                                className={
-                                                    'w-full text-left px-3 py-2 rounded-md text-sm transition flex items-center gap-2 ' +
-                                                    (selected === c.slug
-                                                        ? 'bg-primary/40 text-ink font-medium'
-                                                        : 'hover:bg-cream text-ink/70')
-                                                }>
-                                                <span className="flex-1">{c.title}</span>
-                                                <DifficultyDot d={c.difficulty} />
-                                            </button>
-                                        </li>
-                                    ))}
+                                    {list.map(c => {
+                                        const done = completedCountFor(c);
+                                        return (
+                                            <li key={c.id}>
+                                                <button
+                                                    onClick={() => pickCourse(c.slug)}
+                                                    className={
+                                                        'w-full text-left px-3 py-2 rounded-md text-sm transition ' +
+                                                        (selected === c.slug
+                                                            ? 'bg-primary/40 text-ink font-medium'
+                                                            : 'hover:bg-cream text-ink/70')
+                                                    }>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="flex-1">{c.title}</span>
+                                                        <DifficultyDot d={c.difficulty} />
+                                                    </div>
+                                                    {c.lessons.length > 0 && (
+                                                        <ProgressBar
+                                                            value={done}
+                                                            max={c.lessons.length}
+                                                            height={3}
+                                                            className="mt-1.5"
+                                                        />
+                                                    )}
+                                                </button>
+                                            </li>
+                                        );
+                                    })}
                                 </ul>
                             </div>
                         ))}
@@ -94,13 +114,15 @@ export function CoursesPage() {
 function CourseDetail({ course }: { course: Course }) {
     const total = course.lessons.length;
     const completed = getCompletedLessons();
+    const doneCount = course.lessons.reduce((n, l) => n + (completed.has(l.id) ? 1 : 0), 0);
+    const pct = total === 0 ? 0 : Math.round((doneCount / total) * 100);
 
     return (
         <div>
             <div className="text-[11px] uppercase tracking-wide font-semibold text-muted mb-2">
                 {course.category}
             </div>
-            <header className="mb-5">
+            <header className="mb-6">
                 <div className="flex items-center gap-3 flex-wrap">
                     <h1 className="text-3xl font-semibold tracking-tight">{course.title}</h1>
                     <DifficultyPill d={course.difficulty} />
@@ -108,9 +130,17 @@ function CourseDetail({ course }: { course: Course }) {
                 {course.description && (
                     <p className="mt-2 text-ink/70 max-w-prose">{course.description}</p>
                 )}
-                <p className="mt-3 text-xs text-muted tabular-nums">
-                    {total} lesson{total === 1 ? '' : 's'}
-                </p>
+                {total > 0 && (
+                    <div className="mt-4 max-w-md">
+                        <div className="flex items-baseline justify-between mb-1.5">
+                            <span className="text-xs text-muted tabular-nums">
+                                {doneCount} of {total} lesson{total === 1 ? '' : 's'} solved
+                            </span>
+                            <span className="text-xs font-medium text-ink/70 tabular-nums">{pct}%</span>
+                        </div>
+                        <ProgressBar value={doneCount} max={total} height={6} />
+                    </div>
+                )}
             </header>
 
             {total === 0 ? (

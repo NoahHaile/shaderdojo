@@ -7,11 +7,12 @@ import {
 } from '../api';
 import { useAuth } from '../auth';
 import {
-    clearLessonCode, isLocallyCompleted, loadLessonCode,
+    clearLessonCode, getCompletedLessons, isLocallyCompleted, loadLessonCode,
     markLocallyCompleted, saveLessonCode,
 } from '../completion';
 import { Editor } from '../components/Editor';
 import { Modal } from '../components/Modal';
+import { ProgressBar } from '../components/ProgressBar';
 import { RichText } from '../components/RichText';
 import { ShaderCanvas, type ShaderCanvasHandle } from '../components/ShaderCanvas';
 import { FRAGMENT_HEADER } from '../shader-pipeline';
@@ -90,6 +91,18 @@ export function LessonPage() {
         const idx = course.lessons.findIndex(l => l.id === lesson.id);
         return (idx >= 0 && idx + 1 < course.lessons.length) ? course.lessons[idx + 1] : null;
     }, [course, lesson]);
+
+    // Course progress: current lesson position + how many solved so far.
+    // Recompute on every verdict change so the bar advances right after solving.
+    const progress = useMemo(() => {
+        if (!course || !lesson) return null;
+        const idx = course.lessons.findIndex(l => l.id === lesson.id);
+        const total = course.lessons.length;
+        const completed = getCompletedLessons();
+        const doneCount = course.lessons.reduce((n, l) => n + (completed.has(l.id) ? 1 : 0), 0);
+        return { position: idx + 1, total, done: doneCount };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [course, lesson, verdict]);
 
     // ── Autosave the editor body to localStorage whenever it changes ─
     useEffect(() => {
@@ -202,6 +215,20 @@ export function LessonPage() {
                 {(lesson.courseSlug || lesson.courseTitle) && <span>/</span>}
                 <span className="text-ink">{lesson.title}</span>
             </nav>
+
+            {progress && progress.total > 0 && (
+                <div className="mb-4">
+                    <div className="flex items-baseline justify-between mb-1.5">
+                        <span className="text-[11px] text-muted tabular-nums">
+                            Lesson {progress.position} of {progress.total}
+                        </span>
+                        <span className="text-[11px] text-muted tabular-nums">
+                            {progress.done} solved
+                        </span>
+                    </div>
+                    <ProgressBar value={progress.done} max={progress.total} height={4} />
+                </div>
+            )}
 
             <header className="flex items-baseline justify-between gap-4 mb-3">
                 <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">{lesson.title}</h1>
