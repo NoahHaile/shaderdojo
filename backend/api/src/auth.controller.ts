@@ -1,5 +1,6 @@
 import {
-    BadRequestException, Body, ConflictException, Controller, HttpCode, Post, UnauthorizedException,
+    BadRequestException, Body, ConflictException, Controller, HttpCode, InternalServerErrorException,
+    Logger, Post, UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,6 +13,8 @@ class RegisterRequest { email?: string; username: string; password: string; }
 
 @Controller()
 export class AuthController {
+    private readonly log = new Logger('AuthController');
+
     constructor(
         @InjectRepository(Account) private readonly accounts: Repository<Account>,
         private readonly tokens: TokenService,
@@ -44,8 +47,15 @@ export class AuthController {
         });
         try {
             await this.accounts.save(account);
-        } catch {
-            throw new ConflictException('Username already exists');
+        } catch (e: any) {
+            // Postgres unique_violation = SQLSTATE 23505. Only that is "username taken".
+            // Anything else is a real bug we want to see in the logs.
+            if (e?.code === '23505' || e?.driverError?.code === '23505') {
+                throw new ConflictException('Username already exists');
+            }
+            this.log.error(`register failed for username=${body.username}: ${e?.message || e}`,
+                e?.stack);
+            throw new InternalServerErrorException('Registration failed.');
         }
         return this.tokens.issue(account.id, 'user');
     }
