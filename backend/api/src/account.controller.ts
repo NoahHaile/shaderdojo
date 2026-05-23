@@ -1,0 +1,109 @@
+import {
+    BadRequestException, Body, ConflictException, Controller, Get, HttpCode, NotFoundException,
+    Param, Post, Req, UnauthorizedException, UseGuards,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import * as bcrypt from 'bcryptjs';
+import { Account, Attempt, AttemptStatus, Comment, Lesson } from './entities';
+import { JwtGuard } from './jwt.guard';
+
+class AccountResponseDto {
+    username: string; email: string | null; country: string | null; bio: string | null;
+}
+class AttemptResponseDto { count: number; status: AttemptStatus; }
+class CommentResponseDto { id: string; code: string | null; content: string | null; username: string | null; }
+
+class CommentRequest { code?: string; content?: string; }
+class ProfileRequest { email?: string; country?: string; bio?: string; }
+class AccountRequest { username: string; password: string; oldPassword: string; }
+
+@Controller('account')
+@UseGuards(JwtGuard)
+export class AccountController {
+    constructor(
+        @InjectRepository(Account) private readonly accounts: Repository<Account>,
+        @InjectRepository(Lesson) private readonly lessons: Repository<Lesson>,
+        @InjectRepository(Comment) private readonly comments: Repository<Comment>,
+        @InjectRepository(Attempt) private readonly attempts: Repository<Attempt>,
+    ) {}
+
+    @Get()
+    async self(@Req() req: any): Promise<AccountResponseDto> {
+        const a = await this.accounts.findOne({ where: { id: req.userId } });
+        if (!a) throw new NotFoundException();
+        return {
+            username: a.username, email: a.email ?? null,
+            country: a.country ?? null, bio: a.bio ?? null,
+        };
+    }
+
+    @Get('verify_account')
+    async verify(@Req() req: any): Promise<boolean> {
+        const exists = await this.accounts.exists({ where: { id: req.userId } });
+        if (!exists) throw new NotFoundException();
+        return true;
+    }
+
+    @Get('status/:lessonId')
+    async status(@Param('lessonId') lessonId: string, @Req() req: any): Promise<AttemptResponseDto> {
+        const rows = await this.attempts.find({
+            where: { account: { id: req.userId }, lesson: { id: lessonId } },
+        });
+        if (rows.length === 0) return { count: 0, status: 'UNATTEMPTED' };
+        const anySuccess = rows.some(r => r.status === 'SUCCESSFUL');
+        return { count: rows.length, status: anySuccess ? 'SUCCESSFUL' : 'FAILED' };
+    }
+
+    @Post('comment/:lessonId')
+    @HttpCode(201)
+    async createComment(
+        @Param('lessonId') lessonId: string,
+        @Body() body: CommentRequest,
+        @Req() req: any,
+    ): Promise<CommentResponseDto> {
+        const account = await this.accounts.findOne({ where: { id: req.userId } });
+        if (!account) throw new UnauthorizedException();
+        const lesson = await this.lessons.findOne({ where: { id: lessonId } });
+        if (!lesson) throw new NotFoundException();
+        const c = this.comments.create({
+            code: body?.code ?? null, content: body?.content ?? null,
+            account, lesson,
+        });
+        const saved = await this.comments.save(c);
+        return {
+            id: saved.id, code: saved.code ?? null, content: saved.content ?? null,
+            username: account.username,
+        };
+    }
+
+    @Post('profile_info')
+    @HttpCode(200)
+    async updateProfile(@Body() body: ProfileRequest, @Req() req: any): Promise<string> {
+        const a = await this.accounts.findOne({ where: { id: req.userId } });
+        if (!a) throw new UnauthorizedException();
+        if (body.email != null) a.email = body.email;
+        if (body.country != null) a.country = body.country;
+        if (body.bio != null) a.bio = body.bio;
+        await this.accounts.save(a);
+        return 'Profile updated';
+    }
+
+    @Post('account_info')
+    @HttpCode(200)
+    async updateAccount(@Body() body: AccountRequest, @Req() req: any): Promise<string> {
+        const a = await this.accounts.findOne({ where: { id: req.userId } });
+        if (!a) throw new UnauthorizedException();
+        if (!body?.oldPassword || !body?.password || !body?.username) throw new BadRequestException();
+        const ok = await bcrypt.compare(body.oldPassword, a.password);
+        if (!ok) throw new UnauthorizedException('Incorrect password');
+        a.username = body.username;
+        a.password = await bcrypt.hash(body.password, 10);
+        try {
+            await this.accounts.save(a);
+        } catch {
+            throw new ConflictException('Username already exists');
+        }
+        return 'Account updated';
+    }
+}
