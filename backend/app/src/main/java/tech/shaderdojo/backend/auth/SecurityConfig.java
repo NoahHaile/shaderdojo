@@ -1,9 +1,14 @@
 package tech.shaderdojo.backend.auth;
 
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;
+import org.springframework.boot.actuate.health.HealthEndpoint;
+import org.springframework.boot.actuate.info.InfoEndpoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -19,9 +24,10 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+
+import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -49,14 +55,24 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                        // Public read-only browsing
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/courses", "/courses/**").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/lessons/*", "/lessons/*/solution").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/comments/**").permitAll()
+                        // Actuator: use the idiomatic helper so Spring Boot's separate handler
+                        // mapping is matched correctly.
+                        .requestMatchers(EndpointRequest.to(HealthEndpoint.class, InfoEndpoint.class)).permitAll()
+
+                        // All other matchers use AntPathRequestMatcher explicitly. We avoid the
+                        // bare requestMatchers(String...) form because Spring Security 6.4's
+                        // MVC auto-detection silently misbehaves when Actuator's HandlerMapping
+                        // is on the classpath, leaving permitAll matchers as no-ops.
+                        .requestMatchers(antMatcher(HttpMethod.GET, "/courses")).permitAll()
+                        .requestMatchers(antMatcher(HttpMethod.GET, "/courses/**")).permitAll()
+                        .requestMatchers(antMatcher(HttpMethod.GET, "/lessons/*")).permitAll()
+                        .requestMatchers(antMatcher(HttpMethod.GET, "/lessons/*/solution")).permitAll()
+                        .requestMatchers(antMatcher(HttpMethod.GET, "/comments/**")).permitAll()
+
                         // Admin batch endpoint — gated by constant-time Admin-Authorization check in the controller.
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/lessons/recompute-hashes").permitAll()
-                        // Everything else (verify, comment POST, admin CRUD) requires a JWT
+                        .requestMatchers(antMatcher(HttpMethod.POST, "/lessons/recompute-hashes")).permitAll()
+
+                        // Everything else (verify, comment POST, admin CRUD) requires a JWT.
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 ->
