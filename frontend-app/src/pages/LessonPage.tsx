@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import confetti from 'canvas-confetti';
 import {
     accountApi, coursesApi, lessonsApi,
     type AttemptResponse, type Course, type Lesson,
@@ -17,6 +18,27 @@ type Verdict = 'idle' | 'verifying' | 'correct' | 'incorrect' | 'error';
 const PANE_HEIGHT = 460;
 const PANE_HEADER_HEIGHT = 40;          // matches `h-10` on the pane header
 const PANE_BODY_HEIGHT = PANE_HEIGHT - PANE_HEADER_HEIGHT;
+
+// Two staggered bursts from the bottom corners look better than one big middle pop.
+function celebrate() {
+    const common: confetti.Options = {
+        particleCount: 80,
+        spread: 70,
+        startVelocity: 45,
+        ticks: 220,
+        colors: ['#ffff83', '#fe7e7e', '#DCCDE8', '#9af7c4'],   // yellow + salmon + lavender + mint
+        scalar: 1,
+    };
+    confetti({ ...common, origin: { x: 0.15, y: 0.7 }, angle: 60 });
+    confetti({ ...common, origin: { x: 0.85, y: 0.7 }, angle: 120 });
+    // Light follow-up shower for emphasis.
+    setTimeout(() => confetti({
+        ...common,
+        particleCount: 60,
+        spread: 100,
+        origin: { x: 0.5, y: 0.4 },
+    }), 200);
+}
 
 export function LessonPage() {
     const { id = '' } = useParams();
@@ -63,6 +85,28 @@ export function LessonPage() {
         const idx = course.lessons.findIndex(l => l.id === lesson.id);
         return (idx >= 0 && idx + 1 < course.lessons.length) ? course.lessons[idx + 1] : null;
     }, [course, lesson]);
+
+    // ── Celebrate on successful submission ───────────────────────────
+    useEffect(() => {
+        if (verdict === 'correct') celebrate();
+    }, [verdict]);
+
+    // ── Warn on refresh / tab-close when the editor diverges from starter ──
+    // Browser-level event only — internal SPA navigation (Next lesson, Discussion,
+    // breadcrumb) is intentional and shouldn't prompt.
+    const dirtyRef = useRef(false);
+    dirtyRef.current = !!lesson && code !== (lesson.starterFragmentShader ?? '');
+    useEffect(() => {
+        function onBeforeUnload(e: BeforeUnloadEvent) {
+            if (!dirtyRef.current) return;
+            // Modern browsers ignore the custom string and show their own message,
+            // but setting returnValue is still required to trigger the prompt.
+            e.preventDefault();
+            e.returnValue = '';
+        }
+        window.addEventListener('beforeunload', onBeforeUnload);
+        return () => window.removeEventListener('beforeunload', onBeforeUnload);
+    }, []);
 
     const run = useCallback(() => {
         if (!canvasRef.current) return;
