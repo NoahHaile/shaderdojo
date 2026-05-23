@@ -4,22 +4,41 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Course, Lesson } from './entities';
+import { Course, Difficulty, Lesson } from './entities';
 import { AdminGuard } from './admin.guard';
 
 class CourseDto {
-    id: string; slug: string; title: string; description: string | null; displayOrder: number;
+    id: string; slug: string; title: string; description: string | null;
+    category: string; difficulty: Difficulty; displayOrder: number;
 }
 class LessonSummaryDto {
     id: string; slug: string; title: string; displayOrder: number; verified: boolean;
 }
 class CourseDetailDto extends CourseDto { lessons: LessonSummaryDto[]; }
-class CreateCourseBody { slug: string; title: string; description?: string; displayOrder?: number; }
+
+class CreateCourseBody {
+    slug: string; title: string;
+    description?: string;
+    category?: string;
+    difficulty?: Difficulty;
+    displayOrder?: number;
+}
+
+const VALID_DIFFICULTY: ReadonlySet<Difficulty> = new Set(['beginner', 'intermediate', 'advanced']);
 
 function toSummary(l: Lesson): LessonSummaryDto {
     return {
         id: l.id, slug: l.slug, title: l.title,
         displayOrder: l.displayOrder, verified: !!l.hashedAnswer,
+    };
+}
+
+function toCourseDto(c: Course): CourseDto {
+    return {
+        id: c.id, slug: c.slug, title: c.title,
+        description: c.description ?? null,
+        category: c.category, difficulty: c.difficulty,
+        displayOrder: c.displayOrder,
     };
 }
 
@@ -30,26 +49,23 @@ export class CoursesController {
         @InjectRepository(Lesson) private readonly lessons: Repository<Lesson>,
     ) {}
 
-    /** GET /courses → all courses, each with nested lesson summaries. */
+    /** GET /courses → all courses (with category/difficulty), each with nested lesson summaries. */
     @Get()
     async list(): Promise<CourseDetailDto[]> {
-        const cs = await this.courses.find({ order: { displayOrder: 'ASC', title: 'ASC' } });
+        const cs = await this.courses.find({
+            order: { category: 'ASC', displayOrder: 'ASC', title: 'ASC' },
+        });
         const out: CourseDetailDto[] = [];
         for (const c of cs) {
             const lessons = await this.lessons.find({
                 where: { course: { id: c.id } },
                 order: { displayOrder: 'ASC', title: 'ASC' },
             });
-            out.push({
-                id: c.id, slug: c.slug, title: c.title, description: c.description ?? null,
-                displayOrder: c.displayOrder,
-                lessons: lessons.map(toSummary),
-            });
+            out.push({ ...toCourseDto(c), lessons: lessons.map(toSummary) });
         }
         return out;
     }
 
-    /** GET /courses/:slug → single course detail. */
     @Get(':slug')
     async detail(@Param('slug') slug: string): Promise<CourseDetailDto> {
         const c = await this.courses.findOne({ where: { slug } });
@@ -58,11 +74,7 @@ export class CoursesController {
             where: { course: { id: c.id } },
             order: { displayOrder: 'ASC', title: 'ASC' },
         });
-        return {
-            id: c.id, slug: c.slug, title: c.title, description: c.description ?? null,
-            displayOrder: c.displayOrder,
-            lessons: lessons.map(toSummary),
-        };
+        return { ...toCourseDto(c), lessons: lessons.map(toSummary) };
     }
 
     @Post()
@@ -70,16 +82,17 @@ export class CoursesController {
     @HttpCode(201)
     async create(@Body() body: CreateCourseBody): Promise<CourseDto> {
         if (!body?.slug || !body?.title) throw new BadRequestException();
+        if (body.difficulty && !VALID_DIFFICULTY.has(body.difficulty)) {
+            throw new BadRequestException('difficulty must be beginner | intermediate | advanced');
+        }
         const c = this.courses.create({
             slug: body.slug, title: body.title,
             description: body.description ?? null,
+            category: body.category ?? 'Fundamentals',
+            difficulty: body.difficulty ?? 'beginner',
             displayOrder: body.displayOrder ?? 0,
         });
-        const saved = await this.courses.save(c);
-        return {
-            id: saved.id, slug: saved.slug, title: saved.title,
-            description: saved.description ?? null, displayOrder: saved.displayOrder,
-        };
+        return toCourseDto(await this.courses.save(c));
     }
 
     @Put(':id')
@@ -87,15 +100,16 @@ export class CoursesController {
     async update(@Param('id') id: string, @Body() body: Partial<CreateCourseBody>): Promise<CourseDto> {
         const c = await this.courses.findOne({ where: { id } });
         if (!c) throw new NotFoundException();
-        if (body.slug != null) c.slug = body.slug;
-        if (body.title != null) c.title = body.title;
-        if (body.description != null) c.description = body.description;
+        if (body.difficulty && !VALID_DIFFICULTY.has(body.difficulty)) {
+            throw new BadRequestException('difficulty must be beginner | intermediate | advanced');
+        }
+        if (body.slug != null)         c.slug = body.slug;
+        if (body.title != null)        c.title = body.title;
+        if (body.description != null)  c.description = body.description;
+        if (body.category != null)     c.category = body.category;
+        if (body.difficulty != null)   c.difficulty = body.difficulty;
         if (body.displayOrder != null) c.displayOrder = body.displayOrder;
-        const saved = await this.courses.save(c);
-        return {
-            id: saved.id, slug: saved.slug, title: saved.title,
-            description: saved.description ?? null, displayOrder: saved.displayOrder,
-        };
+        return toCourseDto(await this.courses.save(c));
     }
 
     @Delete(':id')

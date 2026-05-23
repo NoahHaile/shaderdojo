@@ -29,12 +29,16 @@ export class Account {
     @BeforeInsert() _id() { ensureId(this); }
 }
 
+export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
+
 @Entity('course')
 export class Course {
     @PrimaryGeneratedColumn('uuid') id: string;
     @Column({ unique: true }) slug: string;
     @Column() title: string;
     @Column({ type: 'text', nullable: true }) description?: string;
+    @Column({ default: 'Fundamentals' }) category: string;
+    @Column({ default: 'beginner' }) difficulty: Difficulty;
     @Column({ name: 'display_order', default: 0 }) displayOrder: number;
     @CreateDateColumn({ name: 'created_at' }) createdAt: Date;
 

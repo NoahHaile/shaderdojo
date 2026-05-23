@@ -13,6 +13,7 @@ import { TokenService } from './token.service';
 import { ValidatorService } from './validator.service';
 import { AdminGuard } from './admin.guard';
 import { JwtGuard } from './jwt.guard';
+import { OptionalJwt } from './optional-jwt';
 
 /** Parse `jdbc:postgresql://host:port/db` into discrete options. We deliberately don't
  *  pass `url` to TypeORM because when both `url` and `username` are set, the underlying
@@ -53,6 +54,6 @@ function parseJdbcUrl(jdbc: string) {
         AccountController,
         HealthController,
     ],
-    providers: [TokenService, ValidatorService, AdminGuard, JwtGuard],
+    providers: [TokenService, ValidatorService, AdminGuard, JwtGuard, OptionalJwt],
 })
 export class AppModule {}

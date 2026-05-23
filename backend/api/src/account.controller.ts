@@ -5,16 +5,14 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
-import { Account, Attempt, AttemptStatus, Comment, Lesson } from './entities';
+import { Account, Attempt, AttemptStatus } from './entities';
 import { JwtGuard } from './jwt.guard';
 
 class AccountResponseDto {
     username: string; email: string | null; country: string | null; bio: string | null;
 }
 class AttemptResponseDto { count: number; status: AttemptStatus; }
-class CommentResponseDto { id: string; code: string | null; content: string | null; username: string | null; }
 
-class CommentRequest { code?: string; content?: string; }
 class ProfileRequest { email?: string; country?: string; bio?: string; }
 class AccountRequest { username: string; password: string; oldPassword: string; }
 
@@ -23,8 +21,6 @@ class AccountRequest { username: string; password: string; oldPassword: string; 
 export class AccountController {
     constructor(
         @InjectRepository(Account) private readonly accounts: Repository<Account>,
-        @InjectRepository(Lesson) private readonly lessons: Repository<Lesson>,
-        @InjectRepository(Comment) private readonly comments: Repository<Comment>,
         @InjectRepository(Attempt) private readonly attempts: Repository<Attempt>,
     ) {}
 
@@ -55,27 +51,8 @@ export class AccountController {
         return { count: rows.length, status: anySuccess ? 'SUCCESSFUL' : 'FAILED' };
     }
 
-    @Post('comment/:lessonId')
-    @HttpCode(201)
-    async createComment(
-        @Param('lessonId') lessonId: string,
-        @Body() body: CommentRequest,
-        @Req() req: any,
-    ): Promise<CommentResponseDto> {
-        const account = await this.accounts.findOne({ where: { id: req.userId } });
-        if (!account) throw new UnauthorizedException();
-        const lesson = await this.lessons.findOne({ where: { id: lessonId } });
-        if (!lesson) throw new NotFoundException();
-        const c = this.comments.create({
-            code: body?.code ?? null, content: body?.content ?? null,
-            account, lesson,
-        });
-        const saved = await this.comments.save(c);
-        return {
-            id: saved.id, code: saved.code ?? null, content: saved.content ?? null,
-            username: account.username,
-        };
-    }
+    /* Comment posting moved to POST /comments/:lessonId (CommentsController),
+       which accepts both signed-in and anonymous users. */
 
     @Post('profile_info')
     @HttpCode(200)

@@ -5,6 +5,7 @@ import { useAuth } from './auth';
 import { HomePage } from './pages/HomePage';
 import { CoursesPage } from './pages/CoursesPage';
 import { LessonPage } from './pages/LessonPage';
+import { DiscussionPage } from './pages/DiscussionPage';
 import { LoginPage } from './pages/LoginPage';
 import { ProfilePage } from './pages/ProfilePage';
 import type { ReactNode } from 'react';
@@ -27,6 +28,7 @@ export function App() {
                     <Route path="/" element={<HomePage />} />
                     <Route path="/courses" element={<CoursesPage />} />
                     <Route path="/lesson/:id" element={<LessonPage />} />
+                    <Route path="/lesson/:id/discussion" element={<DiscussionPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
                     <Route path="*" element={<Navigate to="/" replace />} />

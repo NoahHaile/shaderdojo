@@ -16,17 +16,23 @@ CREATE TABLE account
 CREATE INDEX idx_account_username ON account (username);
 
 -- ---------- course ----------
+-- category is freeform (admin convention), e.g. 'Fundamentals', 'Art Tutorials',
+-- 'Effects', 'Math'. UI groups courses by this column.
+-- difficulty is one of: 'beginner' | 'intermediate' | 'advanced'.
+-- display_order sorts courses within a category.
 CREATE TABLE course
 (
     id            VARCHAR(36) PRIMARY KEY,
     slug          VARCHAR(128) UNIQUE NOT NULL,
     title         VARCHAR(256) NOT NULL,
     description   TEXT,
+    category      VARCHAR(64) NOT NULL DEFAULT 'Fundamentals',
+    difficulty    VARCHAR(16) NOT NULL DEFAULT 'beginner',
     display_order INT NOT NULL DEFAULT 0,
     created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_course_display_order ON course (display_order);
+CREATE INDEX idx_course_category_order ON course (category, display_order);
 
 -- ---------- lesson ----------
 -- description is HTML (sanitized in the frontend).
@@ -78,22 +84,22 @@ CREATE INDEX idx_attempt_account_lesson ON attempt (account, lesson);
 -- COURSES
 -- ===========================================================
 
-INSERT INTO course (id, slug, title, description, display_order) VALUES
+INSERT INTO course (id, slug, title, description, category, difficulty, display_order) VALUES
     ('11111111-0001-0000-0000-000000000000',
      'basics',
      'Basics',
      'Output color. Read coordinates. Move with time. Five lessons covering everything a fragment shader actually does.',
-     0),
+     'Fundamentals', 'beginner', 0),
     ('11111111-0002-0000-0000-000000000000',
      'shaping',
      'Shaping',
      'Step, smoothstep, distance fields. The toolkit for drawing shapes without conditionals.',
-     1),
+     'Fundamentals', 'beginner', 1),
     ('11111111-0003-0000-0000-000000000000',
      'color',
      'Color',
      'Mix, gradient, HSV — the vocabulary for painting with shaders.',
-     2);
+     'Fundamentals', 'beginner', 2);
 
 -- ===========================================================
 -- COURSE 1: Basics

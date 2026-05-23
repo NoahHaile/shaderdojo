@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-    accountApi, commentsApi, coursesApi, lessonsApi,
-    type AttemptResponse, type Comment, type Course, type Lesson,
+    accountApi, coursesApi, lessonsApi,
+    type AttemptResponse, type Course, type Lesson,
 } from '../api';
 import { useAuth } from '../auth';
+import { isLocallyCompleted, markLocallyCompleted } from '../completion';
 import { Editor } from '../components/Editor';
 import { Modal } from '../components/Modal';
 import { RichText } from '../components/RichText';
@@ -13,8 +14,6 @@ import { FRAGMENT_HEADER } from '../shader-pipeline';
 
 type Verdict = 'idle' | 'verifying' | 'correct' | 'incorrect' | 'error';
 
-// Single source of truth for the editor + canvas pane height — same value so
-// the two panes line up at every viewport width.
 const PANE_HEIGHT = 460;
 
 export function LessonPage() {
@@ -32,7 +31,7 @@ export function LessonPage() {
 
     const canvasRef = useRef<ShaderCanvasHandle | null>(null);
 
-    // ── Load lesson ───────────────────────────────────────────────────
+    // ── Load lesson + parent course (for breadcrumb / next-lesson) ────
     useEffect(() => {
         let cancelled = false;
         setLesson(null); setCourse(null); setLoadError(null); setVerdict('idle');
@@ -41,7 +40,6 @@ export function LessonPage() {
                 if (cancelled) return;
                 setLesson(l);
                 setCode(l.starterFragmentShader ?? '');
-                // Load the parent course for breadcrumb + next-lesson lookup.
                 if (l.courseSlug) {
                     coursesApi.bySlug(l.courseSlug)
                         .then(c => { if (!cancelled) setCourse(c); })
@@ -52,21 +50,18 @@ export function LessonPage() {
         return () => { cancelled = true; };
     }, [id]);
 
-    // ── Load attempt status when authed ───────────────────────────────
+    // Authed users get server-side attempt status (used for the badge)
     useEffect(() => {
         if (!isAuthed || !lesson) { setAttempt(null); return; }
         accountApi.status(lesson.id).then(setAttempt).catch(() => {});
     }, [isAuthed, lesson]);
 
-    // ── Derived: next lesson in the same course (if any) ──────────────
     const nextLesson = useMemo(() => {
         if (!course || !lesson) return null;
         const idx = course.lessons.findIndex(l => l.id === lesson.id);
-        if (idx < 0 || idx + 1 >= course.lessons.length) return null;
-        return course.lessons[idx + 1];
+        return (idx >= 0 && idx + 1 < course.lessons.length) ? course.lessons[idx + 1] : null;
     }, [course, lesson]);
 
-    // ── Run / Submit ──────────────────────────────────────────────────
     const run = useCallback(() => {
         if (!canvasRef.current) return;
         const ok = canvasRef.current.run(code);
@@ -80,16 +75,15 @@ export function LessonPage() {
 
     const submit = useCallback(async () => {
         if (!lesson) return;
-        if (!isAuthed) {
-            navigate(`/login?from=${encodeURIComponent(`/lesson/${lesson.id}`)}`);
-            return;
-        }
         canvasRef.current?.run(code);
         setVerdict('verifying'); setVerdictMsg('');
         try {
             await lessonsApi.verify(lesson.id, FRAGMENT_HEADER + code);
             setVerdict('correct');
             setVerdictMsg('Solved.');
+            // Anonymous users persist completion in localStorage; authed users
+            // also get it stashed locally so subsequent navigation is instant.
+            markLocallyCompleted(lesson.id);
         } catch (e: any) {
             if (e?.status === 400) {
                 setVerdict('incorrect');
@@ -99,9 +93,11 @@ export function LessonPage() {
                 setVerdictMsg(e?.message ?? 'Verification failed.');
             }
         } finally {
-            accountApi.status(lesson.id).then(setAttempt).catch(() => {});
+            if (isAuthed && lesson) {
+                accountApi.status(lesson.id).then(setAttempt).catch(() => {});
+            }
         }
-    }, [code, isAuthed, lesson, navigate]);
+    }, [code, isAuthed, lesson]);
 
     const resetCode = useCallback(() => {
         if (lesson?.starterFragmentShader) setCode(lesson.starterFragmentShader);
@@ -112,6 +108,10 @@ export function LessonPage() {
         else if (course) navigate(`/courses?slug=${course.slug}`);
         else navigate('/courses');
     }, [navigate, nextLesson, course]);
+
+    const goToDiscussion = useCallback(() => {
+        if (lesson) navigate(`/lesson/${lesson.id}/discussion`);
+    }, [navigate, lesson]);
 
     if (loadError) {
         return (
@@ -124,11 +124,8 @@ export function LessonPage() {
     }
     if (!lesson) return <LessonSkeleton />;
 
-    const completed = attempt?.status === 'SUCCESSFUL';
-
     return (
         <div className="max-w-6xl mx-auto px-4 py-6">
-            {/* Breadcrumb */}
             <nav className="text-xs text-muted mb-3 flex items-center gap-1.5 flex-wrap">
                 <Link to="/courses" className="hover:text-ink">Courses</Link>
                 <span>/</span>
@@ -147,14 +144,18 @@ export function LessonPage() {
 
             <header className="flex items-baseline justify-between gap-4 mb-3">
                 <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">{lesson.title}</h1>
-                <AttemptBadge attempt={attempt} verified={lesson.verified} authed={isAuthed} />
+                <AttemptBadge
+                    attempt={attempt}
+                    locallyCompleted={isLocallyCompleted(lesson.id)}
+                    verified={lesson.verified}
+                    authed={isAuthed}
+                />
             </header>
 
             {lesson.description && (
                 <RichText html={lesson.description} className="mb-6 max-w-3xl" />
             )}
 
-            {/* Workspace: editor + canvas, capped at the same height */}
             <div className="grid lg:grid-cols-2 gap-4">
                 <section className="border border-muted/30 rounded-xl bg-white overflow-hidden flex flex-col"
                          style={{ height: PANE_HEIGHT }}>
@@ -162,10 +163,7 @@ export function LessonPage() {
                         <span className="text-[11px] font-semibold uppercase tracking-wide text-ink/60">
                             Fragment shader
                         </span>
-                        <button
-                            onClick={resetCode}
-                            className="text-xs text-muted hover:text-ink"
-                            title="Reset to starter code">
+                        <button onClick={resetCode} className="text-xs text-muted hover:text-ink" title="Reset to starter code">
                             ↻ Reset
                         </button>
                     </div>
@@ -183,7 +181,7 @@ export function LessonPage() {
                     </div>
                     <div className="flex-1 min-h-0 bg-black">
                         <ShaderCanvas
-                            key={lesson.id}                       /* remount when lesson changes */
+                            key={lesson.id}
                             ref={canvasRef}
                             initialBody={code || lesson.starterFragmentShader || ''}
                         />
@@ -191,7 +189,6 @@ export function LessonPage() {
                 </section>
             </div>
 
-            {/* Actions */}
             <div className="mt-4 flex items-center justify-between flex-wrap gap-3">
                 <VerdictBanner verdict={verdict} message={verdictMsg} verified={lesson.verified} />
                 <div className="flex gap-2">
@@ -205,23 +202,17 @@ export function LessonPage() {
                 </div>
             </div>
 
-            {/* Discussion — only visible after the user has solved this lesson. */}
-            {completed && (
-                <Discussion lessonId={lesson.id} isAuthed={isAuthed} />
-            )}
-
-            {/* Success modal: auto-advances to next lesson when available */}
             <Modal
                 open={verdict === 'correct'}
                 onOpenChange={(o) => !o && setVerdict('idle')}
                 title="Solved"
                 description={nextLesson
-                    ? `On to "${nextLesson.title}" when you're ready.`
-                    : 'You finished the course. Pick another from the courses list.'}
+                    ? `On to "${nextLesson.title}" when you're ready — or jump into the discussion.`
+                    : 'You finished the course. Take a look at the discussion or pick another from the list.'}
                 footer={
                     <>
-                        <button className="btn-secondary" onClick={() => setVerdict('idle')}>
-                            Keep tweaking
+                        <button className="btn-secondary" onClick={goToDiscussion}>
+                            View discussion
                         </button>
                         <button className="btn-primary" onClick={goToNext}>
                             {nextLesson ? 'Next lesson →' : 'Back to courses'}
@@ -233,13 +224,21 @@ export function LessonPage() {
     );
 }
 
-// ─── helpers ─────────────────────────────────────────────────────────
-
-function AttemptBadge({ attempt, verified, authed }: {
-    attempt: AttemptResponse | null; verified: boolean; authed: boolean;
+function AttemptBadge({ attempt, locallyCompleted, verified, authed }: {
+    attempt: AttemptResponse | null;
+    locallyCompleted: boolean;
+    verified: boolean;
+    authed: boolean;
 }) {
     if (!verified) return <span className="pill-explore">Exploratory</span>;
-    if (!authed) return <span className="pill-explore">Sign in to submit</span>;
+
+    // Anonymous users get a localStorage-only verdict.
+    if (!authed) {
+        return locallyCompleted
+            ? <span className="pill-passed">Solved</span>
+            : <span className="pill-explore">Submit anytime — no sign-in needed</span>;
+    }
+
     if (!attempt) return <span className="pill-explore">Loading status…</span>;
     if (attempt.status === 'SUCCESSFUL') {
         return <span className="pill-passed">Solved · {attempt.count} attempt{attempt.count === 1 ? '' : 's'}</span>;
@@ -259,117 +258,6 @@ function VerdictBanner({ verdict, message, verified }: {
     if (verdict === 'incorrect') return <p className="text-xs text-amber-700">{message || 'Not quite — try again.'}</p>;
     if (verdict === 'error')     return <p className="text-xs text-red-600">{message}</p>;
     return <p className="text-xs text-muted">Click <b>Run</b> to preview, <b>Submit</b> to grade.</p>;
-}
-
-function Discussion({ lessonId, isAuthed }: { lessonId: string; isAuthed: boolean }) {
-    const [comments, setComments] = useState<Comment[] | null>(null);
-    const [code, setCode] = useState('');
-    const [content, setContent] = useState('');
-    const [posting, setPosting] = useState(false);
-    const [postError, setPostError] = useState<string | null>(null);
-
-    const refresh = useCallback(() => {
-        commentsApi.list(lessonId).then(setComments).catch(() => setComments([]));
-    }, [lessonId]);
-
-    useEffect(() => { refresh(); }, [refresh]);
-
-    async function submit(e: React.FormEvent) {
-        e.preventDefault();
-        if (!code.trim() && !content.trim()) return;
-        setPosting(true); setPostError(null);
-        try {
-            await commentsApi.post(lessonId, code, content);
-            setCode(''); setContent('');
-            refresh();
-        } catch (err: any) {
-            setPostError(err?.message ?? 'Failed to post.');
-        } finally {
-            setPosting(false);
-        }
-    }
-
-    return (
-        <section className="mt-12 border-t border-muted/30 pt-8">
-            <h2 className="text-xl font-semibold mb-4">Comments</h2>
-
-            {comments === null && <p className="text-sm text-muted">Loading comments…</p>}
-            {comments && comments.length === 0 && (
-                <p className="text-sm text-muted">No comments yet — be the first.</p>
-            )}
-            {comments && comments.length > 0 && (
-                <ul className="space-y-3 mb-8">
-                    {comments.map(c => <CommentCard key={c.id} comment={c} />)}
-                </ul>
-            )}
-
-            {isAuthed ? (
-                <form onSubmit={submit} className="space-y-3">
-                    <h3 className="text-sm font-semibold text-ink">Leave a comment</h3>
-                    <div>
-                        <label className="label">Code snippet (optional)</label>
-                        <textarea
-                            value={code}
-                            onChange={(e) => setCode(e.target.value)}
-                            rows={5}
-                            className="field font-mono text-sm"
-                            placeholder="Optional — paste a snippet to share"
-                        />
-                    </div>
-                    <div>
-                        <label className="label">Comment</label>
-                        <input
-                            value={content}
-                            onChange={(e) => setContent(e.target.value)}
-                            className="field"
-                            placeholder="Share a note, question, or alternative approach"
-                        />
-                    </div>
-                    {postError && <p className="text-xs text-red-600">{postError}</p>}
-                    <button type="submit" className="btn-primary" disabled={posting}>
-                        {posting ? 'Posting…' : 'Add comment'}
-                    </button>
-                </form>
-            ) : (
-                <p className="text-sm text-muted">
-                    <Link to={`/login?from=${encodeURIComponent(`/lesson/${lessonId}`)}`} className="text-accent hover:underline">
-                        Sign in
-                    </Link>{' '}to leave a comment.
-                </p>
-            )}
-        </section>
-    );
-}
-
-function CommentCard({ comment }: { comment: Comment }) {
-    const [copied, setCopied] = useState(false);
-    function copy() {
-        if (!comment.code) return;
-        navigator.clipboard.writeText(comment.code).then(() => {
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1000);
-        }).catch(() => {});
-    }
-    return (
-        <li className="card">
-            <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-medium text-ink">{comment.username ?? 'unknown'}</p>
-                {comment.code && (
-                    <button
-                        onClick={copy}
-                        className="text-xs text-muted hover:text-ink border border-muted/30 rounded-md px-2 py-1">
-                        {copied ? 'Copied' : 'Copy code'}
-                    </button>
-                )}
-            </div>
-            {comment.content && <p className="text-sm text-ink/80 mb-2 whitespace-pre-wrap">{comment.content}</p>}
-            {comment.code && (
-                <pre className="text-xs font-mono bg-cream border border-muted/20 rounded-md p-3 overflow-x-auto whitespace-pre">
-                    {comment.code}
-                </pre>
-            )}
-        </li>
-    );
 }
 
 function LessonSkeleton() {

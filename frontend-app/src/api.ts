@@ -9,11 +9,15 @@ export interface LessonSummary {
     displayOrder: number;
     verified: boolean;
 }
+export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
+
 export interface Course {
     id: string;
     slug: string;
     title: string;
     description: string | null;
+    category: string;
+    difficulty: Difficulty;
     displayOrder: number;
     lessons: LessonSummary[];
 }
@@ -67,14 +71,17 @@ export function setToken(t: string | null) {
 async function request<T = unknown>(
     method: string,
     path: string,
-    opts: { body?: any; auth?: boolean; raw?: boolean } = {},
+    opts: { body?: any; auth?: 'required' | 'optional'; raw?: boolean } = {},
 ): Promise<T> {
     const headers: Record<string, string> = {};
     if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
-    if (opts.auth) {
+    if (opts.auth === 'required') {
         const token = getToken();
         if (!token) throw { status: 401, message: 'Not signed in' } as ApiError;
         headers['Authorization'] = `Bearer ${token}`;
+    } else if (opts.auth === 'optional') {
+        const token = getToken();
+        if (token) headers['Authorization'] = `Bearer ${token}`;
     }
 
     const res = await fetch(path, {
@@ -118,10 +125,11 @@ export const lessonsApi = {
     get: (id: string) => request<Lesson>('GET', `/app/lessons/${encodeURIComponent(id)}`),
     solution: (id: string) =>
         request<LessonSolution>('GET', `/app/lessons/${encodeURIComponent(id)}/solution`),
+    // Optional-auth: anon submits get a verdict but no Attempt row server-side.
     verify: (lessonId: string, fragmentShader: string) =>
         request<string>('POST', '/app/lessons/verify', {
-            body: { lessonId, fragmentShader, vertexShader: '', time: 20 },
-            auth: true,
+            body: { lessonId, fragmentShader },
+            auth: 'optional',
             raw: true,
         }),
 };
@@ -130,20 +138,21 @@ export const lessonsApi = {
 export const commentsApi = {
     list: (lessonId: string) =>
         request<Comment[]>('GET', `/app/comments/${encodeURIComponent(lessonId)}`),
+    // Optional-auth: anon comments save with account=null and render as Anonymous.
     post: (lessonId: string, code: string, content: string) =>
-        request<Comment>('POST', `/app/account/comment/${encodeURIComponent(lessonId)}`, {
+        request<Comment>('POST', `/app/comments/${encodeURIComponent(lessonId)}`, {
             body: { code, content },
-            auth: true,
+            auth: 'optional',
         }),
 };
 
-// ─── account ─────────────────────────────────────────────────────────
+// ─── account (signed-in only) ────────────────────────────────────────
 export const accountApi = {
-    me: () => request<AccountResponse>('GET', '/app/account', { auth: true }),
+    me: () => request<AccountResponse>('GET', '/app/account', { auth: 'required' }),
     status: (lessonId: string) =>
-        request<AttemptResponse>('GET', `/app/account/status/${encodeURIComponent(lessonId)}`, { auth: true }),
+        request<AttemptResponse>('GET', `/app/account/status/${encodeURIComponent(lessonId)}`, { auth: 'required' }),
     updateProfile: (data: { email?: string; country?: string; bio?: string }) =>
-        request<string>('POST', '/app/account/profile_info', { body: data, auth: true, raw: true }),
+        request<string>('POST', '/app/account/profile_info', { body: data, auth: 'required', raw: true }),
     updateAccount: (data: { username: string; password: string; oldPassword: string }) =>
-        request<string>('POST', '/app/account/account_info', { body: data, auth: true, raw: true }),
+        request<string>('POST', '/app/account/account_info', { body: data, auth: 'required', raw: true }),
 };

@@ -1,12 +1,12 @@
 import {
     BadGatewayException, BadRequestException, Body, Controller, Delete, Get, HttpCode,
-    Logger, NotFoundException, Param, Post, Put, Req, UnauthorizedException, UseGuards,
+    Logger, NotFoundException, Param, Post, Put, Req, UseGuards,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Account, Attempt, Course, Lesson } from './entities';
 import { AdminGuard } from './admin.guard';
-import { JwtGuard } from './jwt.guard';
+import { OptionalJwt } from './optional-jwt';
 import { FRAGMENT_HEADER, VERIFICATION_TIME, VERTEX_SHADER, ValidatorService } from './validator.service';
 import { timingSafeEqual } from 'crypto';
 
@@ -70,6 +70,7 @@ export class LessonsController {
         @InjectRepository(Account) private readonly accounts: Repository<Account>,
         @InjectRepository(Attempt) private readonly attempts: Repository<Attempt>,
         private readonly validator: ValidatorService,
+        private readonly optJwt: OptionalJwt,
     ) {}
 
     @Get(':id')
@@ -90,13 +91,14 @@ export class LessonsController {
         };
     }
 
+    /**
+     * Optional-auth: anonymous visitors get correctness back with no Attempt
+     * row stored. Authed users get their Attempt persisted for status tracking.
+     */
     @Post('verify')
-    @UseGuards(JwtGuard)
     @HttpCode(200)
     async verify(@Body() body: VerifyLessonBody, @Req() req: any): Promise<string> {
         if (!body?.lessonId || !body?.fragmentShader) throw new BadRequestException('Invalid request.');
-        const account = await this.accounts.findOne({ where: { id: req.userId } });
-        if (!account) throw new UnauthorizedException('Account not found.');
         const lesson = await this.lessons.findOne({ where: { id: body.lessonId } });
         if (!lesson) throw new NotFoundException('Lesson not found.');
         if (!lesson.hashedAnswer) {
@@ -111,11 +113,20 @@ export class LessonsController {
         }
 
         const correct = equalsConstantTime(result.imageHash, lesson.hashedAnswer);
-        const attempt = this.attempts.create({
-            status: correct ? 'SUCCESSFUL' : 'FAILED',
-            account, lesson,
-        });
-        await this.attempts.save(attempt);
+
+        // Persist the attempt only if the caller is signed in. Anonymous users
+        // get a verdict but no server-side history (client tracks locally).
+        const userId = await this.optJwt.userIdFrom(req);
+        if (userId) {
+            const account = await this.accounts.findOne({ where: { id: userId } });
+            if (account) {
+                await this.attempts.save(this.attempts.create({
+                    status: correct ? 'SUCCESSFUL' : 'FAILED',
+                    account, lesson,
+                }));
+            }
+        }
+
         if (!correct) throw new BadRequestException('Incorrect.');
         return 'Correct.';
     }
