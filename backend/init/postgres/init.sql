@@ -29,7 +29,8 @@ CREATE TABLE course
 CREATE INDEX idx_course_display_order ON course (display_order);
 
 -- ---------- lesson ----------
--- hashed_answer NULL = exploratory (no verification) OR awaiting `recompute-hashes`.
+-- description is HTML (sanitized in the frontend).
+-- hashed_answer NULL = exploratory or awaiting `recompute-hashes`.
 CREATE TABLE lesson
 (
     id                        VARCHAR(36) PRIMARY KEY,
@@ -95,12 +96,6 @@ INSERT INTO course (id, slug, title, description, display_order) VALUES
      2);
 
 -- ===========================================================
--- LESSON helpers — every lesson uses the same passthrough VS.
--- starter_vertex_shader column is informational; the frontend
--- ships its own vertex shader and verification uses the same.
--- ===========================================================
-
--- ===========================================================
 -- COURSE 1: Basics
 -- ===========================================================
 
@@ -113,7 +108,10 @@ INSERT INTO lesson (
     'hello-color',
     0,
     'Hello, color',
-    'Every fragment shader sets gl_FragColor, a four-component (R, G, B, A) value. Components run 0.0 to 1.0. Edit gl_FragColor so the canvas renders pure GREEN.',
+    '<p>Every fragment shader sets <code>gl_FragColor</code> — a four-component <code>(R, G, B, A)</code> value where each component runs from <code>0.0</code> to <code>1.0</code>.</p>
+<p>Edit <code>gl_FragColor</code> so the canvas renders pure <strong>green</strong>.</p>
+<p>Reference: <a href="https://thebookofshaders.com/02/" target="_blank" rel="noreferrer">The Book of Shaders — Hello World</a></p>
+<img src="/lesson-images/hello-color.png" alt="A solid green square" />',
     'attribute vec4 aVertexPosition;
 void main() { gl_Position = aVertexPosition; }',
     'void main() {
@@ -134,7 +132,10 @@ INSERT INTO lesson (
     'half-and-half',
     1,
     'Half and half',
-    'gl_FragCoord.xy gives the pixel''s screen position. u_resolution.xy gives the canvas size. Make the left half of the screen RED and the right half BLUE. Hint: divide gl_FragCoord by u_resolution to get a 0..1 coordinate.',
+    '<p><code>gl_FragCoord.xy</code> gives the pixel''s screen position. <code>u_resolution.xy</code> gives the canvas size.</p>
+<p>Make the left half of the screen <strong>red</strong> and the right half <strong>blue</strong>.</p>
+<p><em>Hint:</em> divide <code>gl_FragCoord</code> by <code>u_resolution</code> to get a 0..1 coordinate.</p>
+<p>Reference: <a href="https://thebookofshaders.com/03/" target="_blank" rel="noreferrer">The Book of Shaders — Uniforms</a></p>',
     'attribute vec4 aVertexPosition;
 void main() { gl_Position = aVertexPosition; }',
     'void main() {
@@ -159,7 +160,8 @@ INSERT INTO lesson (
     'uv-gradient',
     2,
     'UV as color',
-    'Render the normalized coordinates directly: red increases with x, green increases with y. This is the canonical "see what your UVs look like" debug view.',
+    '<p>Render the normalized coordinates directly: red increases with <code>x</code>, green increases with <code>y</code>. This is the canonical <em>"see what your UVs look like"</em> debug view.</p>
+<p>Reference: <a href="https://thebookofshaders.com/03/" target="_blank" rel="noreferrer">The Book of Shaders — Uniforms</a></p>',
     'attribute vec4 aVertexPosition;
 void main() { gl_Position = aVertexPosition; }',
     'void main() {
@@ -182,7 +184,9 @@ INSERT INTO lesson (
     'pulse-with-time',
     3,
     'Pulse with time',
-    'u_time is a uniform float that increases every frame. Verification runs at t = 20.0 exactly. Render a single uniform grey whose brightness is 0.5 + 0.5 * sin(u_time) — your whole canvas should be one shade of grey.',
+    '<p><code>u_time</code> is a uniform float that increases every frame. Verification runs at <code>t = 20.0</code> exactly.</p>
+<p>Render a single uniform grey whose brightness is <code>0.5 + 0.5 * sin(u_time)</code> — your whole canvas should be one shade of grey.</p>
+<p>Reference: <a href="https://thebookofshaders.com/03/" target="_blank" rel="noreferrer">The Book of Shaders — Uniforms (u_time)</a></p>',
     'attribute vec4 aVertexPosition;
 void main() { gl_Position = aVertexPosition; }',
     'void main() {
@@ -205,7 +209,8 @@ INSERT INTO lesson (
     'diagonal-gradient',
     4,
     'Diagonal gradient',
-    'Combine x and y into a single value to produce a corner-to-corner greyscale gradient: brightness = (uv.x + uv.y) * 0.5.',
+    '<p>Combine <code>x</code> and <code>y</code> into a single value to produce a corner-to-corner greyscale gradient:</p>
+<pre><code>brightness = (uv.x + uv.y) * 0.5</code></pre>',
     'attribute vec4 aVertexPosition;
 void main() { gl_Position = aVertexPosition; }',
     'void main() {
@@ -234,7 +239,9 @@ INSERT INTO lesson (
     'step-edge',
     0,
     'A hard edge with step()',
-    'step(edge, x) returns 0.0 when x < edge and 1.0 otherwise. Use it to draw the right half of the screen white and the left half black.',
+    '<p><code>step(edge, x)</code> returns <code>0.0</code> when <code>x &lt; edge</code> and <code>1.0</code> otherwise.</p>
+<p>Use it to draw the right half of the screen white and the left half black.</p>
+<p>Reference: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">The Book of Shaders — Shaping functions</a></p>',
     'attribute vec4 aVertexPosition;
 void main() { gl_Position = aVertexPosition; }',
     'void main() {
@@ -259,7 +266,9 @@ INSERT INTO lesson (
     'smoothstep-edge',
     1,
     'A soft edge with smoothstep()',
-    'smoothstep(a, b, x) ramps 0 → 1 across the [a, b] range with a smooth Hermite curve. Use smoothstep(0.4, 0.6, uv.x) for a soft vertical transition.',
+    '<p><code>smoothstep(a, b, x)</code> ramps <code>0 → 1</code> across the <code>[a, b]</code> range with a smooth Hermite curve.</p>
+<p>Use <code>smoothstep(0.4, 0.6, uv.x)</code> for a soft vertical transition.</p>
+<p>Reference: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">The Book of Shaders — Shaping functions</a></p>',
     'attribute vec4 aVertexPosition;
 void main() { gl_Position = aVertexPosition; }',
     'void main() {
@@ -284,7 +293,8 @@ INSERT INTO lesson (
     'horizontal-band',
     2,
     'A horizontal band',
-    'Stack two smoothsteps back-to-back to draw a thin glowing band centered at y = 0.5. Subtract one from the other: smoothstep(0.49, 0.5, uv.y) - smoothstep(0.5, 0.51, uv.y).',
+    '<p>Stack two <code>smoothstep</code>s back-to-back to draw a thin glowing band centered at <code>y = 0.5</code>:</p>
+<pre><code>band = smoothstep(0.49, 0.5, uv.y) - smoothstep(0.5, 0.51, uv.y);</code></pre>',
     'attribute vec4 aVertexPosition;
 void main() { gl_Position = aVertexPosition; }',
     'void main() {
@@ -309,7 +319,9 @@ INSERT INTO lesson (
     'circle',
     3,
     'A filled circle',
-    'A distance field gives you a continuous "how far am I from this point?" value. length(uv - center) is the SDF for a circle. Combine with smoothstep to draw a filled disc of radius 0.3 centered at (0.5, 0.5).',
+    '<p>A <strong>distance field</strong> gives you a continuous "how far am I from this point?" value. <code>length(uv - center)</code> is the SDF for a circle.</p>
+<p>Combine with <code>smoothstep</code> to draw a filled disc of radius <code>0.3</code> centered at <code>(0.5, 0.5)</code>.</p>
+<p>Reference: <a href="https://thebookofshaders.com/07/" target="_blank" rel="noreferrer">The Book of Shaders — Shapes</a></p>',
     'attribute vec4 aVertexPosition;
 void main() { gl_Position = aVertexPosition; }',
     'void main() {
@@ -335,7 +347,8 @@ INSERT INTO lesson (
     'plot-parabola',
     4,
     'Plot a parabola',
-    'Draw the curve y = x² as a thin line. For each fragment, compare uv.y to the curve''s value and use a pair of smoothsteps to draw a 1 px line where they meet.',
+    '<p>Draw the curve <code>y = x²</code> as a thin line. For each fragment, compare <code>uv.y</code> to the curve''s value and use a pair of <code>smoothstep</code>s to draw a 1 px line where they meet.</p>
+<p>Reference: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">The Book of Shaders — Plotting a function</a></p>',
     'attribute vec4 aVertexPosition;
 void main() { gl_Position = aVertexPosition; }',
     'void main() {
@@ -365,7 +378,9 @@ INSERT INTO lesson (
     'mix-red-blue',
     0,
     'Mix two colors',
-    'mix(a, b, t) does linear interpolation: 0 returns a, 1 returns b, anything between blends. Render a horizontal ramp from red on the left to blue on the right.',
+    '<p><code>mix(a, b, t)</code> does linear interpolation: <code>0</code> returns <code>a</code>, <code>1</code> returns <code>b</code>, anything between blends.</p>
+<p>Render a horizontal ramp from red on the left to blue on the right.</p>
+<p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">The Book of Shaders — Colors</a></p>',
     'attribute vec4 aVertexPosition;
 void main() { gl_Position = aVertexPosition; }',
     'void main() {
@@ -390,7 +405,7 @@ INSERT INTO lesson (
     'three-color',
     1,
     'Three-color gradient',
-    'Chain two mixes to pass through three colors: red → green at the halfway point, then green → blue at the end. Use smoothstep to control where each transition happens.',
+    '<p>Chain two <code>mix</code>es to pass through three colors: red → green at the halfway point, then green → blue at the end. Use <code>smoothstep</code> to control where each transition happens.</p>',
     'attribute vec4 aVertexPosition;
 void main() { gl_Position = aVertexPosition; }',
     'void main() {
@@ -416,7 +431,9 @@ INSERT INTO lesson (
     'hsv-rainbow',
     2,
     'HSV rainbow',
-    'HSV (hue, saturation, value) is a colour space that puts the rainbow on a single axis. Map uv.x to hue, hold saturation and value at 1.0, then convert HSV → RGB. The classic conversion is a six-line trick.',
+    '<p><strong>HSV</strong> (hue, saturation, value) is a colour space that puts the rainbow on a single axis.</p>
+<p>Map <code>uv.x</code> to hue, hold saturation and value at <code>1.0</code>, then convert HSV → RGB. The classic conversion is a six-line trick — peek at the canonical solution for the formula.</p>
+<p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">The Book of Shaders — HSB / HSV</a></p>',
     'attribute vec4 aVertexPosition;
 void main() { gl_Position = aVertexPosition; }',
     'void main() {
@@ -446,7 +463,7 @@ INSERT INTO lesson (
     'vignette',
     3,
     'Vignette',
-    'Darken the edges, keep the center bright. Compute distance from center and use smoothstep(0.3, 0.7, d) to falloff. Subtract from 1.0 so the center is full white.',
+    '<p>Darken the edges, keep the center bright. Compute distance from center and use <code>smoothstep(0.3, 0.7, d)</code> to falloff. Subtract from <code>1.0</code> so the center is full white.</p>',
     'attribute vec4 aVertexPosition;
 void main() { gl_Position = aVertexPosition; }',
     'void main() {
@@ -472,7 +489,8 @@ INSERT INTO lesson (
     'coord-color-time',
     4,
     'Color from coordinates + time',
-    'Pack three signals into one vec3: red = uv.x, green = uv.y, blue = 0.5 + 0.5 * sin(u_time). Verification runs at t = 20.0.',
+    '<p>Pack three signals into one <code>vec3</code>: red = <code>uv.x</code>, green = <code>uv.y</code>, blue = <code>0.5 + 0.5 * sin(u_time)</code>.</p>
+<p>Verification runs at <code>t = 20.0</code>.</p>',
     'attribute vec4 aVertexPosition;
 void main() { gl_Position = aVertexPosition; }',
     'void main() {

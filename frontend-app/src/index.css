@@ -54,4 +54,19 @@
     .pill-explore  { @apply pill text-muted border-muted/30 bg-cream; }
     .pill-passed   { @apply pill text-green-700 border-green-200 bg-green-50; }
     .pill-failed   { @apply pill text-amber-700 border-amber-200 bg-amber-50; }
+
+    /* Author-authored lesson descriptions (sanitized HTML). */
+    .lesson-prose       { @apply text-sm text-ink/80 leading-relaxed; }
+    .lesson-prose p     { @apply mb-3; }
+    .lesson-prose h2    { @apply text-lg font-semibold text-ink mt-5 mb-2; }
+    .lesson-prose h3    { @apply text-base font-semibold text-ink mt-4 mb-2; }
+    .lesson-prose a     { @apply text-accent hover:underline; }
+    .lesson-prose code  { @apply px-1 py-0.5 rounded bg-cream font-mono text-[0.85em]; }
+    .lesson-prose pre   { @apply bg-cream border border-muted/20 rounded-md p-3 overflow-x-auto my-3; }
+    .lesson-prose pre code { @apply bg-transparent p-0; }
+    .lesson-prose ul    { @apply list-disc pl-6 mb-3; }
+    .lesson-prose ol    { @apply list-decimal pl-6 mb-3; }
+    .lesson-prose li    { @apply mb-1; }
+    .lesson-prose img   { @apply max-w-full rounded-md border border-muted/30 my-3; }
+    .lesson-prose blockquote { @apply border-l-2 border-accent/50 pl-4 italic text-ink/70 my-3; }
 }

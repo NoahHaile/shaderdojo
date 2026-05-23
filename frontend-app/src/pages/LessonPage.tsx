@@ -1,16 +1,21 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-    accountApi, commentsApi, lessonsApi,
-    type AttemptResponse, type Comment, type Lesson,
+    accountApi, commentsApi, coursesApi, lessonsApi,
+    type AttemptResponse, type Comment, type Course, type Lesson,
 } from '../api';
 import { useAuth } from '../auth';
 import { Editor } from '../components/Editor';
 import { Modal } from '../components/Modal';
+import { RichText } from '../components/RichText';
 import { ShaderCanvas, type ShaderCanvasHandle } from '../components/ShaderCanvas';
 import { FRAGMENT_HEADER } from '../shader-pipeline';
 
 type Verdict = 'idle' | 'verifying' | 'correct' | 'incorrect' | 'error';
+
+// Single source of truth for the editor + canvas pane height — same value so
+// the two panes line up at every viewport width.
+const PANE_HEIGHT = 460;
 
 export function LessonPage() {
     const { id = '' } = useParams();
@@ -18,6 +23,7 @@ export function LessonPage() {
     const { isAuthed } = useAuth();
 
     const [lesson, setLesson] = useState<Lesson | null>(null);
+    const [course, setCourse] = useState<Course | null>(null);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [code, setCode] = useState<string>('');
     const [attempt, setAttempt] = useState<AttemptResponse | null>(null);
@@ -29,12 +35,18 @@ export function LessonPage() {
     // ── Load lesson ───────────────────────────────────────────────────
     useEffect(() => {
         let cancelled = false;
-        setLesson(null); setLoadError(null); setVerdict('idle');
+        setLesson(null); setCourse(null); setLoadError(null); setVerdict('idle');
         lessonsApi.get(id)
             .then(l => {
                 if (cancelled) return;
                 setLesson(l);
                 setCode(l.starterFragmentShader ?? '');
+                // Load the parent course for breadcrumb + next-lesson lookup.
+                if (l.courseSlug) {
+                    coursesApi.bySlug(l.courseSlug)
+                        .then(c => { if (!cancelled) setCourse(c); })
+                        .catch(() => {});
+                }
             })
             .catch((e: any) => !cancelled && setLoadError(e.message ?? 'Lesson not found'));
         return () => { cancelled = true; };
@@ -42,9 +54,17 @@ export function LessonPage() {
 
     // ── Load attempt status when authed ───────────────────────────────
     useEffect(() => {
-        if (!isAuthed || !lesson) return;
+        if (!isAuthed || !lesson) { setAttempt(null); return; }
         accountApi.status(lesson.id).then(setAttempt).catch(() => {});
     }, [isAuthed, lesson]);
+
+    // ── Derived: next lesson in the same course (if any) ──────────────
+    const nextLesson = useMemo(() => {
+        if (!course || !lesson) return null;
+        const idx = course.lessons.findIndex(l => l.id === lesson.id);
+        if (idx < 0 || idx + 1 >= course.lessons.length) return null;
+        return course.lessons[idx + 1];
+    }, [course, lesson]);
 
     // ── Run / Submit ──────────────────────────────────────────────────
     const run = useCallback(() => {
@@ -52,9 +72,11 @@ export function LessonPage() {
         const ok = canvasRef.current.run(code);
         if (!ok) {
             setVerdict('error');
-            setVerdictMsg('GLSL compile error — check console / browser devtools.');
+            setVerdictMsg('GLSL compile error — check your browser devtools console for the line.');
+        } else if (verdict === 'error') {
+            setVerdict('idle');
         }
-    }, [code]);
+    }, [code, verdict]);
 
     const submit = useCallback(async () => {
         if (!lesson) return;
@@ -62,7 +84,6 @@ export function LessonPage() {
             navigate(`/login?from=${encodeURIComponent(`/lesson/${lesson.id}`)}`);
             return;
         }
-        // Always run the latest code locally first
         canvasRef.current?.run(code);
         setVerdict('verifying'); setVerdictMsg('');
         try {
@@ -72,7 +93,7 @@ export function LessonPage() {
         } catch (e: any) {
             if (e?.status === 400) {
                 setVerdict('incorrect');
-                setVerdictMsg('Not quite — your output didn\'t match.');
+                setVerdictMsg("Not quite — your output didn't match.");
             } else {
                 setVerdict('error');
                 setVerdictMsg(e?.message ?? 'Verification failed.');
@@ -86,6 +107,12 @@ export function LessonPage() {
         if (lesson?.starterFragmentShader) setCode(lesson.starterFragmentShader);
     }, [lesson]);
 
+    const goToNext = useCallback(() => {
+        if (nextLesson) navigate(`/lesson/${nextLesson.id}`);
+        else if (course) navigate(`/courses?slug=${course.slug}`);
+        else navigate('/courses');
+    }, [navigate, nextLesson, course]);
+
     if (loadError) {
         return (
             <div className="max-w-3xl mx-auto px-4 py-12">
@@ -97,32 +124,41 @@ export function LessonPage() {
     }
     if (!lesson) return <LessonSkeleton />;
 
+    const completed = attempt?.status === 'SUCCESSFUL';
+
     return (
         <div className="max-w-6xl mx-auto px-4 py-6">
             {/* Breadcrumb */}
-            <nav className="text-xs text-muted mb-3 flex items-center gap-1.5">
+            <nav className="text-xs text-muted mb-3 flex items-center gap-1.5 flex-wrap">
                 <Link to="/courses" className="hover:text-ink">Courses</Link>
                 <span>/</span>
-                {lesson.courseTitle && <span>{lesson.courseTitle}</span>}
-                {lesson.courseTitle && <span>/</span>}
+                {lesson.courseSlug ? (
+                    <Link
+                        to={`/courses?slug=${encodeURIComponent(lesson.courseSlug)}`}
+                        className="hover:text-ink">
+                        {lesson.courseTitle ?? lesson.courseSlug}
+                    </Link>
+                ) : (
+                    lesson.courseTitle && <span>{lesson.courseTitle}</span>
+                )}
+                {(lesson.courseSlug || lesson.courseTitle) && <span>/</span>}
                 <span className="text-ink">{lesson.title}</span>
             </nav>
 
-            {/* Title + status */}
-            <header className="flex items-baseline justify-between gap-4 mb-2">
+            <header className="flex items-baseline justify-between gap-4 mb-3">
                 <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">{lesson.title}</h1>
                 <AttemptBadge attempt={attempt} verified={lesson.verified} authed={isAuthed} />
             </header>
+
             {lesson.description && (
-                <p className="text-sm text-ink/70 mb-6 whitespace-pre-wrap leading-relaxed">
-                    {lesson.description}
-                </p>
+                <RichText html={lesson.description} className="mb-6 max-w-3xl" />
             )}
 
-            {/* Workspace: editor (left) + canvas (right) */}
+            {/* Workspace: editor + canvas, capped at the same height */}
             <div className="grid lg:grid-cols-2 gap-4">
-                <section className="border border-muted/30 rounded-xl bg-white overflow-hidden flex flex-col">
-                    <div className="flex items-center justify-between px-4 h-10 border-b border-muted/30 bg-cream">
+                <section className="border border-muted/30 rounded-xl bg-white overflow-hidden flex flex-col"
+                         style={{ height: PANE_HEIGHT }}>
+                    <div className="flex items-center justify-between px-4 h-10 border-b border-muted/30 bg-cream flex-shrink-0">
                         <span className="text-[11px] font-semibold uppercase tracking-wide text-ink/60">
                             Fragment shader
                         </span>
@@ -133,18 +169,19 @@ export function LessonPage() {
                             ↻ Reset
                         </button>
                     </div>
-                    <div className="flex-1 min-h-[420px]">
-                        <Editor value={code} onChange={setCode} height="420px" />
+                    <div className="flex-1 min-h-0">
+                        <Editor value={code} onChange={setCode} height="100%" />
                     </div>
                 </section>
 
-                <section className="border border-muted/30 rounded-xl bg-white overflow-hidden flex flex-col">
-                    <div className="flex items-center justify-between px-4 h-10 border-b border-muted/30 bg-cream">
+                <section className="border border-muted/30 rounded-xl bg-white overflow-hidden flex flex-col"
+                         style={{ height: PANE_HEIGHT }}>
+                    <div className="flex items-center justify-between px-4 h-10 border-b border-muted/30 bg-cream flex-shrink-0">
                         <span className="text-[11px] font-semibold uppercase tracking-wide text-ink/60">
                             Output
                         </span>
                     </div>
-                    <div className="aspect-square w-full bg-black">
+                    <div className="flex-1 min-h-0 bg-black">
                         <ShaderCanvas
                             key={lesson.id}                       /* remount when lesson changes */
                             ref={canvasRef}
@@ -168,19 +205,27 @@ export function LessonPage() {
                 </div>
             </div>
 
-            {/* Discussion */}
-            <Discussion lessonId={lesson.id} isAuthed={isAuthed} />
+            {/* Discussion — only visible after the user has solved this lesson. */}
+            {completed && (
+                <Discussion lessonId={lesson.id} isAuthed={isAuthed} />
+            )}
 
-            {/* Result modal */}
+            {/* Success modal: auto-advances to next lesson when available */}
             <Modal
                 open={verdict === 'correct'}
                 onOpenChange={(o) => !o && setVerdict('idle')}
                 title="Solved"
-                description="Your output matched. Pick the next lesson when you're ready."
+                description={nextLesson
+                    ? `On to "${nextLesson.title}" when you're ready.`
+                    : 'You finished the course. Pick another from the courses list.'}
                 footer={
                     <>
-                        <button className="btn-secondary" onClick={() => setVerdict('idle')}>Keep tweaking</button>
-                        <Link className="btn-primary" to="/courses">Back to course</Link>
+                        <button className="btn-secondary" onClick={() => setVerdict('idle')}>
+                            Keep tweaking
+                        </button>
+                        <button className="btn-primary" onClick={goToNext}>
+                            {nextLesson ? 'Next lesson →' : 'Back to courses'}
+                        </button>
                     </>
                 }
             />
@@ -208,13 +253,7 @@ function AttemptBadge({ attempt, verified, authed }: {
 function VerdictBanner({ verdict, message, verified }: {
     verdict: Verdict; message: string; verified: boolean;
 }) {
-    if (!verified) {
-        return (
-            <p className="text-xs text-muted italic">
-                Exploratory lesson — no automatic grading.
-            </p>
-        );
-    }
+    if (!verified) return <p className="text-xs text-muted italic">Exploratory lesson — no automatic grading.</p>;
     if (verdict === 'verifying') return <p className="text-xs text-muted">Rendering and comparing…</p>;
     if (verdict === 'correct')   return <p className="text-xs text-green-700">✓ Correct</p>;
     if (verdict === 'incorrect') return <p className="text-xs text-amber-700">{message || 'Not quite — try again.'}</p>;
@@ -252,11 +291,11 @@ function Discussion({ lessonId, isAuthed }: { lessonId: string; isAuthed: boolea
 
     return (
         <section className="mt-12 border-t border-muted/30 pt-8">
-            <h2 className="text-xl font-semibold mb-4">Discussion</h2>
+            <h2 className="text-xl font-semibold mb-4">Comments</h2>
 
-            {comments === null && <p className="text-sm text-muted">Loading…</p>}
+            {comments === null && <p className="text-sm text-muted">Loading comments…</p>}
             {comments && comments.length === 0 && (
-                <p className="text-sm text-muted">No alternative solutions posted yet.</p>
+                <p className="text-sm text-muted">No comments yet — be the first.</p>
             )}
             {comments && comments.length > 0 && (
                 <ul className="space-y-3 mb-8">
@@ -266,35 +305,36 @@ function Discussion({ lessonId, isAuthed }: { lessonId: string; isAuthed: boolea
 
             {isAuthed ? (
                 <form onSubmit={submit} className="space-y-3">
+                    <h3 className="text-sm font-semibold text-ink">Leave a comment</h3>
                     <div>
-                        <label className="label">Your code</label>
+                        <label className="label">Code snippet (optional)</label>
                         <textarea
                             value={code}
                             onChange={(e) => setCode(e.target.value)}
-                            rows={6}
+                            rows={5}
                             className="field font-mono text-sm"
-                            placeholder="void main() { ... }"
+                            placeholder="Optional — paste a snippet to share"
                         />
                     </div>
                     <div>
-                        <label className="label">Description</label>
+                        <label className="label">Comment</label>
                         <input
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
                             className="field"
-                            placeholder="One-line description of what's different"
+                            placeholder="Share a note, question, or alternative approach"
                         />
                     </div>
                     {postError && <p className="text-xs text-red-600">{postError}</p>}
                     <button type="submit" className="btn-primary" disabled={posting}>
-                        {posting ? 'Posting…' : 'Post solution'}
+                        {posting ? 'Posting…' : 'Add comment'}
                     </button>
                 </form>
             ) : (
                 <p className="text-sm text-muted">
                     <Link to={`/login?from=${encodeURIComponent(`/lesson/${lessonId}`)}`} className="text-accent hover:underline">
                         Sign in
-                    </Link>{' '}to post your own solution.
+                    </Link>{' '}to leave a comment.
                 </p>
             )}
         </section>

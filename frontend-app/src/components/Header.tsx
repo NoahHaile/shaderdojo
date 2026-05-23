@@ -12,7 +12,7 @@ export function Header() {
         <header className="border-b border-muted/30 bg-white sticky top-0 z-30">
             <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
                 <Link to="/" className="flex items-center gap-2 group">
-                    <span className="inline-block w-7 h-7 rounded-md bg-primary group-hover:bg-accent transition" />
+                    <img src="/logo.png" alt="ShaderDojo" className="w-8 h-8" />
                     <span className="font-semibold tracking-tight text-ink">ShaderDojo</span>
                 </Link>
                 <nav className="flex items-center gap-1">

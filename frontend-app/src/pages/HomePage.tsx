@@ -32,8 +32,8 @@ export function HomePage() {
                         <a className="text-accent font-medium hover:underline" href="https://shadertoy.com/" target="_blank" rel="noreferrer">
                             ShaderToy
                         </a>{' '}and{' '}
-                        <a className="text-accent font-medium hover:underline" href="https://projecteuler.net/" target="_blank" rel="noreferrer">
-                            Project Euler
+                        <a className="text-accent font-medium hover:underline" href="https://www.freecodecamp.org/" target="_blank" rel="noreferrer">
+                            freeCodeCamp
                         </a>. Take on shader challenges and bend light and math toward precise creative goals.
                     </p>
                     <div className="mt-6 flex gap-3">

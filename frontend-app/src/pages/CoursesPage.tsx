@@ -1,20 +1,35 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { coursesApi, type Course } from '../api';
 
 export function CoursesPage() {
     const [courses, setCourses] = useState<Course[] | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [selected, setSelected] = useState<string | null>(null);
+    const [params, setParams] = useSearchParams();
+    const requestedSlug = params.get('slug');
+    const [selected, setSelected] = useState<string | null>(requestedSlug);
 
     useEffect(() => {
         coursesApi.list()
             .then((cs) => {
                 setCourses(cs);
-                if (cs.length > 0) setSelected(cs[0].slug);
+                // Honor ?slug= if it points at an existing course; otherwise pick the first.
+                const initial =
+                    (requestedSlug && cs.some(c => c.slug === requestedSlug))
+                        ? requestedSlug
+                        : (cs[0]?.slug ?? null);
+                setSelected(initial);
             })
             .catch((e: any) => setError(e.message ?? 'Failed to load courses'));
+        // requestedSlug only matters on initial mount; subsequent changes come from clicks.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Keep the URL in sync when the user picks a different course.
+    function pickCourse(slug: string) {
+        setSelected(slug);
+        setParams({ slug }, { replace: true });
+    }
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-10 grid md:grid-cols-[220px_1fr] gap-8">
@@ -28,7 +43,7 @@ export function CoursesPage() {
                         {courses.map(c => (
                             <li key={c.id}>
                                 <button
-                                    onClick={() => setSelected(c.slug)}
+                                    onClick={() => pickCourse(c.slug)}
                                     className={
                                         'w-full text-left px-3 py-2 rounded-md text-sm transition ' +
                                         (selected === c.slug
