@@ -14,11 +14,23 @@ import { ValidatorService } from './validator.service';
 import { AdminGuard } from './admin.guard';
 import { JwtGuard } from './jwt.guard';
 
+/** Parse `jdbc:postgresql://host:port/db` into discrete options. We deliberately don't
+ *  pass `url` to TypeORM because when both `url` and `username` are set, the underlying
+ *  `pg` driver uses the URL exclusively for the startup packet and drops the username. */
+function parseJdbcUrl(jdbc: string) {
+    const u = new URL(jdbc.replace(/^jdbc:/, ''));
+    return {
+        host: u.hostname,
+        port: parseInt(u.port || '5432', 10),
+        database: u.pathname.replace(/^\//, '') || 'shader_dojo',
+    };
+}
+
 @Module({
     imports: [
         TypeOrmModule.forRoot({
             type: 'postgres',
-            url: process.env.SPRING_DATASOURCE_URL?.replace(/^jdbc:/, '') || 'postgresql://localhost:5432/shader_dojo',
+            ...parseJdbcUrl(process.env.SPRING_DATASOURCE_URL || 'jdbc:postgresql://db:5432/shader_dojo'),
             username: process.env.SPRING_DATASOURCE_USERNAME,
             password: process.env.SPRING_DATASOURCE_PASSWORD,
             entities: [Account, Course, Lesson, Comment, Attempt],
