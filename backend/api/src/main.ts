@@ -11,7 +11,12 @@ async function bootstrap() {
     }
 
     const app = await NestFactory.create(AppModule, { cors: false });
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    // Note: NOT enabling `whitelist: true` because the DTO classes in this codebase
+    // are plain TypeScript types without class-validator decorators. Whitelist mode
+    // would strip every body field, surfacing as 401/404 errors in controllers that
+    // null-check inputs. If we adopt class-validator across all DTOs later, this
+    // can be turned back on.
+    app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     const corsRaw = (process.env.CORS_ALLOWED_ORIGINS || '').trim();
     if (corsRaw.length > 0) {

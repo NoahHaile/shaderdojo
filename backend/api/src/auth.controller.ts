@@ -1,5 +1,5 @@
 import {
-    Body, ConflictException, Controller, HttpCode, Post, UnauthorizedException,
+    BadRequestException, Body, ConflictException, Controller, HttpCode, Post, UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -33,7 +33,9 @@ export class AuthController {
     @Post('register')
     @HttpCode(200)
     async register(@Body() body: RegisterRequest): Promise<string> {
-        if (!body?.username || !body?.password) throw new UnauthorizedException();
+        if (!body?.username || !body?.password) {
+            throw new BadRequestException('username and password are required');
+        }
         const hashed = await bcrypt.hash(body.password, 10);
         const account = this.accounts.create({
             username: body.username,
