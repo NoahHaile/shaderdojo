@@ -8,8 +8,10 @@ services:
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_KEY: ${JWT_KEY}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - shaderdojo-network
     restart: unless-stopped
@@ -28,8 +30,10 @@ services:
       VALIDATOR_KEY: ${VALIDATOR_KEY}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
     depends_on:
-      - db
-      - validator
+      db:
+        condition: service_healthy
+      validator:
+        condition: service_healthy
     networks:
       - shaderdojo-network
     restart: unless-stopped
@@ -42,6 +46,12 @@ services:
       VALIDATOR_KEY: ${VALIDATOR_KEY}
       MAX_CONCURRENT_RENDERS: ${VALIDATOR_MAX_CONCURRENT_RENDERS:-2}
       RENDER_TIMEOUT_MS: ${VALIDATOR_RENDER_TIMEOUT_MS:-5000}
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
     networks:
       - shaderdojo-network
     restart: unless-stopped
@@ -58,6 +68,12 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init/postgres:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d shader_dojo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
     networks:
       - shaderdojo-network
     restart: unless-stopped

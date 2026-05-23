@@ -9,54 +9,35 @@ public class Attempt {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @ManyToOne
-    @JoinColumn(name = "problem", nullable = false)
-    private Problem problem;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "lesson", nullable = false)
+    private Lesson lesson;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "account", nullable = false)
     private Account account;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private AttemptStatus status;
 
-    public Attempt() {
-    }
+    public Attempt() {}
 
-    public Attempt(Problem problem, Account account, AttemptStatus status) {
-        this.problem = problem;
+    public Attempt(Lesson lesson, Account account, AttemptStatus status) {
+        this.lesson = lesson;
         this.account = account;
         this.status = status;
     }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public void setProblem(Problem problem) {
-        this.problem = problem;
-    }
+    public Lesson getLesson() { return lesson; }
+    public void setLesson(Lesson lesson) { this.lesson = lesson; }
 
-    public void setAccount(Account account) {
-        this.account = account;
-    }
+    public Account getAccount() { return account; }
+    public void setAccount(Account account) { this.account = account; }
 
-    public void setStatus(AttemptStatus status) {
-        this.status = status;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public Problem getProblem() {
-        return problem;
-    }
-
-    public Account getAccount() {
-        return account;
-    }
-
-    public AttemptStatus getStatus() {
-        return status;
-    }
+    public AttemptStatus getStatus() { return status; }
+    public void setStatus(AttemptStatus status) { this.status = status; }
 }

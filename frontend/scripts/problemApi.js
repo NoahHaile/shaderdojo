@@ -33,13 +33,18 @@ async function verifyShaderOutput() {
 
     const token = localStorage.getItem('token');
     try {
-        const response = await fetch(`${SHADERDOJO_API.app}/problems/verify`, {
+        const response = await fetch(`${SHADERDOJO_API.app}/lessons/verify`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ fragmentShader: buildFragmentShader(), vertexShader: vertexShaderSource, problemId: id, time: 20 }),
+            body: JSON.stringify({
+                fragmentShader: buildFragmentShader(),
+                vertexShader: vertexShaderSource,
+                lessonId: id,
+                time: 20
+            }),
         });
         if (response.ok) {
             modalSuccess();
@@ -58,10 +63,10 @@ async function verifyShaderOutput() {
 }
 
 async function updateProblemStatus() {
+    const statusText = document.querySelector(".status-text");
     const token = localStorage.getItem('token');
     if (!token) {
-        const statusText = document.querySelector(".status-text");
-        statusText.innerHTML = "No Account";
+        if (statusText) statusText.innerHTML = "No Account";
         return;
     }
     const problemStatus = await fetch(`${SHADERDOJO_API.app}/account/status/${id}`, {
@@ -71,24 +76,24 @@ async function updateProblemStatus() {
         }
     }).then(response => {
         if (response.status != 200) {
-            statusText.innerHTML = "Account not Valid";
+            if (statusText) statusText.innerHTML = "Account not Valid";
         }
         return response.json();
     }).catch(err => {
-        setErrorModal("An error occurred while fetching problem attempts.");
+        setErrorModal("An error occurred while fetching lesson attempts.");
         return {
             status: "UNDEFINED",
             count: -1
         };
     });
 
-    const statusText = document.querySelector(".status-text");
+    if (!statusText) return;
     if (problemStatus.status == "UNATTEMPTED") {
-        statusText.innerHTML = "Problem Unattempted";
+        statusText.innerHTML = "Lesson Unattempted";
     } else if (problemStatus.status == "SUCCESSFUL") {
-        statusText.innerHTML = "Problem Completed. " + problemStatus.count + (problemStatus.count != 1 ? " attempts." : " attempt.");
+        statusText.innerHTML = "Lesson Completed. " + problemStatus.count + (problemStatus.count != 1 ? " attempts." : " attempt.");
     } else if (problemStatus.status == "FAILED") {
-        statusText.innerHTML = "Problem attempted " + problemStatus.count + (problemStatus.count != 1 ? " times." : " time");
+        statusText.innerHTML = "Lesson attempted " + problemStatus.count + (problemStatus.count != 1 ? " times." : " time");
     } else {
         statusText.innerHTML = "Failed to fetch.";
     }

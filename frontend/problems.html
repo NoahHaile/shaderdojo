@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShaderDojo</title>
+    <title>ShaderDojo - Problems</title>
     <link rel="icon" type="image/png" href="./imgs/favicon.ico">
     <link rel="stylesheet" href="./css/common.css">
     <link rel="stylesheet" href="./css/list.css">
@@ -32,78 +32,13 @@
         <a href="solutions.html" onclick="closeDrawer()">Discussion</a>
         <a href="profile.html" onclick="closeDrawer()">Profile</a>
     </div>
-
-    <script>
-        const drawer = document.getElementById("drawer");
-
-        function toggleDrawer() {
-            drawer.classList.toggle("open");
-        }
-
-        function closeDrawer() {
-            drawer.classList.remove("open");
-        }
-    </script>
+    <script src="./scripts/drawer.js"></script>
 
     <section>
         <h1 class="page-title">Problems</h1>
-        <p class="description">Hark, noble traveler! Prithee, peruse this tome of trials and choose a challenge most
-            fitting to thy wit and skill. Whether of gentle ease or cunning craft, each doth await thy noble hand!
-        </p>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Title</th>
-                <th>State</th>
-            </tr>
-            <tr>
-                <td>1</td>
-                <td><a href="problems/1.html" class="problem-link">Red to Green Screen</a></td>
-                <td>Archived</td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td><a href="problems/2.html" class="problem-link">Right-to-Left Black and White Gradient</a></td>
-                <td>Archived</td>
-            </tr>
-            <tr>
-                <td>3</td>
-                <td><a href="problems/3.html" class="problem-link">Red to Blue Gradient</a></td>
-                <td>Archived</td>
-            </tr>
-            <tr>
-                <td>4</td>
-                <td><a href="problems/4.html" class="problem-link">Colored Diagonal Gradient</a></td>
-                <td>Archived</td>
-            </tr>
-            <tr>
-                <td>5</td>
-                <td><a href="problems/5.html" class="problem-link">Diagonal Line</a></td>
-                <td>Archived</td>
-            </tr>
-            <tr>
-                <td>6</td>
-                <td><a href="problems/6.html" class="problem-link">Smooth Diagonal Line</a></td>
-                <td>Archived</td>
-            </tr>
-            <tr>
-                <td>7</td>
-                <td><a href="problems/7.html" class="problem-link">45-Degree Line with Aspect Ratio</a></td>
-                <td>Archived</td>
-            </tr>
-            <tr>
-                <td>8</td>
-                <td><a href="problems/8.html" class="problem-link">Vertical Image Flip</a></td>
-                <td>Archived</td>
-            </tr>
-            <tr>
-                <td>9</td>
-                <td><a href="problems/9.html" class="problem-link">Vaporwave Inversion Challenge</a></td>
-                <td>Active</td>
-            </tr>
-        </table>
+        <p class="description">Pick a course and work through its lessons in order. Each lesson builds on the last.</p>
+        <div id="course-list">Loading courses…</div>
     </section>
-
 
     <aside>
         <div class="donation-box">
@@ -118,8 +53,7 @@
         <div class="email-list">
             <h1 class="notification-title">Stay Notified</h1>
             <p class="notification-description">We update our problemset every week. Make it habit by staying
-                up-to-date.
-            </p>
+                up-to-date.</p>
             <form action="https://formspree.io/f/movjwwkd" method="post">
                 <input type="name" placeholder="Enter your name" class="email-input" name="name" />
                 <input type="email" placeholder="Enter your email" class="email-input" name="email" />
@@ -136,25 +70,18 @@
                         href="mailto:noah@noahhaile.com" class="email-link">noah@noahhaile.com</a></p>
             </div>
             <div class="social-icons">
-                <!-- Twitter -->
                 <a href="https://twitter.com/intent/tweet" target="_blank" class="social-link" title="Share on Twitter">
                     <img src="https://img.icons8.com/ios-filled/24/twitter.png" alt="Twitter">
                 </a>
-                <!-- Facebook -->
-                <a href="https://facebook.com/sharer/sharer.php" target="_blank" class="social-link"
-                    title="Share on Facebook">
+                <a href="https://facebook.com/sharer/sharer.php" target="_blank" class="social-link" title="Share on Facebook">
                     <img src="https://img.icons8.com/ios-filled/24/facebook-new.png" alt="Facebook">
                 </a>
-                <!-- Email -->
                 <a href="mailto:?subject" target="_blank" class="social-link" title="Share via Email">
                     <img src="https://img.icons8.com/ios-filled/24/email.png" alt="Email">
                 </a>
-                <!-- LinkedIn -->
-                <a href="https://www.linkedin.com/sharing/share-offsite" target="_blank" class="social-link"
-                    title="Share on LinkedIn">
+                <a href="https://www.linkedin.com/sharing/share-offsite" target="_blank" class="social-link" title="Share on LinkedIn">
                     <img src="https://img.icons8.com/ios-filled/24/linkedin.png" alt="LinkedIn">
                 </a>
-                <!-- Reddit -->
                 <a href="https://reddit.com/submit" target="_blank" class="social-link" title="Share on Reddit">
                     <img src="https://img.icons8.com/ios-filled/24/reddit.png" alt="Reddit">
                 </a>
@@ -162,6 +89,70 @@
         </div>
     </footer>
 
+    <script>
+        (async function loadCourses() {
+            const root = document.getElementById('course-list');
+            try {
+                const r = await fetch(`${location.origin}/app/courses`);
+                if (!r.ok) throw new Error(r.status);
+                const courses = await r.json();
+
+                root.replaceChildren();
+                if (!courses.length) {
+                    root.textContent = 'No courses available yet.';
+                    return;
+                }
+                for (const course of courses) {
+                    const section = document.createElement('section');
+                    section.className = 'course';
+
+                    const h2 = document.createElement('h2');
+                    h2.textContent = course.title;
+                    section.appendChild(h2);
+
+                    if (course.description) {
+                        const p = document.createElement('p');
+                        p.className = 'course-description';
+                        p.textContent = course.description;
+                        section.appendChild(p);
+                    }
+
+                    if (!course.lessons || !course.lessons.length) {
+                        const empty = document.createElement('p');
+                        empty.textContent = 'No lessons yet.';
+                        section.appendChild(empty);
+                    } else {
+                        const table = document.createElement('table');
+                        const head = document.createElement('tr');
+                        head.innerHTML = '<th>#</th><th>Lesson</th><th>Type</th>';
+                        table.appendChild(head);
+                        course.lessons.forEach((lesson, idx) => {
+                            const row = document.createElement('tr');
+                            const num = document.createElement('td');
+                            num.textContent = idx + 1;
+                            const title = document.createElement('td');
+                            const link = document.createElement('a');
+                            link.className = 'problem-link';
+                            link.href = `lesson.html?id=${encodeURIComponent(lesson.id)}`;
+                            link.textContent = lesson.title;
+                            title.appendChild(link);
+                            const type = document.createElement('td');
+                            type.textContent = lesson.verified ? 'Verified' : 'Exploratory';
+                            row.appendChild(num);
+                            row.appendChild(title);
+                            row.appendChild(type);
+                            table.appendChild(row);
+                        });
+                        section.appendChild(table);
+                    }
+
+                    root.appendChild(section);
+                }
+            } catch (e) {
+                root.textContent = 'Could not load courses. Check that the API is reachable.';
+            }
+        })();
+    </script>
 </body>
 
 </html>

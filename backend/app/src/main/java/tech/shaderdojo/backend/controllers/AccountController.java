@@ -10,12 +10,12 @@ import tech.shaderdojo.backend.dtos.*;
 import tech.shaderdojo.backend.models.Account;
 import tech.shaderdojo.backend.models.Attempt;
 import tech.shaderdojo.backend.models.Comment;
-import tech.shaderdojo.backend.models.Problem;
+import tech.shaderdojo.backend.models.Lesson;
 import tech.shaderdojo.backend.models.enums.AttemptStatus;
 import tech.shaderdojo.backend.repositories.AccountRepository;
 import tech.shaderdojo.backend.repositories.AttemptRepository;
 import tech.shaderdojo.backend.repositories.CommentRepository;
-import tech.shaderdojo.backend.repositories.ProblemRepository;
+import tech.shaderdojo.backend.repositories.LessonRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,54 +27,50 @@ import static tech.shaderdojo.backend.utils.WebsiteUtils.extractUserIdFromJwt;
 public class AccountController {
 
     private final AccountRepository accountRepository;
-    private final ProblemRepository problemRepository;
+    private final LessonRepository lessonRepository;
     private final CommentRepository commentRepository;
     private final AttemptRepository attemptRepository;
     private final PasswordEncoder passwordEncoder;
 
     public AccountController(AccountRepository accountRepository,
-                             ProblemRepository problemRepository,
+                             LessonRepository lessonRepository,
                              CommentRepository commentRepository,
                              AttemptRepository attemptRepository,
                              PasswordEncoder passwordEncoder) {
         this.accountRepository = accountRepository;
-        this.problemRepository = problemRepository;
+        this.lessonRepository = lessonRepository;
         this.commentRepository = commentRepository;
         this.attemptRepository = attemptRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
-    @PostMapping("/comment/{problemId}")
+    @PostMapping("/comment/{lessonId}")
     public ResponseEntity<CommentResponse> createComment(@RequestBody CommentRequest commentRequest,
-                                                         @PathVariable String problemId,
+                                                         @PathVariable String lessonId,
                                                          Authentication authentication) {
         String userId = extractUserIdFromJwt(authentication);
 
         Optional<Account> accountOpt = accountRepository.findById(userId);
-        if (accountOpt.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
-        Optional<Problem> problemOpt = problemRepository.findById(problemId);
-        if (problemOpt.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        if (accountOpt.isEmpty()) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
+        Optional<Lesson> lessonOpt = lessonRepository.findById(lessonId);
+        if (lessonOpt.isEmpty()) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
         Comment comment = new Comment();
         comment.setCode(commentRequest.code());
         comment.setContent(commentRequest.content());
         comment.setAccount(accountOpt.get());
-        comment.setProblem(problemOpt.get());
+        comment.setLesson(lessonOpt.get());
 
         Comment saved = commentRepository.save(comment);
         return new ResponseEntity<>(CommentResponse.from(saved), HttpStatus.CREATED);
     }
 
-    @GetMapping("/status/{problemId}")
-    public ResponseEntity<AttemptResponse> getProblemAttemptStatus(@PathVariable String problemId,
-                                                                   Authentication authentication) {
+    @GetMapping("/status/{lessonId}")
+    public ResponseEntity<AttemptResponse> getLessonAttemptStatus(@PathVariable String lessonId,
+                                                                  Authentication authentication) {
         String userId = extractUserIdFromJwt(authentication);
-        List<Attempt> attempts = attemptRepository.findAllByProblemIdAndAccountId(problemId, userId)
-                .orElse(List.of());
+        List<Attempt> attempts = attemptRepository.findAllByLessonIdAndAccountId(lessonId, userId);
 
         if (attempts.isEmpty()) {
             return new ResponseEntity<>(new AttemptResponse(0, AttemptStatus.UNATTEMPTED), HttpStatus.OK);
@@ -95,8 +91,7 @@ public class AccountController {
     @GetMapping
     public ResponseEntity<AccountResponse> getAccount(Authentication authentication) {
         String userId = extractUserIdFromJwt(authentication);
-        Optional<Account> accountOpt = accountRepository.findById(userId);
-        return accountOpt
+        return accountRepository.findById(userId)
                 .map(a -> new ResponseEntity<>(new AccountResponse(a), HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }

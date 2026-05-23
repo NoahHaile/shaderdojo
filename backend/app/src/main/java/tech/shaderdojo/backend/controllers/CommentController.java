@@ -23,9 +23,10 @@ public class CommentController {
         this.apiKey = apiKey;
     }
 
-    @GetMapping("/{problemId}")
-    public ResponseEntity<List<CommentResponse>> getComments(@PathVariable String problemId) {
-        List<CommentResponse> comments = commentRepository.findAllByProblemId(problemId)
+    @GetMapping("/{lessonId}")
+    public ResponseEntity<List<CommentResponse>> getComments(@PathVariable String lessonId) {
+        List<CommentResponse> comments = commentRepository
+                .findAllByLessonIdOrderByIdDesc(lessonId)
                 .stream()
                 .map(CommentResponse::from)
                 .toList();

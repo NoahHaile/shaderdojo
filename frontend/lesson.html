@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShaderDojo</title>
+
+    <link rel="icon" type="image/png" href="./imgs/favicon.ico">
+    <link rel="stylesheet" href="./css/common.css">
+    <link rel="stylesheet" href="./css/problem.css">
+</head>
+
+<body>
+    <header>
+        <a href="./index.html" class="title-link">
+            <div class="title-container">
+                <img src="./imgs/DojoLogo.png" class="logo" />
+                <h1 class="title">ShaderDojo</h1>
+            </div>
+        </a>
+        <nav>
+            <ul class="nav-container">
+                <li><a href="./problems.html" class="nav-link">Problems</a></li>
+                <li><a href="./solutions.html" class="nav-link">Discussion</a></li>
+                <li><a href="./profile.html" class="nav-link">Profile</a></li>
+            </ul>
+        </nav>
+        <div class="menu-button" onclick="toggleDrawer()">☰</div>
+    </header>
+    <div id="drawer" class="drawer">
+        <a href="./problems.html" onclick="closeDrawer()">Problems</a>
+        <a href="./solutions.html" onclick="closeDrawer()">Discussion</a>
+        <a href="./profile.html" onclick="closeDrawer()">Profile</a>
+    </div>
+    <script src="./scripts/drawer.js"></script>
+
+    <section class="problem-title-container" onclick="toggleExpand()">
+        <img src="./imgs/right-arrow-svgrepo-com.svg" class="expand-arrow" />
+        <h1 class="problem-title">Loading lesson…</h1>
+        <p class="expansion-instruction">Collapse</p>
+    </section>
+
+    <div class="problem-description"></div>
+
+    <div class="shader-canvas-container">
+        <canvas id="shaderCanvas"></canvas>
+        <div class="shader-controllers">
+            <div style="display: flex; align-items: flex-end;">
+                <button id="pausePlayButton">❚❚</button>
+                <div id='timeDisplay' class="time-display"></div>
+            </div>
+
+            <div style="display: flex; align-items: flex-end;">
+                <input type="number" id="manualTime" min="0" max="10000" step="0.1" placeholder="Start time">
+                <button id="resetButton">↻</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="editor-container">
+        <p class="status-text">Fetching Status...</p>
+        <form>
+            <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                <div id="editor"></div>
+                <div>
+                    <button id="codeResetButton" type="button">↻</button>
+                </div>
+            </div>
+            <div class="button-container">
+                <button type="button" class="button1" onclick="buttonClick(this); runNewShader()">Run</button>
+                <button type="button" class="button2" onclick="buttonClick(this); submitShader()">Submit</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span id="closeModalBtn" class="close">&times;</span>
+            <h2 id="result-status"></h2>
+            <p id="processing-status"></p>
+            <div class="button-container" id="modal-button-container"></div>
+        </div>
+    </div>
+
+    <div id="error-modal" class="error-modal">
+        <div class="error-modal-content">
+            <p id="error-modal-message"></p>
+            <span id="close-error-ModalBtn" class="close-error">&times;</span>
+        </div>
+    </div>
+
+    <script>
+        // Bootstrap: fetch the lesson, populate page-constants the legacy scripts expect,
+        // then chain-load the shader / editor / API scripts in order.
+        (async function bootstrapLesson() {
+            const params = new URLSearchParams(location.search);
+            const lessonId = params.get('id');
+
+            if (!lessonId) {
+                document.querySelector('.problem-title').textContent = 'No lesson selected';
+                document.querySelector('.problem-description').textContent =
+                    'Pick a lesson from the Problems page.';
+                return;
+            }
+
+            window.redirectUrl = `login.html?redirect=${encodeURIComponent('lesson.html?id=' + lessonId)}`;
+
+            let lesson;
+            try {
+                const r = await fetch(`${location.origin}/app/lessons/${encodeURIComponent(lessonId)}`);
+                if (!r.ok) throw new Error('status ' + r.status);
+                lesson = await r.json();
+            } catch (e) {
+                document.querySelector('.problem-title').textContent = 'Lesson not found';
+                document.querySelector('.problem-description').textContent =
+                    'This lesson could not be loaded. It may have been removed.';
+                return;
+            }
+
+            // Globals the legacy scripts read at top-level.
+            window.id = lesson.id;
+            window.fragmentShaderSourceBody = lesson.starterFragmentShader || '';
+            window.pageUrl = `lesson/${lesson.id}`;
+            window.lessonContext = { lessonId: lesson.id, courseSlug: lesson.courseSlug };
+
+            document.title = `${lesson.title} | ShaderDojo`;
+            document.querySelector('.problem-title').textContent = lesson.title;
+            document.querySelector('.problem-description').textContent = lesson.description || '';
+
+            const scripts = [
+                './scripts/shaderControllers.js',
+                './scripts/shaderFunctions.js',
+                './scripts/loadScreen.js',
+                './scripts/errorModal.js',
+                './scripts/modal.js',
+                './scripts/problemApi.js',
+                './scripts/button.js',
+                './lib/ace/ace.js',
+                './lib/ace/mode.js',
+                './lib/ace/theme.js',
+                './scripts/editor-setup.js',
+                './scripts/problem.js',
+                './lib/sha256.js',
+                './scripts/shader.js',
+            ];
+            for (const src of scripts) {
+                await new Promise((resolve, reject) => {
+                    const s = document.createElement('script');
+                    s.src = src;
+                    s.onload = resolve;
+                    s.onerror = () => reject(new Error('Failed to load ' + src));
+                    document.body.appendChild(s);
+                });
+            }
+        })();
+    </script>
+</body>
+
+</html>

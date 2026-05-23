@@ -4,59 +4,60 @@ import com.clickedtools.auth.user.Account;
 import com.clickedtools.auth.user.AccountRepository;
 import com.clickedtools.auth.user.LoginRequest;
 import com.clickedtools.auth.user.RegisterRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.Optional;
 
 @RestController
 public class AuthController {
 
-    @Autowired
-    AccountRepository accountRepository;
+    private final AccountRepository accountRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final TokenService tokenService;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    TokenService tokenService;
-
+    public AuthController(AccountRepository accountRepository,
+                          PasswordEncoder passwordEncoder,
+                          TokenService tokenService) {
+        this.accountRepository = accountRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.tokenService = tokenService;
+    }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest request) throws IOException {
-        Optional<Account> optionalAccount = accountRepository.findByUsernameOrEmail(request.username(), request.username());
+    public ResponseEntity<String> login(@RequestBody LoginRequest request) {
+        if (request == null || request.username() == null || request.password() == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        Optional<Account> optionalAccount = accountRepository
+                .findByUsernameOrEmail(request.username(), request.username());
         if (optionalAccount.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         Account account = optionalAccount.get();
-        if (passwordEncoder.matches(request.password(), account.getPassword())) {
-            String token = tokenService.generateToken(account.getId(), "user");
-            return new ResponseEntity<>(token, HttpStatus.OK);
+        if (!passwordEncoder.matches(request.password(), account.getPassword())) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(tokenService.generateToken(account.getId(), "user"), HttpStatus.OK);
     }
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
-        String encodedPassword = passwordEncoder.encode(request.password());
-        Account account = new Account(request.username(), encodedPassword, request.email());
+        if (request == null || request.username() == null || request.password() == null) {
+            return new ResponseEntity<>("Username and password are required.", HttpStatus.BAD_REQUEST);
+        }
+        Account account = new Account(
+                request.username(),
+                passwordEncoder.encode(request.password()),
+                request.email());
         try {
             accountRepository.save(account);
-        } catch (Exception e) {
+        } catch (DataIntegrityViolationException e) {
             return new ResponseEntity<>("Username already exists", HttpStatus.CONFLICT);
         }
-        String token = tokenService.generateToken(account.getId(), "user");
-        return new ResponseEntity<>(token, HttpStatus.OK);
-    }
-
-
-    @GetMapping("/ping")
-    public String ping() {
-        return "pong";
-
+        return new ResponseEntity<>(tokenService.generateToken(account.getId(), "user"), HttpStatus.OK);
     }
 }

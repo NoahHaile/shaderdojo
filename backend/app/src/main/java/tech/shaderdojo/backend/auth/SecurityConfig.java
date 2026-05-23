@@ -49,9 +49,12 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        // Public read-only listings
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        // Public read-only browsing
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/courses", "/courses/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/lessons/*", "/lessons/*/solution").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/comments/**").permitAll()
-                        // Everything else (including /problems/verify and admin endpoints) requires a JWT
+                        // Everything else (verify, comment POST, admin CRUD) requires a JWT
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 ->

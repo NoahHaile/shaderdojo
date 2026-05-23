@@ -2,8 +2,6 @@ package tech.shaderdojo.backend.models;
 
 import jakarta.persistence.*;
 
-import java.util.List;
-
 @Entity
 public class Account {
     @Id

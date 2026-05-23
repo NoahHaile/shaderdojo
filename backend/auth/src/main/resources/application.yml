@@ -2,7 +2,7 @@ spring:
   application:
     name: "auth"
   profiles:
-    active: "private"
+    active: ${SPRING_PROFILES_ACTIVE:private}
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
@@ -10,15 +10,16 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: "none" # Ensures JPA does not update or modify the schema
-    properties:
-      hibernate:
-        show_sql: true   # Optional: Enable to log SQL queries
-        format_sql: true
-
+      ddl-auto: "none"
 
 server:
   port: 8080
 
-
-
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never

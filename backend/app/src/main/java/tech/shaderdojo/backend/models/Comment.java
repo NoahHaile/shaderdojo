@@ -8,53 +8,32 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    @Column(columnDefinition = "TEXT")
     private String code;
+
+    @Column(length = 512)
     private String content;
 
-    @ManyToOne
-    @JoinColumn(name = "problem", nullable = false)
-    private Problem problem;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "lesson", nullable = false)
+    private Lesson lesson;
 
-    @ManyToOne
-    @JoinColumn(name = "account", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account")
     private Account account;
 
-    public Account getAccount() {
-        return account;
-    }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public void setAccount(Account account) {
-        this.account = account;
-    }
+    public String getCode() { return code; }
+    public void setCode(String code) { this.code = code; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getContent() { return content; }
+    public void setContent(String content) { this.content = content; }
 
-    public void setCode(String code) {
-        this.code = code;
-    }
+    public Lesson getLesson() { return lesson; }
+    public void setLesson(Lesson lesson) { this.lesson = lesson; }
 
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public void setProblem(Problem problem) {
-        this.problem = problem;
-    }
-
-    public Problem getProblem() {
-        return problem;
-    }
-    public String getId() {
-        return id;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public String getContent() {
-        return content;
-    }
+    public Account getAccount() { return account; }
+    public void setAccount(Account account) { this.account = account; }
 }

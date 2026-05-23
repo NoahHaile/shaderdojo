@@ -16,19 +16,32 @@ function modalProcessStart() {
     modalStatus.innerHTML = "Running Shader...";
 }
 
+function lessonBackUrl() {
+    const slug = (window.lessonContext && window.lessonContext.courseSlug);
+    return slug ? `courses.html?slug=${encodeURIComponent(slug)}` : 'problems.html';
+}
+
+function lessonDiscussionUrl() {
+    const lessonId = (window.lessonContext && window.lessonContext.lessonId);
+    return lessonId ? `discussion.html?id=${encodeURIComponent(lessonId)}` : 'solutions.html';
+}
+
 function modalSuccess() {
     modal.style.display = 'block';
     modalHeader.innerText = "Success!";
-    modalStatus.innerText = "Head to the next problem.";
+    modalStatus.innerText = "Nice work. Head back to the course to pick the next lesson.";
     modalHeader.style.color = "#267E31";
-    modalButtonContainer.innerHTML = `<button class="button1" onclick="window.location.href='${pageNumber + 1}.html'">Next Problem</button><button class="button2" onclick="window.location.href='../problems.html'">Back to List</button>`;
+    modalButtonContainer.innerHTML =
+        `<button class="button1" onclick="window.location.href='${lessonBackUrl()}'">Back to Course</button>`;
 }
 
 function modalFail() {
     modal.style.display = 'block';
     modalHeader.innerText = "Try Again!";
     modalStatus.innerText = "Your solution wasn't quite there. Feel free to check the discussion page if you are starting to feel frustrated.";
-    modalButtonContainer.innerHTML = `<button class="button1" onclick="modal.style.display = 'none'">Keep Grinding</button><button class="button2" onclick="window.location.href='../solutions/${pageNumber}.html'">Check Solution</button>`;
+    modalButtonContainer.innerHTML =
+        `<button class="button1" onclick="modal.style.display = 'none'">Keep Grinding</button>` +
+        `<button class="button2" onclick="window.location.href='${lessonDiscussionUrl()}'">Check Solution</button>`;
 }
 
 function closeModal() {
@@ -41,8 +54,4 @@ function setModalMessage(message) {
     modalStatus.innerText = message;
 }
 
-
 modalSetup();
-
-
-
