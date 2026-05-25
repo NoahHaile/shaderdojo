@@ -244,6 +244,10 @@ export function LessonPage() {
                 <RichText html={lesson.description} className="mb-6 max-w-3xl" />
             )}
 
+            <UImageAside
+                show={(code.includes('u_image')) || (lesson.starterFragmentShader?.includes('u_image') ?? false)}
+            />
+
             <div className="grid lg:grid-cols-2 gap-4">
                 <section className="border border-muted/30 rounded-xl bg-white overflow-hidden flex flex-col"
                          style={{ height: PANE_HEIGHT }}>
@@ -308,6 +312,27 @@ export function LessonPage() {
                     </>
                 }
             />
+        </div>
+    );
+}
+
+function UImageAside({ show }: { show: boolean }) {
+    if (!show) return null;
+    return (
+        <div className="mb-4 flex items-center gap-3 border border-muted/30 rounded-lg bg-cream/60 px-3 py-2 max-w-md">
+            <img
+                src="/textures/lesson-image.png"
+                alt="Source image bound to u_image"
+                className="w-12 h-12 rounded border border-muted/40 object-cover"
+            />
+            <div className="text-xs leading-snug">
+                <div className="font-semibold text-ink/80">
+                    <code className="font-mono">u_image</code> · 256 × 256
+                </div>
+                <div className="text-muted">
+                    Sampler bound to this image. Read with <code className="font-mono">texture2D(u_image, uv)</code>.
+                </div>
+            </div>
         </div>
     );
 }

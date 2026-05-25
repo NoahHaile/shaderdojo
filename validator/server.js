@@ -1,6 +1,8 @@
 const express = require('express');
 const puppeteer = require('puppeteer');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const VALIDATOR_KEY = process.env.VALIDATOR_KEY;
@@ -10,6 +12,25 @@ const RENDER_TIMEOUT_MS = parseInt(process.env.RENDER_TIMEOUT_MS || '5000', 10);
 const RENDER_SETTLE_MS = parseInt(process.env.RENDER_SETTLE_MS || '150', 10);
 const MAX_SHADER_BYTES = parseInt(process.env.MAX_SHADER_BYTES || (32 * 1024).toString(), 10);
 const BODY_LIMIT = `${Math.max(64, Math.ceil((MAX_SHADER_BYTES * 2) / 1024)) + 4}kb`;
+
+// Bundled lesson texture. Bound to texture unit 0 on every render as `u_image`.
+// Must be byte-identical to frontend-app/public/textures/lesson-image.png so
+// the student preview and the hashed render see the same pixels.
+const LESSON_IMAGE_PATH = path.join(__dirname, 'textures', 'lesson-image.png');
+let LESSON_IMAGE_DATA_URL = null;
+let LESSON_IMAGE_W = 0;
+let LESSON_IMAGE_H = 0;
+try {
+    const buf = fs.readFileSync(LESSON_IMAGE_PATH);
+    // PNG IHDR sits at bytes 16..24 (4-byte width, 4-byte height, big-endian).
+    LESSON_IMAGE_W = buf.readUInt32BE(16);
+    LESSON_IMAGE_H = buf.readUInt32BE(20);
+    LESSON_IMAGE_DATA_URL = 'data:image/png;base64,' + buf.toString('base64');
+    console.log(`Loaded lesson texture: ${LESSON_IMAGE_W}x${LESSON_IMAGE_H}, ${buf.length} bytes`);
+} catch (e) {
+    console.error('FATAL: failed to load lesson texture from ' + LESSON_IMAGE_PATH + ': ' + e.message);
+    process.exit(1);
+}
 
 if (!VALIDATOR_KEY) {
     console.error('FATAL: VALIDATOR_KEY env var is required');
@@ -90,7 +111,7 @@ const RENDER_PAGE_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><titl
 
 // Evaluated INSIDE the Puppeteer page. Arguments are JSON-serialized by Puppeteer,
 // so user-supplied shader source can never escape into JS context.
-function runShaderInPage(vsSource, fsSource, timeValue) {
+async function runShaderInPage(vsSource, fsSource, timeValue, imageDataUrl, imageW, imageH) {
     const canvas = document.getElementById('glcanvas');
     const gl = canvas.getContext('webgl', { preserveDrawingBuffer: true });
     if (!gl) return { ok: false, error: 'WebGL not supported' };
@@ -135,6 +156,33 @@ function runShaderInPage(vsSource, fsSource, timeValue) {
     const rLoc = gl.getUniformLocation(prog, 'u_resolution');
     if (rLoc) gl.uniform2f(rLoc, canvas.width, canvas.height);
 
+    // Decode and upload the lesson texture before drawing. UNPACK_FLIP_Y_WEBGL
+    // matches GLSL's bottom-left UV origin so texture2D(u_image, uv) reads
+    // right-side-up when uv = gl_FragCoord.xy / u_resolution.xy.
+    try {
+        const img = new Image();
+        img.src = imageDataUrl;
+        await img.decode();
+
+        const tex = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+        const iLoc = gl.getUniformLocation(prog, 'u_image');
+        if (iLoc) gl.uniform1i(iLoc, 0);
+        const irLoc = gl.getUniformLocation(prog, 'u_image_resolution');
+        if (irLoc) gl.uniform2f(irLoc, imageW, imageH);
+    } catch (err) {
+        return { ok: false, error: 'texture: ' + (err && err.message || String(err)) };
+    }
+
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -157,7 +205,10 @@ async function renderShader({ vertexShader, fragmentShader, time }) {
             runShaderInPage,
             vertexShader,
             fragmentShader,
-            Number.isFinite(time) ? time : 0
+            Number.isFinite(time) ? time : 0,
+            LESSON_IMAGE_DATA_URL,
+            LESSON_IMAGE_W,
+            LESSON_IMAGE_H,
         );
         const timeoutPromise = new Promise((_, reject) => {
             timeoutHandle = setTimeout(() => reject(new Error('render-timeout')), RENDER_TIMEOUT_MS);

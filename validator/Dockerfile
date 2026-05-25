@@ -12,6 +12,7 @@ COPY --chown=pptruser:pptruser package.json package-lock.json* ./
 RUN npm install --omit=dev
 
 COPY --chown=pptruser:pptruser server.js ./
+COPY --chown=pptruser:pptruser textures ./textures
 
 EXPOSE 3000
 

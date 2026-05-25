@@ -87,7 +87,7 @@ export interface AdminLessonSolution {
 }
 export interface CreateLessonPayload {
     courseId: string;
-    slug: string;
+    slug?: string;
     displayOrder?: number;
     title: string;
     description?: string;

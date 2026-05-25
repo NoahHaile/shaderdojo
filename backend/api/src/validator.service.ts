@@ -5,7 +5,7 @@ import { Injectable, Logger } from '@nestjs/common';
  * Source of truth: frontend/scripts/shaderFunctions.js.
  */
 export const FRAGMENT_HEADER =
-    '\nprecision mediump float;\nuniform vec2 u_resolution;\nuniform float u_time;\n\n';
+    '\nprecision mediump float;\nuniform vec2 u_resolution;\nuniform float u_time;\nuniform sampler2D u_image;\nuniform vec2 u_image_resolution;\n\n';
 
 export const VERTEX_SHADER =
     '\n  attribute vec4 aVertexPosition;\n  precision mediump float;\n  void main() {\n    gl_Position = aVertexPosition;\n  }\n';

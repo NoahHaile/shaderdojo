@@ -39,6 +39,8 @@ export const ShaderCanvas = forwardRef<ShaderCanvasHandle, Props>(function Shade
     const glRef = useRef<WebGLRenderingContext | null>(null);
     const programRef = useRef<ShaderProgram | null>(null);
     const bufferRef  = useRef<WebGLBuffer | null>(null);
+    const textureRef = useRef<WebGLTexture | null>(null);
+    const imageSizeRef = useRef<{ w: number; h: number }>({ w: 1, h: 1 });
 
     // Mutable runtime state (must not trigger re-render)
     const stateRef = useRef({
@@ -83,6 +85,9 @@ export const ShaderCanvas = forwardRef<ShaderCanvasHandle, Props>(function Shade
             gl.enableVertexAttribArray(next.positionLoc);
             gl.vertexAttribPointer(next.positionLoc, 2, gl.FLOAT, false, 0, 0);
         }
+        // Texture unit 0 holds the lesson image. Set the sampler binding
+        // once per program — it sticks until the program is replaced.
+        if (next.uImage) gl.uniform1i(next.uImage, 0);
         return true;
     }
 
@@ -103,6 +108,40 @@ export const ShaderCanvas = forwardRef<ShaderCanvasHandle, Props>(function Shade
             return;
         }
         glRef.current = gl;
+
+        // Bind unit 0 to a 1x1 white placeholder so sampler reads are well-defined
+        // before the real lesson texture finishes decoding.
+        const tex = gl.createTexture();
+        textureRef.current = tex;
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+            new Uint8Array([255, 255, 255, 255]));
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+        // Async-load the real lesson texture; swap it in once decoded.
+        // Cancelled via a stale-mount flag in case the component unmounts mid-load.
+        let staleMount = false;
+        (async () => {
+            const img = new Image();
+            img.src = '/textures/lesson-image.png';
+            try {
+                await img.decode();
+            } catch {
+                return;
+            }
+            if (staleMount || !glRef.current || !textureRef.current) return;
+            gl.bindTexture(gl.TEXTURE_2D, textureRef.current);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+            gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+            imageSizeRef.current = { w: img.naturalWidth, h: img.naturalHeight };
+        })();
 
         // First compile
         if (!compileAndUse(initialBody)) {
@@ -131,6 +170,10 @@ export const ShaderCanvas = forwardRef<ShaderCanvasHandle, Props>(function Shade
             gl.clear(gl.COLOR_BUFFER_BIT);
             if (prog.uResolution) gl.uniform2f(prog.uResolution, canvas.width, canvas.height);
             if (prog.uTime)       gl.uniform1f(prog.uTime, st.elapsed);
+            if (prog.uImageResolution) {
+                const sz = imageSizeRef.current;
+                gl.uniform2f(prog.uImageResolution, sz.w, sz.h);
+            }
             gl.drawArrays(gl.TRIANGLES, 0, 6);
 
             if (st.onTimeChange) st.onTimeChange(st.elapsed);
@@ -139,14 +182,17 @@ export const ShaderCanvas = forwardRef<ShaderCanvasHandle, Props>(function Shade
         stateRef.current.rafId = requestAnimationFrame(tick);
 
         return () => {
+            staleMount = true;
             const st = stateRef.current;
             cancelAnimationFrame(st.rafId);
             window.removeEventListener('resize', resize);
             const prog = programRef.current;
             if (prog && gl) gl.deleteProgram(prog.program);
             if (bufferRef.current && gl) gl.deleteBuffer(bufferRef.current);
+            if (textureRef.current && gl) gl.deleteTexture(textureRef.current);
             programRef.current = null;
             bufferRef.current = null;
+            textureRef.current = null;
             glRef.current = null;
         };
         // Mount once. initialBody/autoStart only matter on mount; live updates

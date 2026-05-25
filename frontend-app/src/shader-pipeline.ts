@@ -5,7 +5,7 @@
 // equality with the validator's canonical render will break.
 
 export const FRAGMENT_HEADER =
-    '\nprecision mediump float;\nuniform vec2 u_resolution;\nuniform float u_time;\n\n';
+    '\nprecision mediump float;\nuniform vec2 u_resolution;\nuniform float u_time;\nuniform sampler2D u_image;\nuniform vec2 u_image_resolution;\n\n';
 
 export const VERTEX_SHADER_SOURCE = `
   attribute vec4 aVertexPosition;
@@ -37,6 +37,8 @@ export interface ShaderProgram {
     program: WebGLProgram;
     uResolution: WebGLUniformLocation | null;
     uTime: WebGLUniformLocation | null;
+    uImage: WebGLUniformLocation | null;
+    uImageResolution: WebGLUniformLocation | null;
     positionLoc: number;
 }
 
@@ -59,6 +61,8 @@ export function createProgram(gl: WebGLRenderingContext, vsSource: string, fsSou
         program,
         uResolution: gl.getUniformLocation(program, 'u_resolution'),
         uTime: gl.getUniformLocation(program, 'u_time'),
+        uImage: gl.getUniformLocation(program, 'u_image'),
+        uImageResolution: gl.getUniformLocation(program, 'u_image_resolution'),
         positionLoc: gl.getAttribLocation(program, 'aVertexPosition'),
     };
 }

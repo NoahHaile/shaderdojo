@@ -8,7 +8,11 @@ import { Account, Attempt, Course, Lesson } from './entities';
 import { AdminGuard } from './admin.guard';
 import { OptionalJwt } from './optional-jwt';
 import { FRAGMENT_HEADER, VERIFICATION_TIME, VERTEX_SHADER, ValidatorService } from './validator.service';
-import { timingSafeEqual } from 'crypto';
+import { randomBytes, timingSafeEqual } from 'crypto';
+
+function generateLessonSlug(): string {
+    return randomBytes(8).toString('base64url').slice(0, 11);
+}
 
 class LessonDto {
     id: string; courseId: string | null; courseSlug: string | null; courseTitle: string | null;
@@ -31,7 +35,7 @@ class VerifyLessonBody {
 }
 
 class CreateLessonBody {
-    courseId: string; slug: string; displayOrder?: number;
+    courseId: string; slug?: string; displayOrder?: number;
     title: string; description?: string;
     starterVertexShader?: string;
     starterFragmentShader?: string;
@@ -169,11 +173,12 @@ export class LessonsController {
     @UseGuards(AdminGuard)
     @HttpCode(201)
     async create(@Body() body: CreateLessonBody): Promise<LessonDto> {
-        if (!body?.courseId || !body?.slug || !body?.title) throw new BadRequestException();
+        if (!body?.courseId || !body?.title) throw new BadRequestException();
         const course = await this.courses.findOne({ where: { id: body.courseId } });
         if (!course) throw new NotFoundException();
+        const slug = body.slug && body.slug.trim().length > 0 ? body.slug : generateLessonSlug();
         const l = this.lessons.create({
-            course, slug: body.slug,
+            course, slug,
             displayOrder: body.displayOrder ?? 0,
             title: body.title, description: body.description ?? null,
             starterVertexShader: body.starterVertexShader ?? null,

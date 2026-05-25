@@ -159,9 +159,20 @@ export function AdminLessonEditPage() {
                                        onChange={(e) => update('displayOrder', parseInt(e.target.value, 10) || 0)} />
                             </Row>
                         </div>
-                        <Row label="Slug" hint="Unique within the course. URL-safe.">
-                            <input className="field" value={form.slug}
-                                   onChange={(e) => update('slug', e.target.value)} required />
+                        <Row
+                            label="Slug"
+                            hint={isNew
+                                ? 'Auto-generated on save.'
+                                : 'Read-only — changing it would break existing bookmarks.'}>
+                            {isNew ? (
+                                <div className="field bg-cream/50 text-muted text-sm">
+                                    Auto-generated on save
+                                </div>
+                            ) : (
+                                <div className="field bg-cream/50 font-mono text-sm select-all">
+                                    {form.slug}
+                                </div>
+                            )}
                         </Row>
                         <Row label="Description (HTML)" hint="Rendered through DOMPurify. <a>, <img>, <code>, <pre>, lists, headings all allowed.">
                             <textarea className="field font-mono text-xs" rows={6}
