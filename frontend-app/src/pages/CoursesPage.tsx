@@ -30,7 +30,9 @@ export function CoursesPage() {
         setParams({ slug }, { replace: true });
     }
 
-    // Group courses by category, preserving the server's display_order within each.
+    // Group courses by category. Sort categories by the min displayOrder of their
+    // courses so the curriculum families appear in the intended sequence
+    // (Foundations → Color → 2D SDFs → Space → ...).
     const grouped = useMemo(() => {
         if (!courses) return null;
         const map = new Map<string, Course[]>();
@@ -39,13 +41,29 @@ export function CoursesPage() {
             if (!map.has(cat)) map.set(cat, []);
             map.get(cat)!.push(c);
         }
-        // Stable order: alphabetical category, but with "Fundamentals" pinned first.
-        return [...map.entries()].sort(([a], [b]) => {
-            if (a === 'Fundamentals') return -1;
-            if (b === 'Fundamentals') return 1;
-            return a.localeCompare(b);
-        });
+        for (const list of map.values()) {
+            list.sort((a, b) => a.displayOrder - b.displayOrder);
+        }
+        return [...map.entries()].sort(
+            ([, a], [, b]) => a[0].displayOrder - b[0].displayOrder,
+        );
     }, [courses]);
+
+    const [collapsed, setCollapsed] = useState<Set<string>>(() => {
+        try {
+            const raw = localStorage.getItem('courses.collapsedCategories');
+            return raw ? new Set(JSON.parse(raw)) : new Set();
+        } catch { return new Set(); }
+    });
+    function toggleCategory(category: string) {
+        setCollapsed(prev => {
+            const next = new Set(prev);
+            if (next.has(category)) next.delete(category); else next.add(category);
+            try { localStorage.setItem('courses.collapsedCategories', JSON.stringify([...next])); }
+            catch { /* ignore */ }
+            return next;
+        });
+    }
 
     const completedAll = useCompletedLessons();
     const completedCountFor = (c: Course) =>
@@ -57,44 +75,67 @@ export function CoursesPage() {
                 {!courses && !error && <SidebarSkeleton />}
                 {error && <p className="text-sm text-red-600">{error}</p>}
                 {grouped && (
-                    <div className="space-y-5">
-                        {grouped.map(([category, list]) => (
-                            <div key={category}>
-                                <h3 className="text-[11px] uppercase tracking-wide font-semibold text-ink/50 mb-2 px-3">
-                                    {category}
-                                </h3>
-                                <ul className="space-y-1">
-                                    {list.map(c => {
-                                        const done = completedCountFor(c);
-                                        return (
-                                            <li key={c.id}>
-                                                <button
-                                                    onClick={() => pickCourse(c.slug)}
-                                                    className={
-                                                        'w-full text-left px-3 py-2 rounded-md text-sm transition ' +
-                                                        (selected === c.slug
-                                                            ? 'bg-primary/40 text-ink font-medium'
-                                                            : 'hover:bg-cream text-ink/70')
-                                                    }>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="flex-1">{c.title}</span>
-                                                        <DifficultyDot d={c.difficulty} />
-                                                    </div>
-                                                    {c.lessons.length > 0 && (
-                                                        <ProgressBar
-                                                            value={done}
-                                                            max={c.lessons.length}
-                                                            height={3}
-                                                            className="mt-1.5"
-                                                        />
-                                                    )}
-                                                </button>
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                            </div>
-                        ))}
+                    <div className="space-y-3">
+                        {grouped.map(([category, list]) => {
+                            const isCollapsed = collapsed.has(category);
+                            const catDone = list.reduce((n, c) => n + completedCountFor(c), 0);
+                            const catTotal = list.reduce((n, c) => n + c.lessons.length, 0);
+                            return (
+                                <div key={category}>
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleCategory(category)}
+                                        className="w-full flex items-center gap-2 px-3 py-1.5 mb-1 text-[11px] uppercase tracking-wide font-semibold text-ink/60 hover:text-ink hover:bg-cream rounded-md transition group"
+                                        aria-expanded={!isCollapsed}>
+                                        <span
+                                            className={
+                                                'inline-block w-2 transition-transform text-ink/40 group-hover:text-ink/70 ' +
+                                                (isCollapsed ? '' : 'rotate-90')
+                                            }>
+                                            ▸
+                                        </span>
+                                        <span className="flex-1 text-left">{category}</span>
+                                        {catTotal > 0 && (
+                                            <span className="normal-case tracking-normal font-normal text-ink/40 tabular-nums">
+                                                {catDone}/{catTotal}
+                                            </span>
+                                        )}
+                                    </button>
+                                    {!isCollapsed && (
+                                        <ul className="space-y-1">
+                                            {list.map(c => {
+                                                const done = completedCountFor(c);
+                                                return (
+                                                    <li key={c.id}>
+                                                        <button
+                                                            onClick={() => pickCourse(c.slug)}
+                                                            className={
+                                                                'w-full text-left px-3 py-2 rounded-md text-sm transition ' +
+                                                                (selected === c.slug
+                                                                    ? 'bg-primary/40 text-ink font-medium'
+                                                                    : 'hover:bg-cream text-ink/70')
+                                                            }>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="flex-1">{c.title}</span>
+                                                                <DifficultyDot d={c.difficulty} />
+                                                            </div>
+                                                            {c.lessons.length > 0 && (
+                                                                <ProgressBar
+                                                                    value={done}
+                                                                    max={c.lessons.length}
+                                                                    height={3}
+                                                                    className="mt-1.5"
+                                                                />
+                                                            )}
+                                                        </button>
+                                                    </li>
+                                                );
+                                            })}
+                                        </ul>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </aside>
