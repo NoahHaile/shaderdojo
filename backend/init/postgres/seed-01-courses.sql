@@ -10,6 +10,7 @@ INSERT INTO course (slug, title, description, category, difficulty, display_orde
 ('step-smoothstep',     'Step & smoothstep',    'Hard and soft thresholds. The two functions that draw every clean edge.',                          'Foundations', 'beginner', 2),
 ('mix-gradients',       'Mix & gradients',      'Linear color blending. Two-color, three-stop, radial.',                                            'Foundations', 'beginner', 3),
 ('plotting-curves',     'Plotting curves',      'Visualize 1D y=f(x) functions inside a 2D canvas.',                                                'Foundations', 'beginner', 4),
+('loop-fundamentals',   'Loops & accumulators', 'Constant-bound for, break, and per-pixel reductions under the GLSL ES 1.0 rules. Pre-requisite for every later family that walks data.', 'Foundations', 'beginner', 5),
 -- ===== Family B — Color =====
 ('hsv-color',           'HSV color',            'Cycle hue, saturation, and value. The first non-RGB color space.',                                 'Color',       'beginner', 5),
 ('cosine-palettes',     'Cosine palettes',      'Inigo Quilez''s a + b·cos(2π(c·t + d)) — four vectors, infinite palettes.',                        'Color',       'beginner', 6),
@@ -57,7 +58,7 @@ INSERT INTO course (slug, title, description, category, difficulty, display_orde
 ('bloom-glow',          'Bloom & glow',         'Distance-based halos around bright shapes.',                                                       'Stylization', 'advanced', 41),
 ('fresnel-edges',       'Fresnel edges',        'Highlight by view/normal alignment. Rim lights on 3D surfaces.',                                   'Stylization', 'advanced', 42),
 -- ===== Family J — Iteration & fractals =====
-('loop-fundamentals',   'Loop fundamentals',    'Constant-bound for, break, continue under the GLSL ES 1.0 rules.',                                 'Iteration & Fractals', 'advanced', 43),
+-- (loop-fundamentals lives in Foundations now; this family assumes you know the loop rules.)
 ('accumulation-loops',  'Accumulation loops',   'Sums and averages over iterations. The pattern behind fbm and blur.',                              'Iteration & Fractals', 'advanced', 44),
 ('mandelbrot',          'Mandelbrot',           'z = z² + c, escape time, smooth iteration count.',                                                 'Iteration & Fractals', 'advanced', 45),
 ('julia-sets',          'Julia sets',           'Same iteration, different parameter — a family of cousins.',                                       'Iteration & Fractals', 'advanced', 46),

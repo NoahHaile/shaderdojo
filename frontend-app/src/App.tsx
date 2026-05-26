@@ -5,6 +5,7 @@ import { useAuth } from './auth';
 import { HomePage } from './pages/HomePage';
 import { CoursesPage } from './pages/CoursesPage';
 import { LessonPage } from './pages/LessonPage';
+import { ReferencePage } from './pages/ReferencePage';
 import { DiscussionPage } from './pages/DiscussionPage';
 import { LoginPage } from './pages/LoginPage';
 import { ProfilePage } from './pages/ProfilePage';
@@ -40,6 +41,7 @@ export function App() {
                 <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/courses" element={<CoursesPage />} />
+                    <Route path="/reference" element={<ReferencePage />} />
                     <Route path="/lesson/:id" element={<LessonPage />} />
                     <Route path="/lesson/:id/discussion" element={<DiscussionPage />} />
                     <Route path="/login" element={<LoginPage />} />

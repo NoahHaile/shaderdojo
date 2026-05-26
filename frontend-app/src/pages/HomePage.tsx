@@ -42,14 +42,23 @@ export function HomePage() {
                     </p>
                     <div className="mt-6 flex gap-3">
                         <Link to="/courses" className="btn-primary">Start learning</Link>
-                        <a className="btn-secondary" href="https://thebookofshaders.com/" target="_blank" rel="noreferrer">
-                            The Book of Shaders
-                        </a>
+                        <Link to="/reference" className="btn-secondary">Reference</Link>
                     </div>
                 </div>
                 <div className="aspect-square w-full rounded-xl overflow-hidden border border-muted/30 bg-black shadow-sm">
                     <ShaderCanvas initialBody={HERO_SHADER} />
                 </div>
+            </section>
+
+            <section className="mt-16">
+                <header className="mb-6">
+                    <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">The roadmap</h2>
+                    <p className="mt-1 text-ink/60 text-sm max-w-prose">
+                        Ten families of named techniques. The trunk is Foundations — once those
+                        are in hand, every other branch is reachable.
+                    </p>
+                </header>
+                <Roadmap />
             </section>
 
             <section className="mt-20 grid md:grid-cols-3 gap-4">
@@ -66,18 +75,6 @@ export function HomePage() {
                     just a stack of one-offs.
                 </FeatureCard>
             </section>
-
-            <section className="mt-20">
-                <header className="mb-6">
-                    <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">The roadmap</h2>
-                    <p className="mt-1 text-ink/60 text-sm max-w-prose">
-                        Ten families of named techniques, each one a weapon for the arsenal.
-                        Pick any branch — once the foundations are in hand, the rest can be
-                        learned out of order.
-                    </p>
-                </header>
-                <Roadmap />
-            </section>
         </div>
     );
 }
@@ -92,7 +89,8 @@ function FeatureCard({ title, children }: { title: string; children: React.React
 }
 
 // ───────────────────────────────────────────────────────────────────────────
-// Roadmap
+// Roadmap — drawn as an indented tree: trunk on the left, branches kinked out
+// to family nodes, leaves (courses) hanging off each family's vertical guide.
 // ───────────────────────────────────────────────────────────────────────────
 
 function Roadmap() {
@@ -125,7 +123,6 @@ function Roadmap() {
     const [expanded, setExpanded] = useState<Set<string>>(() => {
         try {
             const raw = localStorage.getItem('home.roadmapExpanded');
-            // Default: first family open. Stored as JSON array of category names.
             if (raw) return new Set(JSON.parse(raw));
         } catch { /* ignore */ }
         return new Set<string>();
@@ -153,34 +150,39 @@ function Roadmap() {
     if (!grouped) return <RoadmapSkeleton />;
 
     return (
-        <div className="relative">
-            {/* Spine line down the left side */}
+        <div className="relative font-mono text-[13px] leading-relaxed">
+            {/* The trunk: a single line down the left edge, glowing primary→accent→primary. */}
             <div
-                className="absolute top-3 bottom-3 w-px bg-gradient-to-b from-primary/40 via-accent/30 to-primary/10"
-                style={{ left: '0.6875rem' }}
+                className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-primary/50 via-accent/40 to-primary/20"
+                style={{ left: '0.5rem' }}
                 aria-hidden
             />
-            <ol className="space-y-3">
-                {grouped.map(([category, list], idx) => (
-                    <FamilyNode
-                        key={category}
-                        index={idx}
-                        category={category}
-                        courses={list}
-                        completed={completed}
-                        open={expanded.has(category)}
-                        onToggle={() => toggle(category)}
-                    />
-                ))}
+            <ol className="space-y-2">
+                {grouped.map(([category, list], idx) => {
+                    const isLast = idx === grouped.length - 1;
+                    return (
+                        <FamilyBranch
+                            key={category}
+                            index={idx}
+                            isLast={isLast}
+                            category={category}
+                            courses={list}
+                            completed={completed}
+                            open={expanded.has(category)}
+                            onToggle={() => toggle(category)}
+                        />
+                    );
+                })}
             </ol>
         </div>
     );
 }
 
-function FamilyNode({
-    index, category, courses, completed, open, onToggle,
+function FamilyBranch({
+    index, isLast, category, courses, completed, open, onToggle,
 }: {
     index: number;
+    isLast: boolean;
     category: string;
     courses: Course[];
     completed: Set<string>;
@@ -192,32 +194,32 @@ function FamilyNode({
         (n, c) => n + c.lessons.reduce((m, l) => m + (completed.has(l.id) ? 1 : 0), 0),
         0,
     );
+    const allDone = totalLessons > 0 && doneLessons === totalLessons;
+    const someDone = doneLessons > 0;
 
     return (
-        <li className="relative pl-10">
-            {/* Marker dot on the spine */}
-            <span
-                className={
-                    'absolute top-3 w-3 h-3 rounded-full border-2 border-cream shadow-sm transition ' +
-                    (doneLessons === totalLessons && totalLessons > 0
-                        ? 'bg-accent'
-                        : doneLessons > 0
-                            ? 'bg-primary'
-                            : 'bg-white border-primary/50')
-                }
-                style={{ left: '0.3125rem' }}
-                aria-hidden
-            />
-            <div className="card !p-0 overflow-hidden">
+        <li className="relative">
+            <div className="relative pl-7 group">
+                {/* Branch elbow off the trunk into the family node. */}
+                <TrunkElbow isLast={isLast && !open} />
+                {/* Family marker dot, on top of the elbow's right end. */}
+                <span
+                    className={
+                        'absolute top-[0.55rem] w-2.5 h-2.5 rounded-full border-2 border-cream shadow-sm transition ' +
+                        (allDone ? 'bg-accent' : someDone ? 'bg-primary' : 'bg-white border-primary/50')
+                    }
+                    style={{ left: '0.25rem' }}
+                    aria-hidden
+                />
                 <button
                     type="button"
                     onClick={onToggle}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-cream/60 transition"
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-left hover:bg-cream/60 transition"
                     aria-expanded={open}>
-                    <span className="text-xs font-mono text-muted tabular-nums w-6">
+                    <span className="text-[11px] text-muted tabular-nums w-6">
                         {String(index + 1).padStart(2, '0')}
                     </span>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 font-sans">
                         <h3 className="text-base font-semibold text-ink">{category}</h3>
                         <p className="text-[11px] text-muted mt-0.5">
                             {courses.length} {courses.length === 1 ? 'course' : 'courses'} · {totalLessons} lessons
@@ -239,21 +241,38 @@ function FamilyNode({
                         ▸
                     </span>
                 </button>
-                {open && (
-                    <ul className="border-t border-muted/20 divide-y divide-muted/15 bg-cream/40">
-                        {courses.map(course => {
+            </div>
+
+            {open && (
+                <div className="relative mt-1">
+                    <ul className="space-y-0.5">
+                        {courses.map((course, ci) => {
                             const total = course.lessons.length;
                             const done = course.lessons.reduce(
                                 (n, l) => n + (completed.has(l.id) ? 1 : 0), 0);
+                            const courseDone = total > 0 && done === total;
+                            const courseStarted = done > 0;
+                            const isLastChild = ci === courses.length - 1;
                             return (
-                                <li key={course.id}>
+                                <li key={course.id} className="relative">
+                                    {/* Child elbow into the course node. */}
+                                    <ChildElbow isLast={isLastChild} />
+                                    {/* Course leaf dot. */}
+                                    <span
+                                        className={
+                                            'absolute top-[0.7rem] w-1.5 h-1.5 rounded-full border border-cream transition ' +
+                                            (courseDone ? 'bg-accent' : courseStarted ? 'bg-primary' : 'bg-white border-primary/40')
+                                        }
+                                        style={{ left: '1.55rem' }}
+                                        aria-hidden
+                                    />
                                     <Link
                                         to={`/courses?slug=${encodeURIComponent(course.slug)}`}
-                                        className="flex items-center gap-3 px-4 py-2.5 hover:bg-white transition group">
+                                        className="flex items-center gap-3 pl-9 pr-3 py-1.5 rounded-md hover:bg-cream/60 transition group">
                                         <span className="font-mono text-[10px] text-muted tabular-nums w-8">
-                                            {done === total && total > 0 ? '✓' : `${done}/${total}`}
+                                            {courseDone ? '✓' : `${done}/${total}`}
                                         </span>
-                                        <span className="flex-1 text-sm text-ink group-hover:text-accent transition truncate">
+                                        <span className="flex-1 font-sans text-sm text-ink group-hover:text-accent transition truncate">
                                             {course.title}
                                         </span>
                                         <DifficultyDot d={course.difficulty} />
@@ -262,9 +281,56 @@ function FamilyNode({
                             );
                         })}
                     </ul>
-                )}
-            </div>
+                </div>
+            )}
         </li>
+    );
+}
+
+// Right-angle connector from the trunk into a family node.
+// Visually: ┌─, or └─ when isLast.
+function TrunkElbow({ isLast }: { isLast: boolean }) {
+    return (
+        <>
+            {/* Vertical leg: from top of the row down to the node center. */}
+            <span
+                className="absolute top-0 w-px bg-muted/40"
+                style={{
+                    left: '0.5rem',
+                    height: isLast ? '0.7rem' : '100%',
+                }}
+                aria-hidden
+            />
+            {/* Horizontal leg: from the vertical leg out to the marker dot. */}
+            <span
+                className="absolute h-px bg-muted/40"
+                style={{ left: '0.5rem', top: '0.7rem', width: '0.85rem' }}
+                aria-hidden
+            />
+        </>
+    );
+}
+
+// Per-row elbow for course leaves. Non-last rows draw a full-height vertical
+// leg so the legs of consecutive rows stitch together into a continuous sub-trunk;
+// the last row's leg stops at the elbow level so the trunk visually terminates.
+function ChildElbow({ isLast }: { isLast: boolean }) {
+    return (
+        <>
+            <span
+                className="absolute top-0 w-px bg-muted/35"
+                style={{
+                    left: '1.55rem',
+                    height: isLast ? '0.85rem' : '100%',
+                }}
+                aria-hidden
+            />
+            <span
+                className="absolute h-px bg-muted/35"
+                style={{ left: '1.55rem', top: '0.85rem', width: '0.6rem' }}
+                aria-hidden
+            />
+        </>
     );
 }
 
@@ -281,19 +347,24 @@ function RoadmapSkeleton() {
     return (
         <div className="relative">
             <div
-                className="absolute top-3 bottom-3 w-px bg-muted/30"
-                style={{ left: '0.6875rem' }}
+                className="absolute top-0 bottom-0 w-px bg-muted/30"
+                style={{ left: '0.5rem' }}
                 aria-hidden
             />
-            <ol className="space-y-3">
+            <ol className="space-y-2">
                 {Array.from({ length: 5 }).map((_, i) => (
-                    <li key={i} className="relative pl-10">
+                    <li key={i} className="relative pl-7">
                         <span
-                            className="absolute top-3 w-3 h-3 rounded-full bg-cream border-2 border-cream"
-                            style={{ left: '0.3125rem' }}
+                            className="absolute h-px bg-muted/30"
+                            style={{ left: '0.5rem', top: '0.7rem', width: '0.85rem' }}
                             aria-hidden
                         />
-                        <div className="card h-14 animate-pulse" />
+                        <span
+                            className="absolute top-[0.55rem] w-2.5 h-2.5 rounded-full bg-cream border-2 border-cream"
+                            style={{ left: '0.25rem' }}
+                            aria-hidden
+                        />
+                        <div className="h-10 rounded-md bg-cream/50 animate-pulse" />
                     </li>
                 ))}
             </ol>

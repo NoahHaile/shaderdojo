@@ -452,7 +452,7 @@ void main() {
 }'),
 
 ((SELECT id FROM course WHERE slug = 'proc-starfield'), 'Mci4YXsebxQ', 1,
- 'Voronoi twinkle',
+ 'Twinkle from phase hash',
  '<p>Modulate each star''s brightness with <code>sin(u_time + hash * 6.28)</code>. Each cell gets a unique random phase from the hash, so stars twinkle independently.</p><p>Reference: <a href="https://iquilezles.org/articles/sfrand/" target="_blank" rel="noreferrer">IQ — sfrand</a>.</p>',
  'float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 void main() {

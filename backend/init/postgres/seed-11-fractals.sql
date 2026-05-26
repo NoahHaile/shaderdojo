@@ -1,91 +1,9 @@
 \c shader_dojo;
 
--- Family J — Iteration & fractals (7 courses, 28 lessons)
+-- Family J — Iteration & fractals (6 courses, 24 lessons).
+-- loop-fundamentals moved to Foundations (seed-02) — it's a prerequisite for noise & raymarching.
 
 INSERT INTO lesson (course_id, slug, display_order, title, description, starter_fragment_shader, canonical_fragment_shader) VALUES
-
--- ===== Course: loop-fundamentals =====
-((SELECT id FROM course WHERE slug = 'loop-fundamentals'), 'WWkoco-M-vA', 0,
- 'Count steps to threshold',
- '<p>Loops in GLSL ES 1.0 need constant bounds, but you can still walk a value forward and count how many steps it took to cross a threshold.</p><p>March a counter through 32 iterations, adding <code>0.05</code> each step, and bail with <code>break</code> the moment the running value passes <code>uv.x</code>. The step count, normalized, becomes your grayscale.</p><p>Reference: <a href="https://registry.khronos.org/OpenGL/specs/es/2.0/GLSL_ES_Specification_1.00.pdf" target="_blank" rel="noreferrer">Khronos — GLSL ES 1.0 spec</a>.</p>',
- 'void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    // TODO: loop 32 times adding 0.05 to v, break when v > uv.x, count steps.
-    int steps = 0;
-    gl_FragColor = vec4(vec3(float(steps) / 32.0), 1.0);
-}',
- 'void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    int steps = 0;
-    float v = 0.0;
-    for (int i = 0; i < 32; i++) {
-        v += 0.05;
-        if (v > uv.x) break;
-        steps++;
-    }
-    gl_FragColor = vec4(vec3(float(steps) / 32.0), 1.0);
-}'),
-
-((SELECT id FROM course WHERE slug = 'loop-fundamentals'), '0VcH_tOJHZw', 1,
- 'Break on first hit',
- '<p>Loops also work as searches: iterate until a per-pixel hash crosses a probability and record the iteration index where it happened.</p><p>The classic GPU hash, <code>fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453)</code>, gives noisy but deterministic values you can compare to <code>0.7</code>. Different uvs hit at different iterations, producing a noise-like image.</p><p>Reference: <a href="https://iquilezles.org/articles/gpuconditionals/" target="_blank" rel="noreferrer">IQ — GPU conditionals</a>.</p>',
- 'float hash(vec2 p) {
-    return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
-}
-void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    // TODO: loop 32 times; break when hash(uv*float(i+1)) > 0.7; record iteration.
-    int it = 0;
-    gl_FragColor = vec4(vec3(float(it) / 32.0), 1.0);
-}',
- 'float hash(vec2 p) {
-    return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
-}
-void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    int it = 0;
-    for (int i = 0; i < 32; i++) {
-        if (hash(uv * float(i + 1)) > 0.7) break;
-        it = i;
-    }
-    gl_FragColor = vec4(vec3(float(it) / 32.0), 1.0);
-}'),
-
-((SELECT id FROM course WHERE slug = 'loop-fundamentals'), 'WxfbsGl4W28', 2,
- 'Running maximum',
- '<p>A loop can act as a reduction: walk a fixed number of iterations and keep the largest value seen so far in an accumulator.</p><p>Track <code>m = max(m, sin(uv.x * float(i)))</code> across 16 iterations. The result is the upper envelope of a stack of sines at different frequencies, mapped to gray.</p><p>Reference: <a href="https://registry.khronos.org/OpenGL/specs/es/2.0/GLSL_ES_Specification_1.00.pdf" target="_blank" rel="noreferrer">Khronos — GLSL ES 1.0 spec</a>.</p>',
- 'void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    // TODO: m = -1.0; loop 16 times taking max of sin(uv.x * float(i)).
-    float m = 0.0;
-    gl_FragColor = vec4(vec3(0.5 + 0.5 * m), 1.0);
-}',
- 'void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    float m = -1.0;
-    for (int i = 0; i < 16; i++) {
-        m = max(m, sin(uv.x * float(i)));
-    }
-    gl_FragColor = vec4(vec3(0.5 + 0.5 * m), 1.0);
-}'),
-
-((SELECT id FROM course WHERE slug = 'loop-fundamentals'), '_8epBwGjScc', 3,
- 'Running average',
- '<p>Swap <code>max</code> for sum and you get an accumulator that builds a Fourier-style stack. Each iteration adds another sine to the pile.</p><p>Accumulate <code>sin(uv.x * float(i) * 0.5)</code> across 16 iterations into <code>s</code>, then bias it into a viewable gray with <code>0.5 + 0.05 * s</code>.</p><p>Reference: <a href="https://registry.khronos.org/OpenGL/specs/es/2.0/GLSL_ES_Specification_1.00.pdf" target="_blank" rel="noreferrer">Khronos — GLSL ES 1.0 spec</a>.</p>',
- 'void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    // TODO: s = 0.0; loop 16 times adding sin(uv.x * float(i) * 0.5).
-    float s = 0.0;
-    gl_FragColor = vec4(vec3(0.5 + 0.05 * s), 1.0);
-}',
- 'void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    float s = 0.0;
-    for (int i = 0; i < 16; i++) {
-        s += sin(uv.x * float(i) * 0.5);
-    }
-    gl_FragColor = vec4(vec3(0.5 + 0.05 * s), 1.0);
-}'),
 
 -- ===== Course: accumulation-loops =====
 ((SELECT id FROM course WHERE slug = 'accumulation-loops'), 'CAixj7DUkss', 0,
@@ -248,11 +166,19 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'mandelbrot'), 'B3-FzWCpiMc', 2,
  'Smooth iter count',
- '<p>Integer iteration counts produce visible banding. The continuous version subtracts <code>log2(log2(|z|²))</code> from the integer count, giving a smooth fractional value that crosses bands without seams.</p><p>After escape, compute <code>n = float(it) - log2(log2(dot(z, z)))</code>, normalize, and output as gray.</p><p>Reference: <a href="https://iquilezles.org/articles/msetsmooth/" target="_blank" rel="noreferrer">IQ — Continuous iteration count</a>.</p>',
+ '<p>Integer iteration counts produce visible banding. The continuous version subtracts <code>log2(log2(|z|²))</code> from the integer count, giving a smooth fractional value that crosses bands without seams.</p><p>The starter already runs the iteration and tracks <code>escaped</code> (otherwise <code>log2</code> on the in-set leftover would produce NaN). Your only job is to fill in <code>n = float(it) - log2(log2(dot(z, z)))</code> and force <code>n = 0.0</code> when the point never escaped.</p><p>Reference: <a href="https://iquilezles.org/articles/msetsmooth/" target="_blank" rel="noreferrer">IQ — Continuous iteration count</a>.</p>',
  'void main() {
     vec2 c = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y * 2.0 - vec2(0.5, 0.0);
     vec2 z = vec2(0.0);
-    // TODO: after escape, n = float(it) - log2(log2(dot(z,z))); output n/64.0 as gray.
+    int it = 0;
+    bool escaped = false;
+    for (int i = 0; i < 64; i++) {
+        z = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + c;
+        if (dot(z, z) > 4.0) { escaped = true; break; }
+        it = i;
+    }
+    // TODO: n = float(it) - log2(log2(dot(z, z)));
+    // TODO: if (!escaped) n = 0.0;  // avoid NaN inside the set
     float n = 0.0;
     gl_FragColor = vec4(vec3(n / 64.0), 1.0);
 }',
@@ -273,14 +199,22 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'mandelbrot'), 'Bas0UtXRa0Y', 3,
  'Palette colorize',
- '<p>The smooth iteration count is just a scalar — feed it to a cosine palette and the Mandelbrot blooms into color.</p><p>Use the IQ palette with <code>a = b = vec3(0.5)</code>, <code>c = vec3(1.0)</code>, <code>d = vec3(0.0, 0.33, 0.67)</code>, evaluated at <code>n * 0.05</code>.</p><p>Reference: <a href="https://iquilezles.org/articles/distancefractals/" target="_blank" rel="noreferrer">IQ — Distance fractals</a>.</p>',
+ '<p>The smooth iteration count is just a scalar — feed it to a cosine palette and the Mandelbrot blooms into color.</p><p>The iteration loop and the smooth count are already wired up. Set <code>col</code> to the IQ palette evaluated at <code>n * 0.05</code> when the point escaped; keep it black inside the set.</p><p>Reference: <a href="https://iquilezles.org/articles/distancefractals/" target="_blank" rel="noreferrer">IQ — Distance fractals</a>.</p>',
  'vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
     return a + b * cos(6.28318 * (c * t + d));
 }
 void main() {
     vec2 c = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y * 2.0 - vec2(0.5, 0.0);
     vec2 z = vec2(0.0);
-    // TODO: smooth iter n; output palette(n*0.05, ...).
+    int it = 0;
+    bool escaped = false;
+    for (int i = 0; i < 64; i++) {
+        z = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + c;
+        if (dot(z, z) > 4.0) { escaped = true; break; }
+        it = i;
+    }
+    float n = float(it) - log2(log2(dot(z, z)));
+    // TODO: col = escaped ? palette(n*0.05, vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.0, 0.33, 0.67)) : vec3(0.0);
     vec3 col = vec3(0.0);
     gl_FragColor = vec4(col, 1.0);
 }',
@@ -307,12 +241,16 @@ void main() {
 -- ===== Course: julia-sets =====
 ((SELECT id FROM course WHERE slug = 'julia-sets'), 'JjgP_PFlzqw', 0,
  'Static Julia',
- '<p>A Julia set flips the Mandelbrot loop: <code>c</code> is fixed, the per-pixel position becomes the starting <code>z</code>. Different <code>c</code> produces a different filled-Julia shape.</p><p>Set <code>c = vec2(-0.7, 0.27)</code> — a classic Julia parameter — and iterate <code>z = z² + c</code>. Use the smooth iteration count for grayscale.</p><p>Reference: <a href="https://iquilezles.org/articles/juliasets3d/" target="_blank" rel="noreferrer">IQ — 3D Julia sets</a>.</p>',
+ '<p>A Julia set flips the Mandelbrot loop: <code>c</code> is fixed, the per-pixel position becomes the starting <code>z</code>. Different <code>c</code> produces a different filled-Julia shape.</p><p>The complex-square step <code>z = (z.x²−z.y², 2·z.x·z.y) + c</code> is the same as in Mandelbrot — only the meaning of <code>z</code> and <code>c</code> swapped. Fill in the loop and the NaN guard.</p><p>Reference: <a href="https://iquilezles.org/articles/juliasets3d/" target="_blank" rel="noreferrer">IQ — 3D Julia sets</a>.</p>',
  'void main() {
     vec2 z = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y * 2.0;
     vec2 c = vec2(-0.7, 0.27);
-    // TODO: iterate z = z^2 + c up to 64 times; smooth iter; output gray.
-    float n = 0.0;
+    int it = 0;
+    bool escaped = false;
+    // TODO: for (int i = 0; i < 64; i++) { z = vec2(z.x*z.x - z.y*z.y, 2.0*z.x*z.y) + c;
+    //         if (dot(z, z) > 4.0) { escaped = true; break; } it = i; }
+    float n = float(it) - log2(log2(dot(z, z)));
+    if (!escaped) n = 0.0;
     gl_FragColor = vec4(vec3(n / 64.0), 1.0);
 }',
  'void main() {
@@ -332,12 +270,20 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'julia-sets'), 'GUqs2ifF4zc', 1,
  'Animate c on circle',
- '<p>Slide <code>c</code> around a circle in the complex plane and the whole Julia shape morphs through its family. The radius and speed control how dramatic the deformation is.</p><p>Use <code>c = 0.7 * vec2(cos(u_time * 0.3), sin(u_time * 0.3))</code> and repeat the same smooth iteration loop.</p><p>Reference: <a href="https://iquilezles.org/articles/juliasets3d/" target="_blank" rel="noreferrer">IQ — 3D Julia sets</a>.</p>',
+ '<p>Slide <code>c</code> around a circle in the complex plane and the whole Julia shape morphs through its family. The radius and speed control how dramatic the deformation is.</p><p>Same iteration as before — only <code>c</code> is now a moving target. Replace the fixed assignment with the moving one.</p><p>Reference: <a href="https://iquilezles.org/articles/juliasets3d/" target="_blank" rel="noreferrer">IQ — 3D Julia sets</a>.</p>',
  'void main() {
     vec2 z = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y * 2.0;
     // TODO: c = 0.7 * vec2(cos(u_time*0.3), sin(u_time*0.3));
     vec2 c = vec2(-0.7, 0.27);
-    float n = 0.0;
+    int it = 0;
+    bool escaped = false;
+    for (int i = 0; i < 64; i++) {
+        z = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + c;
+        if (dot(z, z) > 4.0) { escaped = true; break; }
+        it = i;
+    }
+    float n = float(it) - log2(log2(dot(z, z)));
+    if (!escaped) n = 0.0;
     gl_FragColor = vec4(vec3(n / 64.0), 1.0);
 }',
  'void main() {
@@ -360,9 +306,17 @@ void main() {
  '<p>Julia sets are self-similar — zooming into the boundary reveals miniature copies of the whole. A linear remap of <code>z</code> before iteration zooms the camera.</p><p>Pre-transform <code>z = z * 0.4 + vec2(-0.1, 0.6)</code>, which zooms in by 2.5× and recenters near an interesting boundary feature. Keep <code>c</code> fixed at <code>(-0.7, 0.27)</code>.</p><p>Reference: <a href="https://iquilezles.org/articles/juliasets3d/" target="_blank" rel="noreferrer">IQ — 3D Julia sets</a>.</p>',
  'void main() {
     vec2 z = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y * 2.0;
-    // TODO: z = z * 0.4 + vec2(-0.1, 0.6); then iterate with fixed c.
+    // TODO: z = z * 0.4 + vec2(-0.1, 0.6);
     vec2 c = vec2(-0.7, 0.27);
-    float n = 0.0;
+    int it = 0;
+    bool escaped = false;
+    for (int i = 0; i < 64; i++) {
+        z = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + c;
+        if (dot(z, z) > 4.0) { escaped = true; break; }
+        it = i;
+    }
+    float n = float(it) - log2(log2(dot(z, z)));
+    if (!escaped) n = 0.0;
     gl_FragColor = vec4(vec3(n / 64.0), 1.0);
 }',
  'void main() {
@@ -383,10 +337,31 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'julia-sets'), 'd3Imp0svQQk', 3,
  'Two-Julia crossfade',
- '<p>Run two Julia iterations with different <code>c</code> values from the same starting <code>z</code>, then crossfade their outputs. The result is a temporal blend between two distinct fractal shapes.</p><p>Compute smooth iter counts for <code>c1 = (-0.7, 0.27)</code> and <code>c2 = (0.285, 0.01)</code>, then mix by <code>0.5 + 0.5 * sin(u_time * 0.3)</code>.</p><p>Reference: <a href="https://iquilezles.org/articles/juliasets3d/" target="_blank" rel="noreferrer">IQ — 3D Julia sets</a>.</p>',
+ '<p>Run two Julia iterations with different <code>c</code> values from the same starting <code>z</code>, then crossfade their outputs. The result is a temporal blend between two distinct fractal shapes.</p><p>Both iterations share one fixed loop bound — track an <code>escaped</code> flag for each so a finished iteration stops updating its iteration count. Mix the smooth counts with <code>0.5 + 0.5 * sin(u_time * 0.3)</code>.</p><p>Reference: <a href="https://iquilezles.org/articles/juliasets3d/" target="_blank" rel="noreferrer">IQ — 3D Julia sets</a>.</p>',
  'void main() {
     vec2 z0 = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y * 2.0;
-    // TODO: iterate two Julias with c1=(-0.7,0.27) and c2=(0.285,0.01); blend by 0.5+0.5*sin(u_time*0.3).
+    vec2 c1 = vec2(-0.7, 0.27);
+    vec2 c2 = vec2(0.285, 0.01);
+    vec2 za = z0;
+    vec2 zb = z0;
+    int ita = 0;
+    int itb = 0;
+    bool ea = false;
+    bool eb = false;
+    for (int i = 0; i < 64; i++) {
+        if (!ea) {
+            za = vec2(za.x * za.x - za.y * za.y, 2.0 * za.x * za.y) + c1;
+            if (dot(za, za) > 4.0) ea = true; else ita = i;
+        }
+        if (!eb) {
+            zb = vec2(zb.x * zb.x - zb.y * zb.y, 2.0 * zb.x * zb.y) + c2;
+            if (dot(zb, zb) > 4.0) eb = true; else itb = i;
+        }
+    }
+    // TODO: na = ea ? (float(ita) - log2(log2(dot(za, za)))) : 0.0;
+    // TODO: nb = eb ? (float(itb) - log2(log2(dot(zb, zb)))) : 0.0;
+    // TODO: t = 0.5 + 0.5 * sin(u_time * 0.3);
+    // TODO: n = mix(na, nb, t);
     float n = 0.0;
     gl_FragColor = vec4(vec3(n / 64.0), 1.0);
 }',

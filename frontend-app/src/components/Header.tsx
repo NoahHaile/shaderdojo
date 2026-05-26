@@ -26,6 +26,9 @@ export function Header() {
                     <NavLink to="/courses" className={({ isActive }) => isActive ? navItemActive : navItem}>
                         Courses
                     </NavLink>
+                    <NavLink to="/reference" className={({ isActive }) => isActive ? navItemActive : navItem}>
+                        Reference
+                    </NavLink>
                     {isAuthed ? (
                         <>
                             <NavLink to="/profile" className={({ isActive }) => isActive ? navItemActive : navItem}>
