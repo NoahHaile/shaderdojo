@@ -3,10 +3,10 @@
 -- Family A — Foundations (5 courses, 20 lessons)
 -- starter_vertex_shader is left NULL: the validator and frontend use the canonical passthrough.
 
-INSERT INTO lesson (id, course_id, slug, display_order, title, description, starter_fragment_shader, canonical_fragment_shader) VALUES
+INSERT INTO lesson (course_id, slug, display_order, title, description, starter_fragment_shader, canonical_fragment_shader) VALUES
 
 -- ===== Course: uv-coordinates =====
-('c0000001-0001-0000-0000-000000000000', 'c0000001-0000-0000-0000-000000000000', 'Y9NUVKnImBU', 0,
+((SELECT id FROM course WHERE slug = 'uv-coordinates'), 'Y9NUVKnImBU', 0,
  'UV as RG color',
  '<p>Every fragment shader needs a coordinate system. Divide <code>gl_FragCoord.xy</code> by <code>u_resolution.xy</code> to get UV in <code>[0, 1]</code>.</p><p>Output that UV as the red and green channels — red rises with x, green with y, blue stays at 0.</p><p>Reference: <a href="https://thebookofshaders.com/03/" target="_blank" rel="noreferrer">Book of Shaders — Uniforms</a>.</p>',
  'void main() {
@@ -19,7 +19,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = vec4(uv, 0.0, 1.0);
 }'),
 
-('c0000001-0002-0000-0000-000000000000', 'c0000001-0000-0000-0000-000000000000', 'u0ntUSvRPHI', 1,
+((SELECT id FROM course WHERE slug = 'uv-coordinates'), 'u0ntUSvRPHI', 1,
  'Centered UV',
  '<p>Subtract <code>0.5</code> from each component to put the origin at the canvas center. Taking the absolute value of a centered UV gives concentric rectangles radiating from the middle.</p><p>Reference: <a href="https://thebookofshaders.com/03/" target="_blank" rel="noreferrer">Book of Shaders — Uniforms</a>.</p>',
  'void main() {
@@ -32,7 +32,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = vec4(abs(uv) * 2.0, 0.0, 1.0);
 }'),
 
-('c0000001-0003-0000-0000-000000000000', 'c0000001-0000-0000-0000-000000000000', 'ISrgvAd5SMg', 2,
+((SELECT id FROM course WHERE slug = 'uv-coordinates'), 'ISrgvAd5SMg', 2,
  'Aspect-corrected UV',
  '<p>If the canvas is non-square, a raw UV stretches every shape. Divide the centered pixel offset by <code>u_resolution.y</code> (the shorter side, conventionally) so a unit of UV is a unit of pixel — circles stay circular.</p><p>Reference: <a href="https://thebookofshaders.com/03/" target="_blank" rel="noreferrer">Book of Shaders — Uniforms</a>.</p>',
  'void main() {
@@ -47,7 +47,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = vec4(vec3(step(d, 0.3)), 1.0);
 }'),
 
-('c0000001-0004-0000-0000-000000000000', 'c0000001-0000-0000-0000-000000000000', 'RmYF8JiNb5A', 3,
+((SELECT id FROM course WHERE slug = 'uv-coordinates'), 'RmYF8JiNb5A', 3,
  'Polar coordinates',
  '<p>Convert a centered UV into polar: <code>r = length(p)</code> is distance from origin, <code>a = atan(p.y, p.x)</code> is angle in <code>[-π, π]</code>. Output <code>r</code> as red and the normalized angle as green to see the polar grid.</p><p>Reference: <a href="https://thebookofshaders.com/07/" target="_blank" rel="noreferrer">Book of Shaders — Shapes (polar section)</a>.</p>',
  'void main() {
@@ -63,7 +63,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
 }'),
 
 -- ===== Course: time-oscillation =====
-('c0000002-0001-0000-0000-000000000000', 'c0000002-0000-0000-0000-000000000000', 'RysomZQB5N8', 0,
+((SELECT id FROM course WHERE slug = 'time-oscillation'), 'RysomZQB5N8', 0,
  'Sine brightness',
  '<p>The signature time animation: <code>0.5 + 0.5 * sin(u_time)</code> gives a value that smoothly oscillates between 0 and 1. Use it as a grayscale brightness so the whole canvas pulses.</p><p>References: <a href="https://thebookofshaders.com/03/" target="_blank" rel="noreferrer">BoS — Uniforms</a>, <a href="https://iquilezles.org/articles/trigfunctions/" target="_blank" rel="noreferrer">IQ — Trig functions</a>.</p>',
  'void main() {
@@ -76,7 +76,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = vec4(vec3(v), 1.0);
 }'),
 
-('c0000002-0002-0000-0000-000000000000', 'c0000002-0000-0000-0000-000000000000', 'Rh5lJolvCpE', 1,
+((SELECT id FROM course WHERE slug = 'time-oscillation'), 'Rh5lJolvCpE', 1,
  'Two-color crossfade',
  '<p>Feed a time oscillation into <code>mix()</code> to blend between two fixed colors. The 0..1 oscillator becomes the <code>t</code> of the mix.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders — Colors</a>.</p>',
  'void main() {
@@ -91,7 +91,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = vec4(c, 1.0);
 }'),
 
-('c0000002-0003-0000-0000-000000000000', 'c0000002-0000-0000-0000-000000000000', '5Wv1Wxu93pY', 2,
+((SELECT id FROM course WHERE slug = 'time-oscillation'), '5Wv1Wxu93pY', 2,
  'Phase-offset RGB',
  '<p>Each channel gets its own phase by adding a different offset inside the <code>cos()</code>. The three vec3 offsets <code>(0, 2π/3, 4π/3)</code> evenly space the RGB channels around the cycle.</p><p>Reference: <a href="https://iquilezles.org/articles/trigfunctions/" target="_blank" rel="noreferrer">IQ — Trig functions</a>.</p>',
  'void main() {
@@ -104,7 +104,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = vec4(c, 1.0);
 }'),
 
-('c0000002-0004-0000-0000-000000000000', 'c0000002-0000-0000-0000-000000000000', '8LOHoVrvY5s', 3,
+((SELECT id FROM course WHERE slug = 'time-oscillation'), '8LOHoVrvY5s', 3,
  'Per-axis frequency',
  '<p>The oscillation can take a position too. <code>sin(uv.x * k + u_time)</code> produces vertical stripes that scroll over time — frequency <code>k</code> sets how many stripes fit across the canvas.</p><p>Reference: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">Book of Shaders — Shaping functions</a>.</p>',
  'void main() {
@@ -120,7 +120,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
 }'),
 
 -- ===== Course: step-smoothstep =====
-('c0000003-0001-0000-0000-000000000000', 'c0000003-0000-0000-0000-000000000000', 'p0O1Dv3P-vA', 0,
+((SELECT id FROM course WHERE slug = 'step-smoothstep'), 'p0O1Dv3P-vA', 0,
  'step() half-plane',
  '<p><code>step(edge, x)</code> returns 0 when <code>x &lt; edge</code> and 1 otherwise — a hard binary mask. Split the canvas vertically into a black and white half.</p><p>References: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">BoS — Shaping functions</a>, <a href="https://iquilezles.org/articles/functions/" target="_blank" rel="noreferrer">IQ — Useful little functions</a>.</p>',
  'void main() {
@@ -135,7 +135,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = vec4(vec3(m), 1.0);
 }'),
 
-('c0000003-0002-0000-0000-000000000000', 'c0000003-0000-0000-0000-000000000000', 'ANep5l9KXQA', 1,
+((SELECT id FROM course WHERE slug = 'step-smoothstep'), 'ANep5l9KXQA', 1,
  'smoothstep() antialiased edge',
  '<p><code>smoothstep(a, b, x)</code> ramps from 0 to 1 with a smooth Hermite curve. Use it with a small range around 0.5 to get an antialiased version of the previous lesson.</p><p>References: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">BoS — Shaping functions</a>, <a href="https://iquilezles.org/articles/smoothsteps/" target="_blank" rel="noreferrer">IQ — Smoothsteps</a>.</p>',
  'void main() {
@@ -150,7 +150,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = vec4(vec3(m), 1.0);
 }'),
 
-('c0000003-0003-0000-0000-000000000000', 'c0000003-0000-0000-0000-000000000000', 'DMpqeHFWXBM', 2,
+((SELECT id FROM course WHERE slug = 'step-smoothstep'), 'DMpqeHFWXBM', 2,
  'Stripe via two smoothsteps',
  '<p>Subtracting one smoothstep from another carves a band: rises at the first edge, falls at the second. Use this to draw a soft white stripe between <code>0.3</code> and <code>0.7</code>.</p><p>Reference: <a href="https://iquilezles.org/articles/smoothsteps/" target="_blank" rel="noreferrer">IQ — Smoothsteps</a>.</p>',
  'void main() {
@@ -165,7 +165,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = vec4(vec3(m), 1.0);
 }'),
 
-('c0000003-0004-0000-0000-000000000000', 'c0000003-0000-0000-0000-000000000000', 'J0cVn8u2KQM', 3,
+((SELECT id FROM course WHERE slug = 'step-smoothstep'), 'J0cVn8u2KQM', 3,
  'Signed-threshold band',
  '<p>Take the absolute distance from a center value, then smoothstep on that. Result: a band that fades out symmetrically away from the chosen line.</p><p>Reference: <a href="https://iquilezles.org/articles/functions/" target="_blank" rel="noreferrer">IQ — Useful little functions</a>.</p>',
  'void main() {
@@ -182,7 +182,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
 }'),
 
 -- ===== Course: mix-gradients =====
-('c0000004-0001-0000-0000-000000000000', 'c0000004-0000-0000-0000-000000000000', 'C9NOPPTcO8c', 0,
+((SELECT id FROM course WHERE slug = 'mix-gradients'), 'C9NOPPTcO8c', 0,
  'Horizontal two-color',
  '<p><code>mix(a, b, t)</code> is component-wise linear interpolation. Pass <code>uv.x</code> as <code>t</code> to blend smoothly from color A on the left to color B on the right.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders — Colors</a>.</p>',
  'void main() {
@@ -197,7 +197,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = vec4(c, 1.0);
 }'),
 
-('c0000004-0002-0000-0000-000000000000', 'c0000004-0000-0000-0000-000000000000', '5U6D3uvCGzQ', 1,
+((SELECT id FROM course WHERE slug = 'mix-gradients'), '5U6D3uvCGzQ', 1,
  'Diagonal gradient',
  '<p>Build the blend factor from a combination of both axes — here <code>(uv.x + uv.y) * 0.5</code> — to get a diagonal gradient that runs from corner to corner.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders — Colors</a>.</p>',
  'void main() {
@@ -214,7 +214,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = vec4(c, 1.0);
 }'),
 
-('c0000004-0003-0000-0000-000000000000', 'c0000004-0000-0000-0000-000000000000', 'VyyQdFs8C0s', 2,
+((SELECT id FROM course WHERE slug = 'mix-gradients'), 'VyyQdFs8C0s', 2,
  'Three-stop nested mix',
  '<p>A three-color gradient is two mixes glued at the midpoint. Below 0.5, blend A→B; above 0.5, blend B→C. Rescale <code>uv.x</code> so each half runs 0..1.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders — Colors</a>.</p>',
  'void main() {
@@ -235,7 +235,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = vec4(col, 1.0);
 }'),
 
-('c0000004-0004-0000-0000-000000000000', 'c0000004-0000-0000-0000-000000000000', 'RmXFv-4OZwk', 3,
+((SELECT id FROM course WHERE slug = 'mix-gradients'), 'RmXFv-4OZwk', 3,
  'Radial gradient',
  '<p>Drive the mix by distance from the center instead of one of the axes. Use <code>smoothstep</code> on the radius so the falloff is soft.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders — Colors</a>.</p>',
  'void main() {
@@ -253,7 +253,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
 }'),
 
 -- ===== Course: plotting-curves =====
-('c0000005-0001-0000-0000-000000000000', 'c0000005-0000-0000-0000-000000000000', 'c3su8EDPRds', 0,
+((SELECT id FROM course WHERE slug = 'plotting-curves'), 'c3su8EDPRds', 0,
  'Plot y = x',
  '<p>To plot a curve <code>y = f(x)</code>, compute the vertical distance from every pixel to the curve, then draw a thin band wherever that distance is small. Start with the simplest curve, <code>y = x</code>.</p><p>Reference: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">Book of Shaders — Shaping functions (plot section)</a>.</p>',
  'void main() {
@@ -269,7 +269,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = vec4(vec3(m), 1.0);
 }'),
 
-('c0000005-0002-0000-0000-000000000000', 'c0000005-0000-0000-0000-000000000000', 'w60pXClCffU', 1,
+((SELECT id FROM course WHERE slug = 'plotting-curves'), 'w60pXClCffU', 1,
  'Plot y = sin(x)',
  '<p>Same plot recipe, swap in a sine. Remap <code>uv</code> to <code>[-1, 1]</code> first so the curve sits centered, then scale the argument to fit one period across the canvas.</p><p>Reference: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">Book of Shaders — Shaping functions (plot section)</a>.</p>',
  'void main() {
@@ -286,7 +286,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = vec4(vec3(m), 1.0);
 }'),
 
-('c0000005-0003-0000-0000-000000000000', 'c0000005-0000-0000-0000-000000000000', 'A97U3mk9yUE', 2,
+((SELECT id FROM course WHERE slug = 'plotting-curves'), 'A97U3mk9yUE', 2,
  'Curve thickness',
  '<p>The smoothstep edges <code>(a, b)</code> control how thick and how soft the plotted curve is. Widen the band to draw a chunkier cosine plot.</p><p>Reference: <a href="https://iquilezles.org/articles/smoothsteps/" target="_blank" rel="noreferrer">IQ — Smoothsteps</a>.</p>',
  'void main() {
@@ -303,7 +303,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = vec4(vec3(m), 1.0);
 }'),
 
-('c0000005-0004-0000-0000-000000000000', 'c0000005-0000-0000-0000-000000000000', 'J57FduwRbQ8', 3,
+((SELECT id FROM course WHERE slug = 'plotting-curves'), 'J57FduwRbQ8', 3,
  'Animated phase',
  '<p>Add <code>u_time</code> to the sine argument and the curve scrolls. The plot recipe is unchanged — only the input function moves.</p><p>Reference: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">Book of Shaders — Shaping functions</a>.</p>',
  'void main() {

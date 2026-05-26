@@ -21,7 +21,7 @@ CREATE INDEX idx_account_username ON account (username);
 -- display_order sorts courses within a category.
 CREATE TABLE course
 (
-    id            VARCHAR(36) PRIMARY KEY,
+    id            VARCHAR(36) PRIMARY KEY DEFAULT (gen_random_uuid()::text),
     slug          VARCHAR(128) UNIQUE NOT NULL,
     title         VARCHAR(256) NOT NULL,
     description   TEXT,
@@ -39,7 +39,7 @@ CREATE INDEX idx_course_category_order ON course (category, display_order);
 -- hashed_answer NULL = awaiting `POST /app/lessons/recompute-hashes` after seed boot.
 CREATE TABLE lesson
 (
-    id                        VARCHAR(36) PRIMARY KEY,
+    id                        VARCHAR(36) PRIMARY KEY DEFAULT (gen_random_uuid()::text),
     course_id                 VARCHAR(36) NOT NULL REFERENCES course (id) ON DELETE CASCADE,
     slug                      VARCHAR(128) NOT NULL,
     display_order             INT NOT NULL DEFAULT 0,

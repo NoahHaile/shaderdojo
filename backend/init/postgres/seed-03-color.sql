@@ -2,10 +2,10 @@
 
 -- Family B — Color (3 courses, 12 lessons)
 
-INSERT INTO lesson (id, course_id, slug, display_order, title, description, starter_fragment_shader, canonical_fragment_shader) VALUES
+INSERT INTO lesson (course_id, slug, display_order, title, description, starter_fragment_shader, canonical_fragment_shader) VALUES
 
 -- ===== Course: hsv-color =====
-('c0000006-0001-0000-0000-000000000000', 'c0000006-0000-0000-0000-000000000000', 'p60fmIlW-3M', 0,
+((SELECT id FROM course WHERE slug = 'hsv-color'), 'p60fmIlW-3M', 0,
  'Hue wheel along x',
  '<p>The HSV color space lets you set a hue once and walk it through every color at maximum saturation and value. Build the standard <code>hsv2rgb</code> helper, then feed in <code>vec3(uv.x, 1.0, 1.0)</code> so the canvas sweeps every hue from left to right.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders — Colors (HSB section)</a>.</p>',
  'vec3 hsv2rgb(vec3 c) {
@@ -30,7 +30,7 @@ void main() {
     gl_FragColor = vec4(c, 1.0);
 }'),
 
-('c0000006-0002-0000-0000-000000000000', 'c0000006-0000-0000-0000-000000000000', '2RCHfX2ZA7s', 1,
+((SELECT id FROM course WHERE slug = 'hsv-color'), '2RCHfX2ZA7s', 1,
  'Hue from polar angle',
  '<p>Feed the polar angle into hue instead of x. The result is a true color wheel: pure red at <code>0°</code>, cycling all the way around to red again.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders — Colors</a>.</p>',
  'vec3 hsv2rgb(vec3 c) {
@@ -56,7 +56,7 @@ void main() {
     gl_FragColor = vec4(c, 1.0);
 }'),
 
-('c0000006-0003-0000-0000-000000000000', 'c0000006-0000-0000-0000-000000000000', '_XPXs6awl8U', 2,
+((SELECT id FROM course WHERE slug = 'hsv-color'), '_XPXs6awl8U', 2,
  'Saturation by radius',
  '<p>Fix the hue, drive saturation by radius. Centers are gray (no color), edges are fully saturated. Clamp the radius so it stays in <code>[0, 1]</code>.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders — Colors</a>.</p>',
  'vec3 hsv2rgb(vec3 c) {
@@ -82,7 +82,7 @@ void main() {
     gl_FragColor = vec4(c, 1.0);
 }'),
 
-('c0000006-0004-0000-0000-000000000000', 'c0000006-0000-0000-0000-000000000000', 'uQitrBNNf48', 3,
+((SELECT id FROM course WHERE slug = 'hsv-color'), 'uQitrBNNf48', 3,
  'Value pulse on time',
  '<p>Lock hue and saturation, drive value with a time oscillator. The canvas pulses brighter and darker without changing color.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders — Colors</a>.</p>',
  'vec3 hsv2rgb(vec3 c) {
@@ -107,7 +107,7 @@ void main() {
 }'),
 
 -- ===== Course: cosine-palettes =====
-('c0000007-0001-0000-0000-000000000000', 'c0000007-0000-0000-0000-000000000000', 'lUI79_46ook', 0,
+((SELECT id FROM course WHERE slug = 'cosine-palettes'), 'lUI79_46ook', 0,
  'Static cosine palette',
  '<p>Inigo Quilez''s palette generator is four vectors and one cosine: <code>a + b * cos(2π * (c * t + d))</code>. The classic default <code>a = b = vec3(0.5)</code>, <code>c = vec3(1.0)</code>, <code>d = vec3(0.00, 0.33, 0.67)</code> sweeps through every hue. Feed <code>uv.x</code> as <code>t</code>.</p><p>Reference: <a href="https://iquilezles.org/articles/palettes/" target="_blank" rel="noreferrer">IQ — Palettes</a>.</p>',
  'vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
@@ -128,7 +128,7 @@ void main() {
     gl_FragColor = vec4(c, 1.0);
 }'),
 
-('c0000007-0002-0000-0000-000000000000', 'c0000007-0000-0000-0000-000000000000', 'a1X-bvkK6Nw', 1,
+((SELECT id FROM course WHERE slug = 'cosine-palettes'), 'a1X-bvkK6Nw', 1,
  'Animated palette',
  '<p>The same palette, but <code>t</code> drifts with time. The whole canvas becomes one color that cycles through the palette.</p><p>Reference: <a href="https://iquilezles.org/articles/palettes/" target="_blank" rel="noreferrer">IQ — Palettes</a>.</p>',
  'vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
@@ -147,7 +147,7 @@ void main() {
     gl_FragColor = vec4(c, 1.0);
 }'),
 
-('c0000007-0003-0000-0000-000000000000', 'c0000007-0000-0000-0000-000000000000', 'G2adWB1gqbk', 2,
+((SELECT id FROM course WHERE slug = 'cosine-palettes'), 'G2adWB1gqbk', 2,
  'Radial palette',
  '<p>Use the distance from the center as palette <code>t</code> instead of <code>uv.x</code>. The palette wraps into concentric rings.</p><p>Reference: <a href="https://iquilezles.org/articles/palettes/" target="_blank" rel="noreferrer">IQ — Palettes</a>.</p>',
  'vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
@@ -169,7 +169,7 @@ void main() {
     gl_FragColor = vec4(c, 1.0);
 }'),
 
-('c0000007-0004-0000-0000-000000000000', 'c0000007-0000-0000-0000-000000000000', 'JIh3Pj3mAuw', 3,
+((SELECT id FROM course WHERE slug = 'cosine-palettes'), 'JIh3Pj3mAuw', 3,
  'Custom sunset palette',
  '<p>Swap the four vectors to build a palette of your own. These values shift the bias, contrast, frequency, and phase of each channel to produce warm sunset tones.</p><p>Reference: <a href="https://iquilezles.org/articles/palettes/" target="_blank" rel="noreferrer">IQ — Palettes</a>.</p>',
  'vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
@@ -191,7 +191,7 @@ void main() {
 }'),
 
 -- ===== Course: tone-vignette-gamma =====
-('c0000008-0001-0000-0000-000000000000', 'c0000008-0000-0000-0000-000000000000', 'hK5QJQ86oMc', 0,
+((SELECT id FROM course WHERE slug = 'tone-vignette-gamma'), 'hK5QJQ86oMc', 0,
  'Gamma correction',
  '<p>Raw linear-light values look too dark on the screen because monitors apply a nonlinear (gamma ~2.2) response. The standard fix at the end of a shader: <code>pow(color, vec3(1.0/2.2))</code>. Render a linear gradient before and apply gamma to see the difference.</p><p>Reference: <a href="https://iquilezles.org/articles/gamma/" target="_blank" rel="noreferrer">IQ — Gamma correct blurring</a>.</p>',
  'void main() {
@@ -207,7 +207,7 @@ void main() {
     gl_FragColor = vec4(c, 1.0);
 }'),
 
-('c0000008-0002-0000-0000-000000000000', 'c0000008-0000-0000-0000-000000000000', 'BPmLthBAT2s', 1,
+((SELECT id FROM course WHERE slug = 'tone-vignette-gamma'), 'BPmLthBAT2s', 1,
  'Radial vignette',
  '<p>A vignette darkens the corners of the frame. Smoothstep the radius from the center: full brightness inside a disc, darkening to zero at the edges. Multiply your color by the vignette mask.</p><p>Reference: <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ — Outdoors lighting</a>.</p>',
  'void main() {
@@ -224,7 +224,7 @@ void main() {
     gl_FragColor = vec4(c, 1.0);
 }'),
 
-('c0000008-0003-0000-0000-000000000000', 'c0000008-0000-0000-0000-000000000000', 'B9_W_mw16Gc', 2,
+((SELECT id FROM course WHERE slug = 'tone-vignette-gamma'), 'B9_W_mw16Gc', 2,
  'Reinhard tone map',
  '<p>HDR colors can exceed 1.0; tone mapping squashes them into the visible <code>[0, 1]</code> range. Reinhard is the simplest: <code>c / (c + 1.0)</code>. Multiply your gradient up to "blow it out", then Reinhard-map it.</p><p>Reference: <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ — Outdoors lighting</a>.</p>',
  'void main() {
@@ -240,7 +240,7 @@ void main() {
     gl_FragColor = vec4(c, 1.0);
 }'),
 
-('c0000008-0004-0000-0000-000000000000', 'c0000008-0000-0000-0000-000000000000', 'Ae7sCWNcjgw', 3,
+((SELECT id FROM course WHERE slug = 'tone-vignette-gamma'), 'Ae7sCWNcjgw', 3,
  'ACES tone map approximation',
  '<p>Krzysztof Narkowicz''s ACES fit packs the filmic tone curve into one expression: <code>(c*(a*c+b))/(c*(c*c+d)+e)</code> with <code>a=2.51, b=0.03, c=2.43, d=0.59, e=0.14</code>. It compresses highlights more gracefully than Reinhard.</p><p>Reference: <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ — Outdoors lighting</a>.</p>',
  'vec3 aces(vec3 x) {

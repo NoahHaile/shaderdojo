@@ -2,10 +2,10 @@
 
 -- Family J — Iteration & fractals (7 courses, 28 lessons)
 
-INSERT INTO lesson (id, course_id, slug, display_order, title, description, starter_fragment_shader, canonical_fragment_shader) VALUES
+INSERT INTO lesson (course_id, slug, display_order, title, description, starter_fragment_shader, canonical_fragment_shader) VALUES
 
 -- ===== Course: loop-fundamentals =====
-('c0000044-0001-0000-0000-000000000000', 'c0000044-0000-0000-0000-000000000000', 'WWkoco-M-vA', 0,
+((SELECT id FROM course WHERE slug = 'loop-fundamentals'), 'WWkoco-M-vA', 0,
  'Count steps to threshold',
  '<p>Loops in GLSL ES 1.0 need constant bounds, but you can still walk a value forward and count how many steps it took to cross a threshold.</p><p>March a counter through 32 iterations, adding <code>0.05</code> each step, and bail with <code>break</code> the moment the running value passes <code>uv.x</code>. The step count, normalized, becomes your grayscale.</p><p>Reference: <a href="https://registry.khronos.org/OpenGL/specs/es/2.0/GLSL_ES_Specification_1.00.pdf" target="_blank" rel="noreferrer">Khronos — GLSL ES 1.0 spec</a>.</p>',
  'void main() {
@@ -26,7 +26,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = vec4(vec3(float(steps) / 32.0), 1.0);
 }'),
 
-('c0000044-0002-0000-0000-000000000000', 'c0000044-0000-0000-0000-000000000000', '0VcH_tOJHZw', 1,
+((SELECT id FROM course WHERE slug = 'loop-fundamentals'), '0VcH_tOJHZw', 1,
  'Break on first hit',
  '<p>Loops also work as searches: iterate until a per-pixel hash crosses a probability and record the iteration index where it happened.</p><p>The classic GPU hash, <code>fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453)</code>, gives noisy but deterministic values you can compare to <code>0.7</code>. Different uvs hit at different iterations, producing a noise-like image.</p><p>Reference: <a href="https://iquilezles.org/articles/gpuconditionals/" target="_blank" rel="noreferrer">IQ — GPU conditionals</a>.</p>',
  'float hash(vec2 p) {
@@ -51,7 +51,7 @@ void main() {
     gl_FragColor = vec4(vec3(float(it) / 32.0), 1.0);
 }'),
 
-('c0000044-0003-0000-0000-000000000000', 'c0000044-0000-0000-0000-000000000000', 'WxfbsGl4W28', 2,
+((SELECT id FROM course WHERE slug = 'loop-fundamentals'), 'WxfbsGl4W28', 2,
  'Running maximum',
  '<p>A loop can act as a reduction: walk a fixed number of iterations and keep the largest value seen so far in an accumulator.</p><p>Track <code>m = max(m, sin(uv.x * float(i)))</code> across 16 iterations. The result is the upper envelope of a stack of sines at different frequencies, mapped to gray.</p><p>Reference: <a href="https://registry.khronos.org/OpenGL/specs/es/2.0/GLSL_ES_Specification_1.00.pdf" target="_blank" rel="noreferrer">Khronos — GLSL ES 1.0 spec</a>.</p>',
  'void main() {
@@ -69,7 +69,7 @@ void main() {
     gl_FragColor = vec4(vec3(0.5 + 0.5 * m), 1.0);
 }'),
 
-('c0000044-0004-0000-0000-000000000000', 'c0000044-0000-0000-0000-000000000000', '_8epBwGjScc', 3,
+((SELECT id FROM course WHERE slug = 'loop-fundamentals'), '_8epBwGjScc', 3,
  'Running average',
  '<p>Swap <code>max</code> for sum and you get an accumulator that builds a Fourier-style stack. Each iteration adds another sine to the pile.</p><p>Accumulate <code>sin(uv.x * float(i) * 0.5)</code> across 16 iterations into <code>s</code>, then bias it into a viewable gray with <code>0.5 + 0.05 * s</code>.</p><p>Reference: <a href="https://registry.khronos.org/OpenGL/specs/es/2.0/GLSL_ES_Specification_1.00.pdf" target="_blank" rel="noreferrer">Khronos — GLSL ES 1.0 spec</a>.</p>',
  'void main() {
@@ -88,7 +88,7 @@ void main() {
 }'),
 
 -- ===== Course: accumulation-loops =====
-('c0000045-0001-0000-0000-000000000000', 'c0000045-0000-0000-0000-000000000000', 'CAixj7DUkss', 0,
+((SELECT id FROM course WHERE slug = 'accumulation-loops'), 'CAixj7DUkss', 0,
  'N-tap blur on image',
  '<p>A box blur is a loop that accumulates neighbor samples and divides by the count. With a constant 5×5 kernel that''s 25 fixed taps — perfect for GLSL ES 1.0.</p><p>Use a pixel step <code>px = 0.005</code> and sum <code>texture2D(u_image, uv + vec2(x, y) * px)</code> for every <code>(x, y)</code> in the kernel, then divide by 25.</p><p>Reference: <a href="https://thebookofshaders.com/13/" target="_blank" rel="noreferrer">Book of Shaders — Fractal Brownian Motion</a>.</p>',
  'void main() {
@@ -110,7 +110,7 @@ void main() {
     gl_FragColor = sum / 25.0;
 }'),
 
-('c0000045-0002-0000-0000-000000000000', 'c0000045-0000-0000-0000-000000000000', 'xMi5t4GFZuo', 1,
+((SELECT id FROM course WHERE slug = 'accumulation-loops'), 'xMi5t4GFZuo', 1,
  'Jitter-sampled AA',
  '<p>Instead of a grid of taps, sample at random offsets — the kind of noisy supersampling antialiasing schemes use. Eight taps, each at a hash-jittered position, averaged.</p><p>For iteration <code>i</code>, build a two-component jitter from two different hash inputs, scale by a few pixels, and accumulate <code>u_image</code> samples.</p><p>Reference: <a href="https://thebookofshaders.com/13/" target="_blank" rel="noreferrer">Book of Shaders — Fractal Brownian Motion</a>.</p>',
  'float hash(vec2 p) {
@@ -135,7 +135,7 @@ void main() {
     gl_FragColor = sum / 8.0;
 }'),
 
-('c0000045-0003-0000-0000-000000000000', 'c0000045-0000-0000-0000-000000000000', 'Y3cAQQcOcxE', 2,
+((SELECT id FROM course WHERE slug = 'accumulation-loops'), 'Y3cAQQcOcxE', 2,
  'Motion blur',
  '<p>Motion blur is a one-axis stretch of the box blur. Accumulate eight samples along a vertical streak and average — the image smears in the y direction.</p><p>For each iteration <code>i</code>, sample at <code>uv + vec2(0.0, float(i) * 0.005)</code> and divide by 8 at the end.</p><p>Reference: <a href="https://thebookofshaders.com/13/" target="_blank" rel="noreferrer">Book of Shaders — Fractal Brownian Motion</a>.</p>',
  'void main() {
@@ -153,7 +153,7 @@ void main() {
     gl_FragColor = sum / 8.0;
 }'),
 
-('c0000045-0004-0000-0000-000000000000', 'c0000045-0000-0000-0000-000000000000', 'wpWMZoP8VUU', 3,
+((SELECT id FROM course WHERE slug = 'accumulation-loops'), 'wpWMZoP8VUU', 3,
  'Re-derive fbm',
  '<p>Fractal Brownian motion is the canonical accumulation loop: sum value-noise octaves with shrinking amplitude and growing frequency. Five iterations, halving amplitude and doubling frequency, give you the texture you''d recognize from cloud and terrain shaders.</p><p>Start from a hash, build a smoothed value noise, then loop: <code>v += a * vnoise(p); p *= 2.0; a *= 0.5;</code>.</p><p>Reference: <a href="https://thebookofshaders.com/13/" target="_blank" rel="noreferrer">Book of Shaders — Fractal Brownian Motion</a>.</p>',
  'float hash(vec2 p) {
@@ -203,7 +203,7 @@ void main() {
 }'),
 
 -- ===== Course: mandelbrot =====
-('c0000046-0001-0000-0000-000000000000', 'c0000046-0000-0000-0000-000000000000', 'WWTQAiyd_H8', 0,
+((SELECT id FROM course WHERE slug = 'mandelbrot'), 'WWTQAiyd_H8', 0,
  'Binary in-set mask',
  '<p>The Mandelbrot set is the set of complex numbers <code>c</code> for which <code>z = z² + c</code> stays bounded starting from <code>z = 0</code>. A pixel renders that map when its position becomes <code>c</code>.</p><p>Iterate 64 times. If <code>|z|</code> ever exceeds 2 (we check <code>dot(z, z) &gt; 4.0</code>) the point escapes — render it white. If it survives all 64 iterations, it''s in the set — render it black.</p><p>Reference: <a href="https://iquilezles.org/articles/arquimedes/" target="_blank" rel="noreferrer">IQ — Mandelbrot intro</a>.</p>',
  'void main() {
@@ -224,7 +224,7 @@ void main() {
     gl_FragColor = vec4(vec3(m), 1.0);
 }'),
 
-('c0000046-0002-0000-0000-000000000000', 'c0000046-0000-0000-0000-000000000000', 'N2Abg_Mu-aY', 1,
+((SELECT id FROM course WHERE slug = 'mandelbrot'), 'N2Abg_Mu-aY', 1,
  'Iter count gray',
  '<p>Record <em>when</em> the point escapes, not just whether. The iteration index at escape is a discrete proxy for the distance from the set.</p><p>Iterate up to 64; the moment <code>dot(z, z) &gt; 4.0</code>, save <code>it = i</code> and break. Output <code>vec3(float(it) / 64.0)</code> for stepped grayscale bands.</p><p>Reference: <a href="https://iquilezles.org/articles/arquimedes/" target="_blank" rel="noreferrer">IQ — Mandelbrot intro</a>.</p>',
  'void main() {
@@ -246,7 +246,7 @@ void main() {
     gl_FragColor = vec4(vec3(float(it) / 64.0), 1.0);
 }'),
 
-('c0000046-0003-0000-0000-000000000000', 'c0000046-0000-0000-0000-000000000000', 'B3-FzWCpiMc', 2,
+((SELECT id FROM course WHERE slug = 'mandelbrot'), 'B3-FzWCpiMc', 2,
  'Smooth iter count',
  '<p>Integer iteration counts produce visible banding. The continuous version subtracts <code>log2(log2(|z|²))</code> from the integer count, giving a smooth fractional value that crosses bands without seams.</p><p>After escape, compute <code>n = float(it) - log2(log2(dot(z, z)))</code>, normalize, and output as gray.</p><p>Reference: <a href="https://iquilezles.org/articles/msetsmooth/" target="_blank" rel="noreferrer">IQ — Continuous iteration count</a>.</p>',
  'void main() {
@@ -271,7 +271,7 @@ void main() {
     gl_FragColor = vec4(vec3(n / 64.0), 1.0);
 }'),
 
-('c0000046-0004-0000-0000-000000000000', 'c0000046-0000-0000-0000-000000000000', 'Bas0UtXRa0Y', 3,
+((SELECT id FROM course WHERE slug = 'mandelbrot'), 'Bas0UtXRa0Y', 3,
  'Palette colorize',
  '<p>The smooth iteration count is just a scalar — feed it to a cosine palette and the Mandelbrot blooms into color.</p><p>Use the IQ palette with <code>a = b = vec3(0.5)</code>, <code>c = vec3(1.0)</code>, <code>d = vec3(0.0, 0.33, 0.67)</code>, evaluated at <code>n * 0.05</code>.</p><p>Reference: <a href="https://iquilezles.org/articles/distancefractals/" target="_blank" rel="noreferrer">IQ — Distance fractals</a>.</p>',
  'vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
@@ -305,7 +305,7 @@ void main() {
 }'),
 
 -- ===== Course: julia-sets =====
-('c0000047-0001-0000-0000-000000000000', 'c0000047-0000-0000-0000-000000000000', 'JjgP_PFlzqw', 0,
+((SELECT id FROM course WHERE slug = 'julia-sets'), 'JjgP_PFlzqw', 0,
  'Static Julia',
  '<p>A Julia set flips the Mandelbrot loop: <code>c</code> is fixed, the per-pixel position becomes the starting <code>z</code>. Different <code>c</code> produces a different filled-Julia shape.</p><p>Set <code>c = vec2(-0.7, 0.27)</code> — a classic Julia parameter — and iterate <code>z = z² + c</code>. Use the smooth iteration count for grayscale.</p><p>Reference: <a href="https://iquilezles.org/articles/juliasets3d/" target="_blank" rel="noreferrer">IQ — 3D Julia sets</a>.</p>',
  'void main() {
@@ -330,7 +330,7 @@ void main() {
     gl_FragColor = vec4(vec3(n / 64.0), 1.0);
 }'),
 
-('c0000047-0002-0000-0000-000000000000', 'c0000047-0000-0000-0000-000000000000', 'GUqs2ifF4zc', 1,
+((SELECT id FROM course WHERE slug = 'julia-sets'), 'GUqs2ifF4zc', 1,
  'Animate c on circle',
  '<p>Slide <code>c</code> around a circle in the complex plane and the whole Julia shape morphs through its family. The radius and speed control how dramatic the deformation is.</p><p>Use <code>c = 0.7 * vec2(cos(u_time * 0.3), sin(u_time * 0.3))</code> and repeat the same smooth iteration loop.</p><p>Reference: <a href="https://iquilezles.org/articles/juliasets3d/" target="_blank" rel="noreferrer">IQ — 3D Julia sets</a>.</p>',
  'void main() {
@@ -355,7 +355,7 @@ void main() {
     gl_FragColor = vec4(vec3(n / 64.0), 1.0);
 }'),
 
-('c0000047-0003-0000-0000-000000000000', 'c0000047-0000-0000-0000-000000000000', 'z_aQg0oSmGQ', 2,
+((SELECT id FROM course WHERE slug = 'julia-sets'), 'z_aQg0oSmGQ', 2,
  'Zoom into feature',
  '<p>Julia sets are self-similar — zooming into the boundary reveals miniature copies of the whole. A linear remap of <code>z</code> before iteration zooms the camera.</p><p>Pre-transform <code>z = z * 0.4 + vec2(-0.1, 0.6)</code>, which zooms in by 2.5× and recenters near an interesting boundary feature. Keep <code>c</code> fixed at <code>(-0.7, 0.27)</code>.</p><p>Reference: <a href="https://iquilezles.org/articles/juliasets3d/" target="_blank" rel="noreferrer">IQ — 3D Julia sets</a>.</p>',
  'void main() {
@@ -381,7 +381,7 @@ void main() {
     gl_FragColor = vec4(vec3(n / 64.0), 1.0);
 }'),
 
-('c0000047-0004-0000-0000-000000000000', 'c0000047-0000-0000-0000-000000000000', 'd3Imp0svQQk', 3,
+((SELECT id FROM course WHERE slug = 'julia-sets'), 'd3Imp0svQQk', 3,
  'Two-Julia crossfade',
  '<p>Run two Julia iterations with different <code>c</code> values from the same starting <code>z</code>, then crossfade their outputs. The result is a temporal blend between two distinct fractal shapes.</p><p>Compute smooth iter counts for <code>c1 = (-0.7, 0.27)</code> and <code>c2 = (0.285, 0.01)</code>, then mix by <code>0.5 + 0.5 * sin(u_time * 0.3)</code>.</p><p>Reference: <a href="https://iquilezles.org/articles/juliasets3d/" target="_blank" rel="noreferrer">IQ — 3D Julia sets</a>.</p>',
  'void main() {
@@ -418,7 +418,7 @@ void main() {
 }'),
 
 -- ===== Course: orbit-traps =====
-('c0000048-0001-0000-0000-000000000000', 'c0000048-0000-0000-0000-000000000000', 'cbG-2ccChv8', 0,
+((SELECT id FROM course WHERE slug = 'orbit-traps'), 'cbG-2ccChv8', 0,
  'Point trap (Mandelbrot)',
  '<p>An orbit trap records the closest approach the iteration ever made to some geometry. For a point trap, that''s the minimum of <code>length(z - p)</code> across all iterations.</p><p>Iterate the Mandelbrot map and track <code>trap = min(trap, length(z - vec2(0.0, 1.0)))</code>. Output the trap as grayscale to see new structure carved by the trap point.</p><p>Reference: <a href="https://iquilezles.org/articles/ftrapsprocedural/" target="_blank" rel="noreferrer">IQ — Procedural orbit traps</a>.</p>',
  'void main() {
@@ -440,7 +440,7 @@ void main() {
     gl_FragColor = vec4(vec3(trap), 1.0);
 }'),
 
-('c0000048-0002-0000-0000-000000000000', 'c0000048-0000-0000-0000-000000000000', 'Z0mmaXwERaU', 1,
+((SELECT id FROM course WHERE slug = 'orbit-traps'), 'Z0mmaXwERaU', 1,
  'Line trap (Julia)',
  '<p>Swap the trap geometry to a line and the fractal grows ribbons. The distance from <code>z</code> to the y-axis is just <code>abs(z.x)</code>.</p><p>Run a Julia iteration with <code>c = (-0.7, 0.27)</code> and track <code>trap = min(trap, abs(z.x))</code>.</p><p>Reference: <a href="https://iquilezles.org/articles/ftrapsgeometric/" target="_blank" rel="noreferrer">IQ — Geometric orbit traps</a>.</p>',
  'void main() {
@@ -462,7 +462,7 @@ void main() {
     gl_FragColor = vec4(vec3(trap), 1.0);
 }'),
 
-('c0000048-0003-0000-0000-000000000000', 'c0000048-0000-0000-0000-000000000000', 'YAohKdAMs-4', 2,
+((SELECT id FROM course WHERE slug = 'orbit-traps'), 'YAohKdAMs-4', 2,
  'Multi-trap min',
  '<p>Combine multiple trap shapes by taking the minimum distance over all of them. You get features from every trap superimposed on the fractal.</p><p>Use Julia with <code>c = (-0.7, 0.27)</code> and track <code>trap = min(trap, min(length(z), abs(z.y - 0.5)))</code> — a point at origin and a horizontal line.</p><p>Reference: <a href="https://iquilezles.org/articles/ftrapsbitmap/" target="_blank" rel="noreferrer">IQ — Bitmap orbit traps</a>.</p>',
  'void main() {
@@ -484,7 +484,7 @@ void main() {
     gl_FragColor = vec4(vec3(trap), 1.0);
 }'),
 
-('c0000048-0004-0000-0000-000000000000', 'c0000048-0000-0000-0000-000000000000', 'E2g3RC2CD2U', 3,
+((SELECT id FROM course WHERE slug = 'orbit-traps'), 'E2g3RC2CD2U', 3,
  'Animated trap',
  '<p>Move the trap point on a circle over time. Same fractal, same iteration count, but the trap geometry rotates — and the inner structure swirls with it.</p><p>Trap point = <code>0.5 * vec2(cos(u_time * 0.3), sin(u_time * 0.3))</code>. Track <code>trap = min(trap, length(z - p))</code>.</p><p>Reference: <a href="https://iquilezles.org/articles/ftrapsprocedural/" target="_blank" rel="noreferrer">IQ — Procedural orbit traps</a>.</p>',
  'void main() {
@@ -508,7 +508,7 @@ void main() {
 }'),
 
 -- ===== Course: ifs-folding =====
-('c0000049-0001-0000-0000-000000000000', 'c0000049-0000-0000-0000-000000000000', 'uP3HCxq4Tco', 0,
+((SELECT id FROM course WHERE slug = 'ifs-folding'), 'uP3HCxq4Tco', 0,
  '2D Sierpinski',
  '<p>An iterated function system folds and scales space — every iteration brings detail closer to the origin. The Sierpinski fold is three lines: take <code>abs</code>, reflect when the sum exceeds 1, then scale by 2 and shift.</p><p>Apply six iterations of the fold to a centered <code>p</code> and use <code>step(length(p), 1.0)</code> as the mask.</p><p>Reference: <a href="https://iquilezles.org/articles/ifsfractals/" target="_blank" rel="noreferrer">IQ — IFS fractals</a>.</p>',
  'void main() {
@@ -530,7 +530,7 @@ void main() {
     gl_FragColor = vec4(vec3(m), 1.0);
 }'),
 
-('c0000049-0002-0000-0000-000000000000', 'c0000049-0000-0000-0000-000000000000', '_LDkavCZ2fs', 1,
+((SELECT id FROM course WHERE slug = 'ifs-folding'), '_LDkavCZ2fs', 1,
  'Koch detail',
  '<p>Different folds give different fractals. Combine <code>abs</code>, a rotation, and a scale, and you start picking up Koch-like spiky boundaries.</p><p>Six iterations of: take <code>abs</code>, rotate <code>p</code> by a constant matrix, and scale by 2 then offset.</p><p>Reference: <a href="https://iquilezles.org/articles/ifsfractals/" target="_blank" rel="noreferrer">IQ — IFS fractals</a>.</p>',
  'void main() {
@@ -556,7 +556,7 @@ void main() {
     gl_FragColor = vec4(vec3(m), 1.0);
 }'),
 
-('c0000049-0003-0000-0000-000000000000', 'c0000049-0000-0000-0000-000000000000', 'DbJr87pcKpo', 2,
+((SELECT id FROM course WHERE slug = 'ifs-folding'), 'DbJr87pcKpo', 2,
  'Fewer folds',
  '<p>Iteration depth controls detail. Run the same Sierpinski fold for only 4 iterations instead of 6 and the result is chunkier — fewer self-similar levels carved into space.</p><p>Use a constant <code>4</code> bound on the loop (variable bounds aren''t allowed in GLSL ES 1.0).</p><p>Reference: <a href="https://iquilezles.org/articles/ifsfractals/" target="_blank" rel="noreferrer">IQ — IFS fractals</a>.</p>',
  'void main() {
@@ -578,7 +578,7 @@ void main() {
     gl_FragColor = vec4(vec3(m), 1.0);
 }'),
 
-('c0000049-0004-0000-0000-000000000000', 'c0000049-0000-0000-0000-000000000000', 'w_yMH23pxjg', 3,
+((SELECT id FROM course WHERE slug = 'ifs-folding'), 'w_yMH23pxjg', 3,
  'Animated fold param',
  '<p>The loop bound must be constant, but the values inside the loop don''t have to be. Animate the scale factor instead of the iteration count.</p><p>Use a fixed 6-iteration Sierpinski loop, but replace the <code>p * 2.0</code> step with <code>p * s</code> where <code>s = 1.95 + 0.1 * sin(u_time * 0.3)</code>. The fractal pulses without restructuring the loop.</p><p>Reference: <a href="https://iquilezles.org/articles/ifsfractals/" target="_blank" rel="noreferrer">IQ — IFS fractals</a>.</p>',
  'void main() {
@@ -603,7 +603,7 @@ void main() {
 }'),
 
 -- ===== Course: kifs-raymarched =====
-('c0000050-0001-0000-0000-000000000000', 'c0000050-0000-0000-0000-000000000000', '2R5iMV8viwM', 0,
+((SELECT id FROM course WHERE slug = 'kifs-raymarched'), '2R5iMV8viwM', 0,
  'Simple fold + raymarch',
  '<p>A Kaleidoscopic IFS (KIFS) is a folded scene with a real SDF. Each fold step also accumulates a scale factor so the distance estimate stays correct.</p><p>Inside <code>scene(p)</code>, fold six times with <code>abs</code> and sorted-swap; multiply <code>p</code> by 1.5 and <code>s</code> by 1.5 each iteration. Return <code>(length(p) - 2.0) / s</code> as the distance, then raymarch from a fixed camera.</p><p>Reference: <a href="https://iquilezles.org/articles/menger/" target="_blank" rel="noreferrer">IQ — Menger fractal</a>.</p>',
  'float scene(vec3 p) {
@@ -655,7 +655,7 @@ void main() {
     gl_FragColor = vec4(col, 1.0);
 }'),
 
-('c0000050-0002-0000-0000-000000000000', 'c0000050-0000-0000-0000-000000000000', 'XrXdetTC8tQ', 1,
+((SELECT id FROM course WHERE slug = 'kifs-raymarched'), 'XrXdetTC8tQ', 1,
  'Mandelbox-lite',
  '<p>A sphere fold is the other half of the Mandelbox trick: shrink points near the origin and invert points just outside a unit sphere. The result is a 3D fractal with bubble-like cavities.</p><p>Inside the loop, compute <code>r2 = dot(p, p)</code>: if <code>r2 &lt; 0.25</code> multiply <code>p</code> by 4; else if <code>r2 &lt; 1.0</code> divide by <code>r2</code>. Combine with the standard KIFS abs-fold to get a Mandelbox-lite.</p><p>Reference: <a href="https://iquilezles.org/articles/distancefractals/" target="_blank" rel="noreferrer">IQ — Distance fractals</a>.</p>',
  'float scene(vec3 p) {
@@ -707,7 +707,7 @@ void main() {
     gl_FragColor = vec4(col, 1.0);
 }'),
 
-('c0000050-0003-0000-0000-000000000000', 'c0000050-0000-0000-0000-000000000000', 'Hk7dP6NHCus', 2,
+((SELECT id FROM course WHERE slug = 'kifs-raymarched'), 'Hk7dP6NHCus', 2,
  'Tune fold count',
  '<p>More fold iterations = more detail levels = a more intricate fractal silhouette. Push the KIFS loop from 6 to 8 iterations and rerender.</p><p>The bound has to be constant — bake the new <code>8</code> into the for-loop literal.</p><p>Reference: <a href="https://mercury.sexy/hg_sdf/" target="_blank" rel="noreferrer">hg_sdf — SDF library</a>.</p>',
  'float scene(vec3 p) {
@@ -768,7 +768,7 @@ void main() {
     gl_FragColor = vec4(col, 1.0);
 }'),
 
-('c0000050-0004-0000-0000-000000000000', 'c0000050-0000-0000-0000-000000000000', '-qQ7eiM9vK4', 3,
+((SELECT id FROM course WHERE slug = 'kifs-raymarched'), '-qQ7eiM9vK4', 3,
  'Orbit-trap color',
  '<p>The orbit-trap trick that colored 2D fractals also works on 3D KIFS. Track the closest approach of <code>p</code> to the origin during the fold, then run that scalar through a cosine palette.</p><p>Add a global <code>g_trap</code> that the scene function writes during iteration, then feed it to the IQ palette for the hit color.</p><p>Reference: <a href="https://iquilezles.org/articles/menger/" target="_blank" rel="noreferrer">IQ — Menger fractal</a>.</p>',
  'vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {

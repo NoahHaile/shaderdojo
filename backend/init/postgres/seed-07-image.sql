@@ -2,10 +2,10 @@
 
 -- Family F — Image sampling (2 courses, 8 lessons)
 
-INSERT INTO lesson (id, course_id, slug, display_order, title, description, starter_fragment_shader, canonical_fragment_shader) VALUES
+INSERT INTO lesson (course_id, slug, display_order, title, description, starter_fragment_shader, canonical_fragment_shader) VALUES
 
 -- ===== Course: image-sampling =====
-('c0000023-0001-0000-0000-000000000000', 'c0000023-0000-0000-0000-000000000000', 'zp-XRe_jywQ', 0,
+((SELECT id FROM course WHERE slug = 'image-sampling'), 'zp-XRe_jywQ', 0,
  'Direct sample',
  '<p>A fragment shader can read a texture with <code>texture2D(sampler, uv)</code>. Build a UV in <code>[0, 1]</code> from <code>gl_FragCoord</code> and sample the bound reference image directly.</p><p>The bundled <code>u_image</code> is a 256×256 HSV gradient with a bright circle and a dark square — useful landmarks for spotting any UV transform you apply later.</p><p>Reference: <a href="https://iquilezles.org/articles/texture/" target="_blank" rel="noreferrer">IQ — Improved bilinear filtering</a>.</p>',
  'void main() {
@@ -18,7 +18,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = texture2D(u_image, uv);
 }'),
 
-('c0000023-0002-0000-0000-000000000000', 'c0000023-0000-0000-0000-000000000000', 'umIdzT4ZADQ', 1,
+((SELECT id FROM course WHERE slug = 'image-sampling'), 'umIdzT4ZADQ', 1,
  'Flipped/mirrored UV',
  '<p>Texture coordinates are just numbers — swap or invert components to transform the sampled image. Replacing <code>uv.y</code> with <code>1.0 - uv.y</code> flips the image vertically.</p><p>This is also how you reconcile a texture loaded with a different vertical convention than the framebuffer expects.</p><p>Reference: <a href="https://iquilezles.org/articles/texture/" target="_blank" rel="noreferrer">IQ — Improved bilinear filtering</a>.</p>',
  'void main() {
@@ -31,7 +31,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = texture2D(u_image, vec2(uv.x, 1.0 - uv.y));
 }'),
 
-('c0000023-0003-0000-0000-000000000000', 'c0000023-0000-0000-0000-000000000000', 'p1ZJ3WDcse4', 2,
+((SELECT id FROM course WHERE slug = 'image-sampling'), 'p1ZJ3WDcse4', 2,
  'Tiled fract sample',
  '<p>Multiply the UV before sampling and the texture repeats — but only if the sampler is set to wrap. <code>fract()</code> guarantees the same tiling regardless of the sampler''s clamp/repeat state: multiply, then take the fractional part.</p><p>Try <code>fract(uv * 3.0)</code> to fit a 3×3 grid of the source image across the canvas.</p><p>Reference: <a href="https://iquilezles.org/articles/texture/" target="_blank" rel="noreferrer">IQ — Improved bilinear filtering</a>.</p>',
  'void main() {
@@ -44,7 +44,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = texture2D(u_image, fract(uv * 3.0));
 }'),
 
-('c0000023-0004-0000-0000-000000000000', 'c0000023-0000-0000-0000-000000000000', 'AfXxL4IYCyc', 3,
+((SELECT id FROM course WHERE slug = 'image-sampling'), 'AfXxL4IYCyc', 3,
  'Time-scrolling UV',
  '<p>Add <code>u_time</code> to one axis of the UV before sampling and the image scrolls. Wrap with <code>fract()</code> so the texture loops cleanly regardless of how the sampler is configured.</p><p>This is the core trick behind animated wallpaper effects, scrolling backgrounds, and any "conveyor belt" texture motion.</p><p>Reference: <a href="https://iquilezles.org/articles/texture/" target="_blank" rel="noreferrer">IQ — Improved bilinear filtering</a>.</p>',
  'void main() {
@@ -58,7 +58,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
 }'),
 
 -- ===== Course: convolution-kernels =====
-('c0000024-0001-0000-0000-000000000000', 'c0000024-0000-0000-0000-000000000000', 'pV4gLIB6Fdg', 0,
+((SELECT id FROM course WHERE slug = 'convolution-kernels'), 'pV4gLIB6Fdg', 0,
  '3×3 box blur',
  '<p>A convolution kernel reads several neighboring texels and combines them with weights. The simplest is a 3×3 box blur: nine samples at <code>(-1,-1)</code> through <code>(1,1)</code> texel offsets, averaged.</p><p>Compute a one-texel step in UV space as <code>1.0 / u_image_resolution</code>, then sum nine <code>texture2D</code> calls and divide by 9.</p><p>References: <a href="https://iquilezles.org/articles/filtering/" target="_blank" rel="noreferrer">IQ — Filtering procedural textures</a>, <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia filter module</a>.</p>',
  'void main() {
@@ -85,7 +85,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = vec4(c, 1.0);
 }'),
 
-('c0000024-0002-0000-0000-000000000000', 'c0000024-0000-0000-0000-000000000000', 'hk9fddh_K4c', 1,
+((SELECT id FROM course WHERE slug = 'convolution-kernels'), 'hk9fddh_K4c', 1,
  'Gaussian weights',
  '<p>A box blur weights every sample equally, which is cheap but flat. A 3×3 Gaussian uses weights <code>[1,2,1; 2,4,2; 1,2,1] / 16</code> — center pixel counts most, corners least — producing a softer, more natural blur.</p><p>Sum nine weighted samples, normalize by 16 (the sum of the weights).</p><p>References: <a href="https://iquilezles.org/articles/filtering/" target="_blank" rel="noreferrer">IQ — Filtering procedural textures</a>, <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia filter module</a>.</p>',
  'void main() {
@@ -112,7 +112,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = vec4(c, 1.0);
 }'),
 
-('c0000024-0003-0000-0000-000000000000', 'c0000024-0000-0000-0000-000000000000', '7OTmIYMqcYg', 2,
+((SELECT id FROM course WHERE slug = 'convolution-kernels'), '7OTmIYMqcYg', 2,
  'Sobel edge magnitude',
  '<p>The Sobel operator finds edges by running two kernels — one for horizontal change, one for vertical — and combining their magnitudes. <code>gx = [-1,0,1; -2,0,2; -1,0,1]</code> detects vertical edges; <code>gy = [-1,-2,-1; 0,0,0; 1,2,1]</code> detects horizontal ones.</p><p>Convert each sample to grayscale via <code>dot(rgb, vec3(0.299, 0.587, 0.114))</code>, accumulate <code>gx</code> and <code>gy</code>, then output <code>sqrt(gx*gx + gy*gy)</code> as white-on-black.</p><p>References: <a href="https://iquilezles.org/articles/filtering/" target="_blank" rel="noreferrer">IQ — Filtering procedural textures</a>, <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia filter module</a>.</p>',
  'void main() {
@@ -140,7 +140,7 @@ INSERT INTO lesson (id, course_id, slug, display_order, title, description, star
     gl_FragColor = vec4(vec3(m), 1.0);
 }'),
 
-('c0000024-0004-0000-0000-000000000000', 'c0000024-0000-0000-0000-000000000000', 'T73Ah2SA5f8', 3,
+((SELECT id FROM course WHERE slug = 'convolution-kernels'), 'T73Ah2SA5f8', 3,
  'Sharpen kernel',
  '<p>A sharpen kernel boosts the center pixel and subtracts its neighbors, exaggerating local contrast. The classic 3×3 form is <code>[0,-1,0; -1,5,-1; 0,-1,0]</code> — five cross-shaped taps whose weights sum to 1, so flat regions stay unchanged.</p><p>Apply to color, then <code>clamp</code> the result into <code>[0, 1]</code> to keep the output in range.</p><p>References: <a href="https://iquilezles.org/articles/filtering/" target="_blank" rel="noreferrer">IQ — Filtering procedural textures</a>, <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia filter module</a>.</p>',
  'void main() {
