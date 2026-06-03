@@ -122,7 +122,7 @@ export class ConciergeController {
             const stream = await this.openai.chat.completions.create({
                 model,
                 stream: true,
-                max_tokens: 4096,
+                max_completion_tokens: 4096,
                 messages: [
                     { role: 'system', content: systemPrompt },
                     ...body.messages.map(m => ({ role: m.role, content: m.content })),
