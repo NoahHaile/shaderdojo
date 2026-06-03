@@ -19,6 +19,8 @@ interface Props {
     initialBody: string;
     /** Called every frame with the current shader time (post-offset). */
     onTimeChange?: (t: number) => void;
+    /** Fires after every compile attempt: null on success, the WebGL info log on failure. */
+    onCompileError?: (error: string | null) => void;
     /** Called once on mount so the parent can decide when to actually start rendering. */
     autoStart?: boolean;
     className?: string;
@@ -32,7 +34,7 @@ interface Props {
  * double-invoke in dev re-initializes cleanly.
  */
 export const ShaderCanvas = forwardRef<ShaderCanvasHandle, Props>(function ShaderCanvas(
-    { initialBody, onTimeChange, autoStart = true, className },
+    { initialBody, onTimeChange, onCompileError, autoStart = true, className },
     ref,
 ) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -50,8 +52,10 @@ export const ShaderCanvas = forwardRef<ShaderCanvasHandle, Props>(function Shade
         paused: false,
         currentBody: '',
         onTimeChange,
+        onCompileError,
     });
     stateRef.current.onTimeChange = onTimeChange;
+    stateRef.current.onCompileError = onCompileError;
 
     useImperativeHandle(ref, () => ({
         run(body: string) {
@@ -74,8 +78,14 @@ export const ShaderCanvas = forwardRef<ShaderCanvasHandle, Props>(function Shade
         if (programRef.current) gl.deleteProgram(programRef.current.program);
 
         const fs = buildFragmentShader(body);
-        const next = createProgram(gl, VERTEX_SHADER_SOURCE, fs);
+        const { program: next, error } = createProgram(gl, VERTEX_SHADER_SOURCE, fs);
+        if (error) {
+            // Surface the WebGL info log so the page can display it AND feed it to Concierge.
+            stateRef.current.onCompileError?.(error);
+            return false;
+        }
         if (!next) return false;
+        stateRef.current.onCompileError?.(null);
         programRef.current = next;
         gl.useProgram(next.program);
 

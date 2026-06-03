@@ -7,7 +7,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 -- ===== Course: posterize-dither =====
 ((SELECT id FROM course WHERE slug = 'posterize-dither'), '0EbB9_v7jMg', 0,
  'N-step posterize',
- '<p>Posterization snaps continuous colors onto a small set of levels. Multiply by <code>N</code>, <code>floor</code>, then divide by <code>N</code> — every pixel lands on one of <code>N+1</code> evenly spaced bins per channel.</p><p>Sample the reference image and quantize to five levels to see the smooth HSV gradient collapse into chunky bands.</p><p>Reference: <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
+ '<p>Posterize means you cut the number of color steps. Smooth colors become a few flat levels. You go from many shades to just a handful.</p><p>The math is simple. Multiply the color by <code>N</code>, use <code>floor</code>, then divide by <code>N</code>. Each channel lands on one of <code>N+1</code> evenly spaced bins.</p><p>Try this: read the picture and snap it to 5 levels. The smooth gradient breaks into chunky bands. Read more at <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec3 col = texture2D(u_image, uv).rgb;
@@ -23,7 +23,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'posterize-dither'), '2TyvndnucHg', 1,
  'Bayer 4×4 dither',
- '<p>A Bayer matrix is a fixed threshold pattern that breaks up posterization banding. Build a per-pixel threshold from <code>gl_FragCoord</code> mod 4, add it to the scaled color before flooring, then divide back down.</p><p>The arithmetic <code>(2x + 3y) mod 16</code> produces an ordered pattern that mimics a 16-level dither with only 4 quantize levels.</p><p>Reference: <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
+ '<p>Dither scatters the seams between color steps with a tiny pattern. A Bayer matrix is one such pattern. It is a fixed grid of threshold numbers.</p><p>Build a threshold from <code>gl_FragCoord</code> mod 4. Add it to the scaled color before <code>floor</code>. Then divide back down.</p><p>The math <code>(2x + 3y) mod 16</code> makes the pattern. It fakes a 16-level look with only 4 real levels. Read more at <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec3 col = texture2D(u_image, uv).rgb;
@@ -41,7 +41,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'posterize-dither'), 'wE2GWxd-i0Q', 2,
  'Noise dither via hash',
- '<p>Swap the ordered Bayer threshold for a random one. A hash on <code>gl_FragCoord.xy</code> gives a per-pixel value in <code>[0, 1)</code> that scrambles the quantize boundaries — banding becomes film grain.</p><p>Reference: <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
+ '<p>Swap the Bayer pattern for random noise. A hash on <code>gl_FragCoord.xy</code> gives each pixel a random value in <code>[0, 1)</code>.</p><p>That random value scrambles the step lines. Bands turn into film grain. Read more at <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
  'float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
@@ -58,7 +58,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'posterize-dither'), '_sGhGoJFgVw', 3,
  'Posterized gradient with dither',
- '<p>Drop the image and feed a synthetic gradient <code>vec3(uv.x)</code> through the same pipeline. Adding the Bayer threshold before a 5-level quantize spreads the steps into a clean dithered ramp — the classic NES-era sky.</p><p>Reference: <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
+ '<p>Skip the picture. Feed a plain gradient <code>vec3(uv.x)</code> through the same steps. Add the Bayer threshold, then quantize to 5 levels.</p><p>The steps spread out into a clean dithered ramp. You get the classic NES-era sky. Read more at <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec3 col = vec3(uv.x);
@@ -77,7 +77,7 @@ void main() {
 -- ===== Course: chromatic-aberration =====
 ((SELECT id FROM course WHERE slug = 'chromatic-aberration'), 'vXooNTx10K4', 0,
  'Linear R/G/B offset',
- '<p>Chromatic aberration fakes a lens that focuses different wavelengths at different points. Sample each color channel at a slightly different UV — red shifted right, green at center, blue shifted left — and recombine.</p><p>Reference: <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
+ '<p>Chromatic aberration fakes a cheap camera lens. The lens bends each color a bit differently, so the channels do not line up.</p><p>Sample each color at a slightly different spot. Red shifts right. Green stays at the center. Blue shifts left. Put them back together. Read more at <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     // TODO: r = texture2D(u_image, uv + vec2(0.01, 0.0)).r;
@@ -96,7 +96,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'chromatic-aberration'), '90qGhZ00KYU', 1,
  'Radial offset',
- '<p>Real lens fringing radiates from the center. Build an offset that points outward — <code>(uv - 0.5) * k</code> — and use it to push R and B in opposite directions along the radius.</p><p>Reference: <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
+ '<p>On a real lens, the color fringe spreads out from the center. Build an offset that points outward with <code>(uv - 0.5) * k</code>.</p><p>Use that offset to push red and blue the opposite way along the line from the middle. Read more at <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     // TODO: off = (uv - 0.5) * 0.05;
@@ -115,7 +115,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'chromatic-aberration'), 'a7669aBF03Q', 2,
  'Animated wobble',
- '<p>Modulate the radial offset strength with a time oscillator. The fringe breathes in and out — the cheap glitch-VHS look.</p><p>Reference: <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
+ '<p>Make the offset strength change over time. Use a sine wave on <code>u_time</code>. The fringe will grow and shrink with each frame.</p><p>The fringe breathes in and out. You get a glitchy VHS look. Read more at <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     // TODO: off = (uv - 0.5) * 0.05 * (0.5 + 0.5 * sin(u_time));
@@ -133,7 +133,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'chromatic-aberration'), 'xcxuDH0QQjk', 3,
  'Aberration + vignette',
- '<p>Stack the radial split with a vignette mask for the full cinematic look: corners both color-fringed and darkened.</p><p>Reference: <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
+ '<p>Stack two effects. Use the radial color split from before. Then add a vignette mask that darkens the corners.</p><p>The corners get the color fringe and a dim wash at the same time. Read more at <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec2 off = (uv - 0.5) * 0.05;
@@ -160,7 +160,7 @@ void main() {
 -- ===== Course: bloom-glow =====
 ((SELECT id FROM course WHERE slug = 'bloom-glow'), 'TnyYmcEDq2I', 0,
  'Halo around circle',
- '<p>The cheapest bloom: an exponential falloff on the signed distance to a shape. <code>exp(-d * k)</code> is bright at the surface, fades fast outside. Tint it warm to get a candle-flame halo.</p><p>Reference: <a href="https://iquilezles.org/articles/gamma/" target="_blank" rel="noreferrer">IQ — Gamma correct blurring</a>.</p>',
+ '<p>Bloom means a soft halo around a bright shape. The cheapest way: use the distance to the shape and shrink it fast with <code>exp(-d * k)</code>.</p><p>The value is bright at the edge and fades fast as you move away. Tint it warm and you get a candle-flame halo. Read more at <a href="https://iquilezles.org/articles/gamma/" target="_blank" rel="noreferrer">IQ on gamma correct blurring</a>.</p>',
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     float d = length(p) - 0.2;
@@ -178,7 +178,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'bloom-glow'), '0k8nwTMVJNI', 1,
  'Multiple glows',
- '<p>Bloom is additive. Compute the halo from three different centers and sum them — wherever they overlap, the canvas pushes brighter.</p><p>Reference: <a href="https://iquilezles.org/articles/gamma/" target="_blank" rel="noreferrer">IQ — Gamma correct blurring</a>.</p>',
+ '<p>Bloom adds up. Pick three different centers and compute the halo for each one. Then add the three halos together.</p><p>Where they overlap, the canvas glows brighter. Read more at <a href="https://iquilezles.org/articles/gamma/" target="_blank" rel="noreferrer">IQ on gamma correct blurring</a>.</p>',
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     // TODO: sum exp(-(length(p - c_i) - 0.1) * 8.0) for c_i in {(-0.3,0), (0,0.2), (0.3,0)}
@@ -196,7 +196,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'bloom-glow'), 'KohjeOia4DA', 2,
  'Breathing glow',
- '<p>Modulate the halo intensity with a time oscillator. The glow inhales and exhales — a warm hearth, a charging core.</p><p>Reference: <a href="https://iquilezles.org/articles/gamma/" target="_blank" rel="noreferrer">IQ — Gamma correct blurring</a>.</p>',
+ '<p>Change the halo strength with a sine wave on <code>u_time</code>. The glow rises and falls over time.</p><p>It feels like a warm hearth or a charging core. Read more at <a href="https://iquilezles.org/articles/gamma/" target="_blank" rel="noreferrer">IQ on gamma correct blurring</a>.</p>',
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     float d = length(p) - 0.2;
@@ -215,7 +215,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'bloom-glow'), 'N3bGRbIieW0', 3,
  'Tinted via palette',
- '<p>Replace the fixed warm tint with a cosine palette driven by time. The halo shifts hue while it pulses — the same glow becomes magma, ice, plasma.</p><p>Reference: <a href="https://iquilezles.org/articles/gamma/" target="_blank" rel="noreferrer">IQ — Gamma correct blurring</a>.</p>',
+ '<p>Drop the fixed warm color. Use a cosine palette driven by <code>u_time</code>. The tint walks through hues as time moves.</p><p>The same halo turns into magma, then ice, then plasma. Read more at <a href="https://iquilezles.org/articles/gamma/" target="_blank" rel="noreferrer">IQ on gamma correct blurring</a>.</p>',
  'vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
     return a + b * cos(6.28318 * (c * t + d));
 }
@@ -241,7 +241,7 @@ void main() {
 -- ===== Course: fresnel-edges =====
 ((SELECT id FROM course WHERE slug = 'fresnel-edges'), 'F-JIXxl179w', 0,
  'Basic fresnel',
- '<p>Fresnel is the optical fact that surfaces look more reflective when you view them at a glancing angle. The shader proxy: <code>pow(1.0 - dot(n, v), k)</code> — 0 at the center of the sphere, 1 at the silhouette.</p><p>Raymarch a sphere, compute the normal, and output the fresnel term as grayscale to see the rim light it carves.</p><p>Reference: <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ — Outdoors lighting (fresnel)</a>.</p>',
+ '<p>Fresnel is a real fact about light. The edges of a 3D shape look brighter when your view almost slides past them. Head-on, the same spot looks dull.</p><p>The shader trick: <code>pow(1.0 - dot(n, v), k)</code>. It is 0 at the center of the sphere and 1 at the edge.</p><p>Raymarch a sphere. Find the normal. Output the fresnel value as gray to see the rim light. Read more at <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ on outdoors lighting</a>.</p>',
  'float scene(vec3 p) { return length(p) - 0.7; }
 vec3 normal(vec3 p) {
     float e = 0.001;
@@ -306,7 +306,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'fresnel-edges'), 'E1cb2TY4uug', 1,
  'Fresnel-tinted sphere',
- '<p>Combine a basic Lambert diffuse with the fresnel term to get a soap-bubble look: the body of the sphere is shaded by light direction, the rim glows cyan-blue.</p><p>Reference: <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ — Outdoors lighting (fresnel)</a>.</p>',
+ '<p>Mix a Lambert diffuse with the fresnel term. Lambert shades the body of the sphere from the light direction.</p><p>Fresnel adds a cyan-blue glow at the rim. Together they look like a soap bubble. Read more at <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ on outdoors lighting</a>.</p>',
  'float scene(vec3 p) { return length(p) - 0.7; }
 vec3 normal(vec3 p) {
     float e = 0.001;
@@ -374,7 +374,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'fresnel-edges'), 'yzpTNfLhaBE', 2,
  'Rim light mask',
- '<p>Treat the fresnel term as a pure mask and multiply by a warm color. The body of the sphere stays dark, only the silhouette glows — classic stylized rim light.</p><p>Reference: <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ — Outdoors lighting (fresnel)</a>.</p>',
+ '<p>Use the fresnel value as a mask. Multiply it by a warm color. The body of the sphere stays dark.</p><p>Only the edge glows. You get a clean stylized rim light. Read more at <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ on outdoors lighting</a>.</p>',
  'float scene(vec3 p) { return length(p) - 0.7; }
 vec3 normal(vec3 p) {
     float e = 0.001;
@@ -440,7 +440,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'fresnel-edges'), 'VdtUvRtpTvE', 3,
  'Combine with diffuse',
- '<p>The full stylized lighting model: a base color, Lambert diffuse from a key light, an ambient floor so shadows are not black, and a fresnel rim that pops the silhouette off the sky.</p><p>Reference: <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ — Outdoors lighting (fresnel)</a>.</p>',
+ '<p>Stack four parts for a full stylized look. Start with a base color. Add Lambert diffuse from a key light. Add a small ambient floor so shadows are not pure black.</p><p>Then add a fresnel rim. The rim pops the edge of the sphere off the sky behind it. Read more at <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ on outdoors lighting</a>.</p>',
  'float scene(vec3 p) { return length(p) - 0.7; }
 vec3 normal(vec3 p) {
     float e = 0.001;

@@ -7,7 +7,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 -- ===== Course: hash-random =====
 ((SELECT id FROM course WHERE slug = 'hash-random'), '9C0KRy8EXPw', 0,
  'fract-sin hash',
- '<p>Pseudo-random in a shader starts with a deterministic hash. The folklore one-liner <code>fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453)</code> turns any 2D coordinate into a value in <code>[0, 1)</code> that looks random.</p><p>Feed each pixel''s UV through the hash and output it on all three channels — the canvas fills with per-pixel white noise.</p><p>Reference: <a href="https://thebookofshaders.com/10/" target="_blank" rel="noreferrer">Book of Shaders — Random</a>.</p>',
+ '<p>A hash takes a position in and gives a number out. The same position always gives the same number. Different positions give different numbers. The line <code>fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453)</code> turns any 2D point into a number from 0 up to 1. It looks random.</p><p>Try this: send each pixel''s <code>uv</code> through the hash. Put the result in all three color channels. The canvas fills with white noise.</p><p>Read more at <a href="https://thebookofshaders.com/10/" target="_blank" rel="noreferrer">Book of Shaders, Random</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -28,7 +28,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'hash-random'), 'sP81PGpNsDc', 1,
  'Random per cell',
- '<p>Quantize UV first with <code>floor()</code> so every pixel inside the same grid cell gets the same hash input. The canvas becomes a coarse grid of random grays — flat blocks instead of speckle.</p><p>Reference: <a href="https://thebookofshaders.com/10/" target="_blank" rel="noreferrer">Book of Shaders — Random</a>.</p>',
+ '<p>Snap <code>uv</code> to a grid first. Use <code>floor()</code> to round it down. Every pixel inside the same cell gets the same hash input. So every pixel in a cell gets the same gray.</p><p>The canvas turns into flat blocks of gray. Not speckle this time.</p><p>Read more at <a href="https://thebookofshaders.com/10/" target="_blank" rel="noreferrer">Book of Shaders, Random</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -50,7 +50,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'hash-random'), 'gwTmpCj_ML8', 2,
  'Random colored cells',
- '<p>One hash gives one channel. Call the hash three times with different offsets to get three independent randoms — pack them into RGB so each cell gets its own arbitrary color.</p><p>Reference: <a href="https://iquilezles.org/articles/sfrand/" target="_blank" rel="noreferrer">IQ — sfrand</a>.</p>',
+ '<p>One hash call gives one number. You need three for color: red, green, and blue. Call the hash three times. Each call uses a different offset so you get three different numbers.</p><p>Pack them into a <code>vec3</code>. Each cell gets its own color.</p><p>Read more at <a href="https://iquilezles.org/articles/sfrand/" target="_blank" rel="noreferrer">IQ, sfrand</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -73,7 +73,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'hash-random'), '5-EoiI-KZPg', 3,
  'Static-noise field',
- '<p>Hash the raw fragment coordinate to get a different value per pixel, then <code>step(0.5, v)</code> to threshold into a binary mask. The result is a salt-and-pepper static texture.</p><p>Reference: <a href="https://thebookofshaders.com/10/" target="_blank" rel="noreferrer">Book of Shaders — Random</a>.</p>',
+ '<p>Hash the raw pixel position <code>gl_FragCoord.xy</code>. Every pixel gets a different number. Then use <code>step(0.5, v)</code>. That gives 0 if the number is below 0.5 and 1 if it is above.</p><p>Each pixel becomes black or white. You get a salt-and-pepper static screen.</p><p>Read more at <a href="https://thebookofshaders.com/10/" target="_blank" rel="noreferrer">Book of Shaders, Random</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -93,7 +93,7 @@ void main() {
 -- ===== Course: value-noise =====
 ((SELECT id FROM course WHERE slug = 'value-noise'), 'k5Xi7xvA2qU', 0,
  'Bilinear value noise',
- '<p>Value noise smooths the per-cell hash by bilinearly interpolating between the four corner hashes of each cell, with a smoothstep curve on the weights for visual continuity.</p><p>Sample the noise at <code>uv * 6.0</code> to fit a handful of cells across the canvas — the result is a soft blobby grayscale field.</p><p>Reference: <a href="https://thebookofshaders.com/11/" target="_blank" rel="noreferrer">Book of Shaders — Noise</a>.</p>',
+ '<p>Value noise is a grid of random numbers, smoothly blended between the corners. Each cell has four corners. You hash each corner. Then you blend the four numbers based on where your pixel sits inside the cell.</p><p>A smoothstep curve on the blend weights stops the joins from looking sharp. Sample at <code>uv * 6.0</code> to fit a few cells across the screen. You get soft gray blobs.</p><p>Read more at <a href="https://thebookofshaders.com/11/" target="_blank" rel="noreferrer">Book of Shaders, Noise</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -128,7 +128,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'value-noise'), 'ZvRqVRXNQSM', 1,
  'Sliding origin',
- '<p>Adding a time-varying offset to the noise coordinate slides the whole field. Translate in x only — the noise scrolls horizontally like a slow conveyor belt.</p><p>Reference: <a href="https://thebookofshaders.com/11/" target="_blank" rel="noreferrer">Book of Shaders — Noise</a>.</p>',
+ '<p>You can move the noise by adding time to the input. Add <code>vec2(u_time * 0.3, 0.0)</code> to <code>uv</code> before you sample. The x part grows over time. The y part stays at 0.</p><p>The whole field scrolls sideways like a slow conveyor belt.</p><p>Read more at <a href="https://thebookofshaders.com/11/" target="_blank" rel="noreferrer">Book of Shaders, Noise</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -163,7 +163,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'value-noise'), 'htcWkJzE_ps', 2,
  'Grayscale heightmap',
- '<p>Treat the noise output as a height and remap it through a color ramp. Mix from a dark blue at the lowlands to a warm sand at the peaks — instant landscape vibe.</p><p>Reference: <a href="https://iquilezles.org/articles/morenoise/" target="_blank" rel="noreferrer">IQ — Value noise derivatives</a>.</p>',
+ '<p>Use the noise number as a height. Low spots are valleys. High spots are peaks. Run that height through <code>mix()</code> between two colors.</p><p>Pick a dark blue for low and a warm sand for high. The flat gray field turns into a small landscape.</p><p>Read more at <a href="https://iquilezles.org/articles/morenoise/" target="_blank" rel="noreferrer">IQ, Value noise derivatives</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -200,7 +200,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'value-noise'), 'aU1wXmUb_bM', 3,
  'Thresholded mask',
- '<p><code>step(0.5, vnoise(p))</code> turns the smooth field into a binary mask. The boundary follows the iso-line at 0.5 — irregular organic blobs.</p><p>Reference: <a href="https://thebookofshaders.com/11/" target="_blank" rel="noreferrer">Book of Shaders — Noise</a>.</p>',
+ '<p>Take the smooth noise and cut it in half. Use <code>step(0.5, vnoise(p))</code>. Pixels below 0.5 turn black. Pixels above turn white.</p><p>The line between black and white follows the noise at value 0.5. You get organic blobs with wavy edges.</p><p>Read more at <a href="https://thebookofshaders.com/11/" target="_blank" rel="noreferrer">Book of Shaders, Noise</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -236,7 +236,7 @@ void main() {
 -- ===== Course: gradient-noise =====
 ((SELECT id FROM course WHERE slug = 'gradient-noise'), '6I4Ck7-RJP0', 0,
  'Gradient noise field',
- '<p>Perlin-style gradient noise puts a random gradient vector at each lattice corner, then dot-products it with the offset from that corner to the sample point. Smoothstep-weighted bilinear blend gives a smoother, less blocky field than value noise.</p><p>Sample <code>gnoise(uv * 5.0)</code> and render as grayscale.</p><p>Reference: <a href="https://iquilezles.org/articles/gradientnoise/" target="_blank" rel="noreferrer">IQ — Gradient noise</a>.</p>',
+ '<p>Gradient noise is a grid of random directions, blended between the corners. At each corner you place a random 2D arrow. You take the dot product of that arrow with the offset from the corner to your pixel. Then you blend the four corner results with smoothstep weights.</p><p>It looks smoother than value noise. Sample <code>gnoise(uv * 5.0)</code> and output it as gray.</p><p>Read more at <a href="https://iquilezles.org/articles/gradientnoise/" target="_blank" rel="noreferrer">IQ, Gradient noise</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -285,7 +285,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'gradient-noise'), 'U2mTaGqvPfM', 1,
  'Value vs gradient',
- '<p>Render both noises side by side: value noise on the left half (<code>uv.x &lt; 0.5</code>), gradient noise on the right. Value noise looks blocky and quilted; gradient noise looks more cloud-like with diagonal structure.</p><p>Reference: <a href="https://thebookofshaders.com/11/" target="_blank" rel="noreferrer">Book of Shaders — Noise</a>.</p>',
+ '<p>Show both kinds of noise side by side. Check <code>uv.x &lt; 0.5</code>. On the left, draw value noise. On the right, draw gradient noise.</p><p>Value noise looks blocky and quilted. Gradient noise looks more like clouds with soft diagonal lines.</p><p>Read more at <a href="https://thebookofshaders.com/11/" target="_blank" rel="noreferrer">Book of Shaders, Noise</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -348,7 +348,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'gradient-noise'), '2Z-7PN_Q4WE', 2,
  'Animated drift',
- '<p>Translate the noise input by <code>(0, u_time * 0.2)</code> so the field drifts upward. The classic recipe for slow-moving clouds or rolling fog.</p><p>Reference: <a href="https://iquilezles.org/articles/gradientnoise/" target="_blank" rel="noreferrer">IQ — Gradient noise</a>.</p>',
+ '<p>Add <code>vec2(0.0, u_time * 0.2)</code> to the noise input. The y part grows over time. The whole field drifts up the screen.</p><p>You get slow-moving clouds or rolling fog.</p><p>Read more at <a href="https://iquilezles.org/articles/gradientnoise/" target="_blank" rel="noreferrer">IQ, Gradient noise</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -397,7 +397,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'gradient-noise'), 'T2NF7k2xjr4', 3,
  'Ridge: 1 - abs(noise)',
- '<p>Remap the <code>[0, 1]</code> noise back to <code>[-1, 1]</code>, take the absolute value, and subtract from 1. Peaks of the original noise (and valleys) become sharp ridges of brightness — this is the basis of "ridged multifractal" terrain.</p><p>Reference: <a href="https://iquilezles.org/articles/gradientnoise/" target="_blank" rel="noreferrer">IQ — Gradient noise</a>.</p>',
+ '<p>The noise gives a number from 0 to 1. Move it to -1 to 1 with <code>2.0 * g - 1.0</code>. Take the absolute value. Subtract from 1.</p><p>Now the high spots and low spots both flip up. Every peak and valley becomes a sharp bright ridge. This is the start of ridged terrain.</p><p>Read more at <a href="https://iquilezles.org/articles/gradientnoise/" target="_blank" rel="noreferrer">IQ, Gradient noise</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -449,7 +449,7 @@ void main() {
 -- ===== Course: voronoi =====
 ((SELECT id FROM course WHERE slug = 'voronoi'), '1pa9tbcxn-w', 0,
  'F1 distance field',
- '<p>Voronoi (a.k.a. Worley) noise scatters a feature point inside every grid cell and, for each pixel, returns the distance to the nearest such point. Iterate the 3x3 neighborhood around the current cell to find that nearest point.</p><p>Render the distance directly — you get cracked-mud cells with dark centers and bright junctions.</p><p>Reference: <a href="https://thebookofshaders.com/12/" target="_blank" rel="noreferrer">Book of Shaders — Cellular noise</a>.</p>',
+ '<p>Voronoi noise scatters one point inside each grid cell. For each pixel, you find the closest point. The output is the distance to that point.</p><p>Your pixel could be near a point in any of the nine cells around it. So check the 3 by 3 block of cells and keep the smallest distance. Output that distance as gray. You get cracked-mud cells with dark centers and bright edges.</p><p>Read more at <a href="https://thebookofshaders.com/12/" target="_blank" rel="noreferrer">Book of Shaders, Cellular noise</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -498,7 +498,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'voronoi'), 'Dxt9A_WAVoI', 1,
  'Per-cell color',
- '<p>Track which neighbor cell won the <code>min</code> race, not just the distance to it. Hash that closest-cell id to get a stable color per Voronoi region — every cell becomes its own solid patch.</p><p>Reference: <a href="https://thebookofshaders.com/12/" target="_blank" rel="noreferrer">Book of Shaders — Cellular noise</a>.</p>',
+ '<p>Keep track of which cell had the closest point. Save its id while you loop. Then hash that id to make a color.</p><p>Every cell gets one solid color. The same cell always gets the same color. The screen looks like a stained glass window.</p><p>Read more at <a href="https://thebookofshaders.com/12/" target="_blank" rel="noreferrer">Book of Shaders, Cellular noise</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -555,7 +555,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'voronoi'), 'NGgJ1nctUsM', 2,
  'Cell borders',
- '<p>A short distance from a feature point means we''re still inside a cell; values very close to zero only happen at the seed itself. Use <code>smoothstep(0, 0.05, voronoi(...))</code> so cell interiors are bright and only the immediate neighborhood of each seed darkens — inverted from the usual edge rendering, but the same idea.</p><p>Reference: <a href="https://iquilezles.org/articles/voronoilines/" target="_blank" rel="noreferrer">IQ — Voronoi edges</a>.</p>',
+ '<p>The Voronoi distance is only near zero right at a point. Anywhere else in the cell it is bigger. Use <code>smoothstep(0.0, 0.05, voronoi(uv))</code> to push small distances to 0 and the rest to 1.</p><p>Cell insides go bright. Only the small spot around each point goes dark. The dark spots mark where the seed points sit.</p><p>Read more at <a href="https://iquilezles.org/articles/voronoilines/" target="_blank" rel="noreferrer">IQ, Voronoi edges</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -604,7 +604,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'voronoi'), 'bd3TXMUCGPI', 3,
  'Animated cell centers',
- '<p>The per-cell offset <code>o</code> is what places each feature point. Replace the static hash with a time-driven <code>0.5 + 0.5 * sin(u_time + cellHash * 2π)</code> so every seed orbits inside its cell — the Voronoi diagram squirms.</p><p>Reference: <a href="https://iquilezles.org/articles/voronoilines/" target="_blank" rel="noreferrer">IQ — Voronoi edges</a>.</p>',
+ '<p>The offset <code>o</code> tells you where the point sits inside its cell. Right now it is fixed. Make it move with time.</p><p>Use <code>0.5 + 0.5 * sin(u_time + hash(cell) * 6.28318)</code> for x and y. Each point now wiggles in place. The whole Voronoi pattern squirms.</p><p>Read more at <a href="https://iquilezles.org/articles/voronoilines/" target="_blank" rel="noreferrer">IQ, Voronoi edges</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -654,7 +654,7 @@ void main() {
 -- ===== Course: fbm =====
 ((SELECT id FROM course WHERE slug = 'fbm'), 'YVVANHjaPpc', 0,
  'Four-octave fbm',
- '<p>Fractal Brownian motion sums noise at multiple frequencies, halving the amplitude and doubling the frequency at each step. Four octaves is the common default — cheap and visibly cloud-like.</p><p>Sample <code>fbm(uv * 3.0)</code> and render as grayscale.</p><p>Reference: <a href="https://thebookofshaders.com/13/" target="_blank" rel="noreferrer">Book of Shaders — Fractal Brownian Motion</a>.</p>',
+ '<p>fbm stacks noise at smaller scales. The first layer gives the big shape. Each next layer adds smaller detail. Each step doubles the frequency and halves the amplitude.</p><p>Four layers is a common choice. It is cheap and looks like clouds. Sample <code>fbm(uv * 3.0)</code> and output it as gray.</p><p>Read more at <a href="https://thebookofshaders.com/13/" target="_blank" rel="noreferrer">Book of Shaders, Fractal Brownian Motion</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -709,7 +709,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'fbm'), 'bN_4zO2yfu8', 1,
  'Terrain bands',
- '<p>Quantize the fbm output into 8 steps with <code>floor(fbm * 8.0) / 8.0</code>. The smooth field becomes contour-like terraces — the simplest topo-map trick.</p><p>Reference: <a href="https://iquilezles.org/articles/fbm/" target="_blank" rel="noreferrer">IQ — fBM</a>.</p>',
+ '<p>Round the fbm output to 8 steps. Use <code>floor(fbm(uv) * 8.0) / 8.0</code>. The smooth field turns into flat bands of gray.</p><p>The bands look like contour lines on a topo map.</p><p>Read more at <a href="https://iquilezles.org/articles/fbm/" target="_blank" rel="noreferrer">IQ, fBM</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -764,7 +764,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'fbm'), 'GRU-ulHpUeA', 2,
  'Turbulence (abs)',
- '<p>"Turbulence" is fbm with <code>abs(2 * noise - 1)</code> instead of plain noise per octave. The folded absolute value introduces creases that look like billowing smoke.</p><p>Reference: <a href="https://iquilezles.org/articles/fbm/" target="_blank" rel="noreferrer">IQ — fBM</a>.</p>',
+ '<p>Turbulence is fbm with a small change. In each layer, replace <code>vnoise(p)</code> with <code>abs(2.0 * vnoise(p) - 1.0)</code>.</p><p>That folds the noise so both peaks and valleys point up. The folds make sharp creases at every layer. The result looks like puffs of smoke.</p><p>Read more at <a href="https://iquilezles.org/articles/fbm/" target="_blank" rel="noreferrer">IQ, fBM</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -817,7 +817,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'fbm'), 'kP4ECqQABEI', 3,
  'Animated drift',
- '<p>Translate the fbm input with <code>vec2(0, u_time * 0.15)</code>. Because all four octaves share the same offset, the whole multifractal field drifts coherently — looks like slow weather.</p><p>Reference: <a href="https://iquilezles.org/articles/fbm/" target="_blank" rel="noreferrer">IQ — fBM</a>.</p>',
+ '<p>Add <code>vec2(0.0, u_time * 0.15)</code> to the fbm input. All four layers share the same offset, so they all move together.</p><p>The big shapes and the small detail drift as one. It looks like slow weather.</p><p>Read more at <a href="https://iquilezles.org/articles/fbm/" target="_blank" rel="noreferrer">IQ, fBM</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -873,7 +873,7 @@ void main() {
 -- ===== Course: domain-warping =====
 ((SELECT id FROM course WHERE slug = 'domain-warping'), 'JsuBv4re3dI', 0,
  'Warp by noise vec',
- '<p>Domain warping bends the coordinate space with noise itself before sampling. Build a 2D offset <code>q = (fbm(uv), fbm(uv + 5.2))</code>, then sample <code>fbm(uv + 0.8 * q)</code>. The constant offset between the two fbms decorrelates them so the warp has both x and y motion.</p><p>Reference: <a href="https://iquilezles.org/articles/warp/" target="_blank" rel="noreferrer">IQ — Domain warping</a>.</p>',
+ '<p>Domain warping moves the input position with noise before you sample more noise. Build a 2D offset <code>q = vec2(fbm(uv), fbm(uv + 5.2))</code>. Then sample <code>fbm(uv + 0.8 * q)</code>.</p><p>The two fbm calls use different inputs, so x and y move on their own. The smooth field starts to bend and swirl.</p><p>Read more at <a href="https://iquilezles.org/articles/warp/" target="_blank" rel="noreferrer">IQ, Domain warping</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -929,7 +929,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'domain-warping'), 'B7Uax6BPwGQ', 1,
  'Warped fbm',
- '<p>Same recipe, framed differently: explicitly compute the warp vector <code>q</code> and then sample fbm at the warped position. Tinting the output with the warm/dark palette makes the marbled structure pop.</p><p>Reference: <a href="https://iquilezles.org/articles/warp/" target="_blank" rel="noreferrer">IQ — Domain warping</a>.</p>',
+ '<p>Same warp as before. Compute <code>q</code> first, then sample fbm at the warped position. This time, color the output instead of using gray.</p><p>Mix from a dark blue at the lows to a warm sand at the highs. The swirly marbled structure stands out.</p><p>Read more at <a href="https://iquilezles.org/articles/warp/" target="_blank" rel="noreferrer">IQ, Domain warping</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -988,7 +988,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'domain-warping'), 'Wt23ZTB3KJw', 2,
  'Two-level warp',
- '<p>Chain two warps for an even richer marbled look: compute <code>q</code> from uv, then compute <code>r</code> from <code>uv + q</code> with new constant offsets, then sample <code>fbm(uv + r)</code>. This is IQ''s canonical two-level warp.</p><p>Reference: <a href="https://iquilezles.org/articles/warp/" target="_blank" rel="noreferrer">IQ — Domain warping</a>.</p>',
+ '<p>Chain two warps for a richer marble. First compute <code>q</code> from <code>uv</code>. Then compute <code>r</code> from <code>uv + q</code> with new offsets. Finally sample <code>fbm(uv + r)</code>.</p><p>The first warp shapes the input. The second warp shapes that. You get deep swirls inside swirls. This is IQ''s two-level warp.</p><p>Read more at <a href="https://iquilezles.org/articles/warp/" target="_blank" rel="noreferrer">IQ, Domain warping</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -1048,7 +1048,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'domain-warping'), 'yc3PaZZSqcM', 3,
  'Animated warp offset',
- '<p>Animate the warp by sliding the q-sampling location with <code>u_time * 0.1</code>. The structure morphs over time — the canvas looks like slowly stirring marble or oil paint.</p><p>Reference: <a href="https://iquilezles.org/articles/warp/" target="_blank" rel="noreferrer">IQ — Domain warping</a>.</p>',
+ '<p>Add <code>u_time * 0.1</code> to the input of the q sample. Now the warp itself moves over time.</p><p>The whole shape morphs as it drifts. The canvas looks like slowly stirring marble or oil paint.</p><p>Read more at <a href="https://iquilezles.org/articles/warp/" target="_blank" rel="noreferrer">IQ, Domain warping</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }

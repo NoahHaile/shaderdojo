@@ -15,7 +15,9 @@ import { Modal } from '../components/Modal';
 import { ProgressBar } from '../components/ProgressBar';
 import { RichText } from '../components/RichText';
 import { ShaderCanvas, type ShaderCanvasHandle } from '../components/ShaderCanvas';
+import { ConciergeTerminal } from '../components/ConciergeTerminal';
 import { FRAGMENT_HEADER } from '../shader-pipeline';
+import { isStargazed } from '../stargazed';
 
 type Verdict = 'idle' | 'verifying' | 'correct' | 'incorrect' | 'error';
 
@@ -56,6 +58,9 @@ export function LessonPage() {
     const [attempt, setAttempt] = useState<AttemptResponse | null>(null);
     const [verdict, setVerdict] = useState<Verdict>('idle');
     const [verdictMsg, setVerdictMsg] = useState<string>('');
+    const [compileError, setCompileError] = useState<string | null>(null);
+    // Re-read the localStorage flag on every visit + when Concierge fires its event.
+    const [stargazed, setStargazed] = useState<boolean>(false);
 
     const canvasRef = useRef<ShaderCanvasHandle | null>(null);
 
@@ -85,6 +90,15 @@ export function LessonPage() {
         if (!isAuthed || !lesson) { setAttempt(null); return; }
         accountApi.status(lesson.id).then(setAttempt).catch(() => {});
     }, [isAuthed, lesson]);
+
+    // Stargazed star: refresh from localStorage on lesson change + when Concierge fires.
+    useEffect(() => {
+        if (!lesson) { setStargazed(false); return; }
+        const refresh = () => setStargazed(isStargazed(lesson.id));
+        refresh();
+        window.addEventListener('stargazed-changed', refresh);
+        return () => window.removeEventListener('stargazed-changed', refresh);
+    }, [lesson]);
 
     const nextLesson = useMemo(() => {
         if (!course || !lesson) return null;
@@ -139,7 +153,7 @@ export function LessonPage() {
         const ok = canvasRef.current.run(code);
         if (!ok) {
             setVerdict('error');
-            setVerdictMsg('GLSL compile error — check your browser devtools console for the line.');
+            setVerdictMsg('GLSL did not compile. Open your browser devtools to see the line.');
         } else if (verdict === 'error') {
             setVerdict('idle');
         }
@@ -159,7 +173,7 @@ export function LessonPage() {
         } catch (e: any) {
             if (e?.status === 400) {
                 setVerdict('incorrect');
-                setVerdictMsg("Not quite — your output didn't match.");
+                setVerdictMsg("Not quite. Your output did not match the target.");
             } else {
                 setVerdict('error');
                 setVerdictMsg(e?.message ?? 'Verification failed.');
@@ -231,7 +245,17 @@ export function LessonPage() {
             )}
 
             <header className="flex items-baseline justify-between gap-4 mb-3">
-                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">{lesson.title}</h1>
+                <h1 className="text-2xl md:text-3xl font-semibold tracking-tight flex items-center gap-2">
+                    {lesson.title}
+                    {stargazed && (
+                        <span
+                            className="text-accent text-xl leading-none"
+                            title="Stargazed: you have consulted Concierge for this lesson"
+                            aria-label="stargazed">
+                            ✦
+                        </span>
+                    )}
+                </h1>
                 <AttemptBadge
                     attempt={attempt}
                     locallyCompleted={isLocallyCompleted(lesson.id)}
@@ -276,6 +300,7 @@ export function LessonPage() {
                             key={lesson.id}
                             ref={canvasRef}
                             initialBody={code || lesson.starterFragmentShader || ''}
+                            onCompileError={setCompileError}
                         />
                     </div>
                 </section>
@@ -294,13 +319,25 @@ export function LessonPage() {
                 </div>
             </div>
 
+            <section className="mt-6">
+                <h2 className="text-[11px] font-semibold uppercase tracking-wider text-ink/60 mb-2">
+                    Concierge
+                </h2>
+                <ConciergeTerminal
+                    key={lesson.id}
+                    lessonId={lesson.id}
+                    code={code}
+                    compileError={compileError}
+                />
+            </section>
+
             <Modal
                 open={verdict === 'correct'}
                 onOpenChange={(o) => !o && setVerdict('idle')}
                 title="Solved"
                 description={nextLesson
-                    ? `On to "${nextLesson.title}" when you're ready — or jump into the discussion.`
-                    : 'You finished the course. Take a look at the discussion or pick another from the list.'}
+                    ? `Next up: "${nextLesson.title}". You can also open the discussion.`
+                    : 'You finished the course. Open the discussion or pick another course.'}
                 footer={
                     <>
                         <button className="btn-secondary" onClick={goToDiscussion}>
@@ -349,7 +386,7 @@ function AttemptBadge({ attempt, locallyCompleted, verified, authed }: {
     if (!authed) {
         return locallyCompleted
             ? <span className="pill-passed">Solved</span>
-            : <span className="pill-explore">Submit anytime — no sign-in needed</span>;
+            : <span className="pill-explore">Submit any time. No sign-in needed.</span>;
     }
 
     if (!attempt) return <span className="pill-explore">Loading status…</span>;
@@ -365,12 +402,12 @@ function AttemptBadge({ attempt, locallyCompleted, verified, authed }: {
 function VerdictBanner({ verdict, message, verified }: {
     verdict: Verdict; message: string; verified: boolean;
 }) {
-    if (!verified) return <p className="text-xs text-muted italic">Exploratory lesson — no automatic grading.</p>;
+    if (!verified) return <p className="text-xs text-muted italic">This lesson has no auto-grading.</p>;
     if (verdict === 'verifying') return <p className="text-xs text-muted">Rendering and comparing…</p>;
     if (verdict === 'correct')   return <p className="text-xs text-green-700">✓ Correct</p>;
-    if (verdict === 'incorrect') return <p className="text-xs text-amber-700">{message || 'Not quite — try again.'}</p>;
+    if (verdict === 'incorrect') return <p className="text-xs text-amber-700">{message || 'Not quite. Try again.'}</p>;
     if (verdict === 'error')     return <p className="text-xs text-red-600">{message}</p>;
-    return <p className="text-xs text-muted">Click <b>Run</b> to preview, <b>Submit</b> to grade.</p>;
+    return <p className="text-xs text-muted">Click <b>Run</b> to preview. Click <b>Submit</b> to grade.</p>;
 }
 
 function LessonSkeleton() {

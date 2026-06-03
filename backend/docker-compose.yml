@@ -12,6 +12,10 @@ services:
       VALIDATOR_URL: http://validator:3000/execute-shader
       VALIDATOR_KEY: ${VALIDATOR_KEY}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
+      # Concierge (per-lesson AI tutor). Without OPENAI_API_KEY set, the
+      # endpoint returns 503 and the terminal shows an offline message.
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      CONCIERGE_MODEL: ${CONCIERGE_MODEL:-gpt-5.4-nano}
     depends_on:
       db:
         condition: service_healthy

@@ -9,6 +9,7 @@ import { LessonsController } from './lessons.controller';
 import { CommentsController } from './comments.controller';
 import { AccountController } from './account.controller';
 import { HealthController } from './health.controller';
+import { ConciergeController } from './concierge.controller';
 import { TokenService } from './token.service';
 import { ValidatorService } from './validator.service';
 import { AdminGuard } from './admin.guard';
@@ -53,6 +54,7 @@ function parseJdbcUrl(jdbc: string) {
         CommentsController,
         AccountController,
         HealthController,
+        ConciergeController,
     ],
     providers: [TokenService, ValidatorService, AdminGuard, JwtGuard, OptionalJwt],
 })

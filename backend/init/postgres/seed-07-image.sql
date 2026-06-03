@@ -7,7 +7,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 -- ===== Course: image-sampling =====
 ((SELECT id FROM course WHERE slug = 'image-sampling'), 'zp-XRe_jywQ', 0,
  'Direct sample',
- '<p>A fragment shader can read a texture with <code>texture2D(sampler, uv)</code>. Build a UV in <code>[0, 1]</code> from <code>gl_FragCoord</code> and sample the bound reference image directly.</p><p>The bundled <code>u_image</code> is a 256×256 HSV gradient with a bright circle and a dark square — useful landmarks for spotting any UV transform you apply later.</p><p>Reference: <a href="https://iquilezles.org/articles/texture/" target="_blank" rel="noreferrer">IQ — Improved bilinear filtering</a>.</p>',
+ '<p>A shader can read a picture. The call is <code>texture2D(sampler, uv)</code>. It looks up the color at the spot <code>uv</code>. The spot is a pair of numbers from 0 to 1.</p><p>You have a picture called <code>u_image</code>. It is 256 by 256. It has a color gradient, a bright circle, and a dark square. Those shapes help you see what your code does.</p><p>Try this: build <code>uv</code> from <code>gl_FragCoord.xy / u_resolution.xy</code>. Then output <code>texture2D(u_image, uv)</code>. Read more at <a href="https://iquilezles.org/articles/texture/" target="_blank" rel="noreferrer">IQ, Improved bilinear filtering</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     // TODO: sample u_image at uv and output it.
@@ -20,7 +20,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'image-sampling'), 'umIdzT4ZADQ', 1,
  'Flipped/mirrored UV',
- '<p>Texture coordinates are just numbers — swap or invert components to transform the sampled image. Replacing <code>uv.y</code> with <code>1.0 - uv.y</code> flips the image vertically.</p><p>This is also how you reconcile a texture loaded with a different vertical convention than the framebuffer expects.</p><p>Reference: <a href="https://iquilezles.org/articles/texture/" target="_blank" rel="noreferrer">IQ — Improved bilinear filtering</a>.</p>',
+ '<p>The <code>uv</code> spot is just numbers. You can change those numbers before you sample. That moves or flips the picture.</p><p>Swap <code>uv.y</code> for <code>1.0 - uv.y</code>. Now the top reads from the bottom. The picture flips upside down. The same trick fixes pictures that load with their y axis the wrong way.</p><p>Try this: sample <code>u_image</code> at <code>vec2(uv.x, 1.0 - uv.y)</code>. Read more at <a href="https://iquilezles.org/articles/texture/" target="_blank" rel="noreferrer">IQ, Improved bilinear filtering</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     // TODO: sample u_image with y flipped: vec2(uv.x, 1.0 - uv.y).
@@ -33,7 +33,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'image-sampling'), 'p1ZJ3WDcse4', 2,
  'Tiled fract sample',
- '<p>Multiply the UV before sampling and the texture repeats — but only if the sampler is set to wrap. <code>fract()</code> guarantees the same tiling regardless of the sampler''s clamp/repeat state: multiply, then take the fractional part.</p><p>Try <code>fract(uv * 3.0)</code> to fit a 3×3 grid of the source image across the canvas.</p><p>Reference: <a href="https://iquilezles.org/articles/texture/" target="_blank" rel="noreferrer">IQ — Improved bilinear filtering</a>.</p>',
+ '<p>Multiply <code>uv</code> by 3 and the numbers go from 0 to 3. That asks for spots outside the picture. The result depends on how the sampler is set up.</p><p>Use <code>fract()</code> to keep the spot in 0 to 1. It throws away the whole part and keeps the decimal. So <code>fract(uv * 3.0)</code> tiles the picture in a 3 by 3 grid.</p><p>Try this: sample <code>u_image</code> at <code>fract(uv * 3.0)</code>. Read more at <a href="https://iquilezles.org/articles/texture/" target="_blank" rel="noreferrer">IQ, Improved bilinear filtering</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     // TODO: sample u_image at fract(uv * 3.0) for a 3x3 tiling.
@@ -46,7 +46,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'image-sampling'), 'AfXxL4IYCyc', 3,
  'Time-scrolling UV',
- '<p>Add <code>u_time</code> to one axis of the UV before sampling and the image scrolls. Wrap with <code>fract()</code> so the texture loops cleanly regardless of how the sampler is configured.</p><p>This is the core trick behind animated wallpaper effects, scrolling backgrounds, and any "conveyor belt" texture motion.</p><p>Reference: <a href="https://iquilezles.org/articles/texture/" target="_blank" rel="noreferrer">IQ — Improved bilinear filtering</a>.</p>',
+ '<p>Add <code>u_time</code> to one part of <code>uv</code>. The spot moves a little more each second. The picture scrolls.</p><p>Wrap it in <code>fract()</code> so the spot stays in 0 to 1. The picture loops without a seam. This is how scrolling backgrounds work.</p><p>Try this: sample <code>u_image</code> at <code>fract(uv + vec2(u_time * 0.1, 0.0))</code>. Read more at <a href="https://iquilezles.org/articles/texture/" target="_blank" rel="noreferrer">IQ, Improved bilinear filtering</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     // TODO: scroll horizontally: sample u_image at fract(uv + vec2(u_time * 0.1, 0.0)).
@@ -60,7 +60,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 -- ===== Course: convolution-kernels =====
 ((SELECT id FROM course WHERE slug = 'convolution-kernels'), 'pV4gLIB6Fdg', 0,
  '3×3 box blur',
- '<p>A convolution kernel reads several neighboring texels and combines them with weights. The simplest is a 3×3 box blur: nine samples at <code>(-1,-1)</code> through <code>(1,1)</code> texel offsets, averaged.</p><p>Compute a one-texel step in UV space as <code>1.0 / u_image_resolution</code>, then sum nine <code>texture2D</code> calls and divide by 9.</p><p>References: <a href="https://iquilezles.org/articles/filtering/" target="_blank" rel="noreferrer">IQ — Filtering procedural textures</a>, <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia filter module</a>.</p>',
+ '<p>A convolution kernel is a small grid of weights. You sample the neighbor pixels, multiply each by its weight, and add them up. That makes a new color.</p><p>The box blur uses 9 samples at offsets <code>(-1,-1)</code> through <code>(1,1)</code>. All weights are 1. You add them and divide by 9. One pixel step in <code>uv</code> is <code>1.0 / u_image_resolution</code>.</p><p>Try this: sum 9 samples and divide by 9. Read more at <a href="https://iquilezles.org/articles/filtering/" target="_blank" rel="noreferrer">IQ, Filtering procedural textures</a> and <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia filter module</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec2 px = 1.0 / u_image_resolution;
@@ -87,7 +87,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'convolution-kernels'), 'hk9fddh_K4c', 1,
  'Gaussian weights',
- '<p>A box blur weights every sample equally, which is cheap but flat. A 3×3 Gaussian uses weights <code>[1,2,1; 2,4,2; 1,2,1] / 16</code> — center pixel counts most, corners least — producing a softer, more natural blur.</p><p>Sum nine weighted samples, normalize by 16 (the sum of the weights).</p><p>References: <a href="https://iquilezles.org/articles/filtering/" target="_blank" rel="noreferrer">IQ — Filtering procedural textures</a>, <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia filter module</a>.</p>',
+ '<p>A box blur gives every sample the same weight. The result looks flat. A Gaussian blur gives more weight to the middle and less to the corners. It looks softer.</p><p>The 3 by 3 weights are <code>[1,2,1; 2,4,2; 1,2,1]</code>. Their sum is 16. Multiply each sample by its weight, add them up, and divide by 16.</p><p>Try this: do the weighted sum and divide by 16. Read more at <a href="https://iquilezles.org/articles/filtering/" target="_blank" rel="noreferrer">IQ, Filtering procedural textures</a> and <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia filter module</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec2 px = 1.0 / u_image_resolution;
@@ -114,7 +114,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'convolution-kernels'), '7OTmIYMqcYg', 2,
  'Sobel edge magnitude',
- '<p>The Sobel operator finds edges by running two kernels — one for horizontal change, one for vertical — and combining their magnitudes. <code>gx = [-1,0,1; -2,0,2; -1,0,1]</code> detects vertical edges; <code>gy = [-1,-2,-1; 0,0,0; 1,2,1]</code> detects horizontal ones.</p><p>Convert each sample to grayscale via <code>dot(rgb, vec3(0.299, 0.587, 0.114))</code>, accumulate <code>gx</code> and <code>gy</code>, then output <code>sqrt(gx*gx + gy*gy)</code> as white-on-black.</p><p>References: <a href="https://iquilezles.org/articles/filtering/" target="_blank" rel="noreferrer">IQ — Filtering procedural textures</a>, <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia filter module</a>.</p>',
+ '<p>The Sobel operator finds edges. It uses two kernels. One looks for left to right change. One looks for up and down change. Then you mix them.</p><p>The kernels are <code>gx = [-1,0,1; -2,0,2; -1,0,1]</code> and <code>gy = [-1,-2,-1; 0,0,0; 1,2,1]</code>. First turn each sample to gray with <code>dot(rgb, vec3(0.299, 0.587, 0.114))</code>. Add up <code>gx</code> and <code>gy</code>. Output <code>sqrt(gx*gx + gy*gy)</code>. Edges show as white on black.</p><p>Try this: compute <code>gx</code>, <code>gy</code>, then the square root of their squares. Read more at <a href="https://iquilezles.org/articles/filtering/" target="_blank" rel="noreferrer">IQ, Filtering procedural textures</a> and <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia filter module</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec2 px = 1.0 / u_image_resolution;
@@ -142,7 +142,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'convolution-kernels'), 'T73Ah2SA5f8', 3,
  'Sharpen kernel',
- '<p>A sharpen kernel boosts the center pixel and subtracts its neighbors, exaggerating local contrast. The classic 3×3 form is <code>[0,-1,0; -1,5,-1; 0,-1,0]</code> — five cross-shaped taps whose weights sum to 1, so flat regions stay unchanged.</p><p>Apply to color, then <code>clamp</code> the result into <code>[0, 1]</code> to keep the output in range.</p><p>References: <a href="https://iquilezles.org/articles/filtering/" target="_blank" rel="noreferrer">IQ — Filtering procedural textures</a>, <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia filter module</a>.</p>',
+ '<p>A sharpen kernel pushes the middle pixel up and pulls its neighbors down. That makes the edges stand out more.</p><p>The weights are <code>[0,-1,0; -1,5,-1; 0,-1,0]</code>. Only five spots have a weight. The weights add up to 1, so flat areas stay the same color. Use <code>clamp</code> to keep colors in 0 to 1.</p><p>Try this: do the weighted sum and clamp it. Read more at <a href="https://iquilezles.org/articles/filtering/" target="_blank" rel="noreferrer">IQ, Filtering procedural textures</a> and <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia filter module</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec2 px = 1.0 / u_image_resolution;

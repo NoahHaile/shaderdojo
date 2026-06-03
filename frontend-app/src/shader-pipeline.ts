@@ -19,18 +19,19 @@ export function buildFragmentShader(body: string): string {
     return FRAGMENT_HEADER + body;
 }
 
-function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLShader | null {
+interface CompileResult { shader: WebGLShader | null; error: string | null; }
+
+function compile(gl: WebGLRenderingContext, type: number, src: string): CompileResult {
     const s = gl.createShader(type);
-    if (!s) return null;
+    if (!s) return { shader: null, error: 'gl.createShader returned null' };
     gl.shaderSource(s, src);
     gl.compileShader(s);
     if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-        const log = gl.getShaderInfoLog(s);
-        console.warn('Shader compile error:', log);
+        const log = gl.getShaderInfoLog(s) ?? 'unknown shader compile error';
         gl.deleteShader(s);
-        return null;
+        return { shader: null, error: log };
     }
-    return s;
+    return { shader: s, error: null };
 }
 
 export interface ShaderProgram {
@@ -42,28 +43,38 @@ export interface ShaderProgram {
     positionLoc: number;
 }
 
-export function createProgram(gl: WebGLRenderingContext, vsSource: string, fsSource: string): ShaderProgram | null {
+export interface ProgramResult {
+    program: ShaderProgram | null;
+    error: string | null;
+}
+
+export function createProgram(gl: WebGLRenderingContext, vsSource: string, fsSource: string): ProgramResult {
     const vs = compile(gl, gl.VERTEX_SHADER, vsSource);
+    if (vs.error) return { program: null, error: `vertex shader: ${vs.error}` };
     const fs = compile(gl, gl.FRAGMENT_SHADER, fsSource);
-    if (!vs || !fs) return null;
+    if (fs.error) return { program: null, error: `fragment shader: ${fs.error}` };
+    if (!vs.shader || !fs.shader) return { program: null, error: 'shader compile returned null' };
 
     const program = gl.createProgram();
-    if (!program) return null;
-    gl.attachShader(program, vs);
-    gl.attachShader(program, fs);
+    if (!program) return { program: null, error: 'gl.createProgram returned null' };
+    gl.attachShader(program, vs.shader);
+    gl.attachShader(program, fs.shader);
     gl.linkProgram(program);
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        console.warn('Program link error:', gl.getProgramInfoLog(program));
+        const log = gl.getProgramInfoLog(program) ?? 'unknown link error';
         gl.deleteProgram(program);
-        return null;
+        return { program: null, error: `link: ${log}` };
     }
     return {
-        program,
-        uResolution: gl.getUniformLocation(program, 'u_resolution'),
-        uTime: gl.getUniformLocation(program, 'u_time'),
-        uImage: gl.getUniformLocation(program, 'u_image'),
-        uImageResolution: gl.getUniformLocation(program, 'u_image_resolution'),
-        positionLoc: gl.getAttribLocation(program, 'aVertexPosition'),
+        program: {
+            program,
+            uResolution: gl.getUniformLocation(program, 'u_resolution'),
+            uTime: gl.getUniformLocation(program, 'u_time'),
+            uImage: gl.getUniformLocation(program, 'u_image'),
+            uImageResolution: gl.getUniformLocation(program, 'u_image_resolution'),
+            positionLoc: gl.getAttribLocation(program, 'aVertexPosition'),
+        },
+        error: null,
     };
 }
 

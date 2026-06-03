@@ -29,16 +29,18 @@ export function HomePage() {
             <section className="grid lg:grid-cols-2 gap-10 items-center">
                 <div>
                     <h1 className="text-4xl md:text-5xl font-semibold leading-tight tracking-tight text-ink">
-                        Deconstruct & transform GPU code.
+                        Learn to write shaders.
                     </h1>
                     <p className="mt-4 text-lg text-ink/70 max-w-prose">
-                        ShaderDojo is a mix between{' '}
+                        ShaderDojo teaches one shader trick at a time. You write the code.
+                        The page runs it in your browser. It tells you if it looks right.
+                        It is like{' '}
                         <a className="text-accent font-medium hover:underline" href="https://shadertoy.com/" target="_blank" rel="noreferrer">
                             ShaderToy
-                        </a>{' '}and{' '}
+                        </a>{' '}meets{' '}
                         <a className="text-accent font-medium hover:underline" href="https://www.freecodecamp.org/" target="_blank" rel="noreferrer">
                             freeCodeCamp
-                        </a>. Take on shader challenges and bend light and math toward precise creative goals.
+                        </a>.
                     </p>
                     <div className="mt-6 flex gap-3">
                         <Link to="/courses" className="btn-primary">Start learning</Link>
@@ -54,25 +56,25 @@ export function HomePage() {
                 <header className="mb-6">
                     <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">The roadmap</h2>
                     <p className="mt-1 text-ink/60 text-sm max-w-prose">
-                        Ten families of named techniques. The trunk is Foundations — once those
-                        are in hand, every other branch is reachable.
+                        Start with Orientation. Then Foundations. After that, pick any branch.
+                        Each branch teaches one family of tricks.
                     </p>
                 </header>
                 <Roadmap />
             </section>
 
             <section className="mt-20 grid md:grid-cols-3 gap-4">
-                <FeatureCard title="Write, run, verify">
-                    Each lesson runs your GLSL in the browser and compares the rendered pixels
-                    against the expected output.
+                <FeatureCard title="Write, run, check">
+                    You write GLSL. The page runs it in your browser.
+                    It checks that your picture matches the goal.
                 </FeatureCard>
-                <FeatureCard title="One concept per step">
-                    Lessons stay short on purpose: uniforms, shaping functions, distance fields,
-                    noise — one at a time.
+                <FeatureCard title="One idea per lesson">
+                    Each lesson teaches one trick. UVs. Smoothstep. Noise.
+                    You finish one and move on.
                 </FeatureCard>
-                <FeatureCard title="Build something you keep">
-                    Courses are sequential. Finish one and you have a portfolio-grade shader, not
-                    just a stack of one-offs.
+                <FeatureCard title="Build a toolkit">
+                    Each course gives you a new tool.
+                    By the end you can mix them to make your own art.
                 </FeatureCard>
             </section>
         </div>

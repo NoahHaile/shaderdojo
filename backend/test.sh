@@ -68,7 +68,8 @@ http GET /app/actuator/health
 
 http GET /app/courses
 COURSES_JSON="$BODY"
-if [[ "$STATUS" == 200 ]] && echo "$BODY" | jq -e '.[] | select(.slug=="uv-coordinates")' >/dev/null \
+if [[ "$STATUS" == 200 ]] && echo "$BODY" | jq -e '.[] | select(.slug=="glsl-environment")' >/dev/null \
+    && echo "$BODY" | jq -e '.[] | select(.slug=="uv-coordinates")' >/dev/null \
     && echo "$BODY" | jq -e '.[] | select(.slug=="cosine-palettes")' >/dev/null \
     && echo "$BODY" | jq -e '.[] | select(.slug=="sdf-2d-primitives")' >/dev/null; then
     pass "GET /app/courses returns the technique-aligned seed courses"
@@ -76,11 +77,11 @@ else
     fail "/app/courses content" "$STATUS"
 fi
 
-# Curriculum totals: 50 courses, 200 lessons.
+# Curriculum totals: 51 courses (Orientation + 10 families), 204 lessons.
 COURSE_COUNT=$(echo "$COURSES_JSON" | jq 'length' 2>/dev/null)
-[[ "$COURSE_COUNT" == 50 ]] && pass "50 seed courses" || fail "course count" "got $COURSE_COUNT"
+[[ "$COURSE_COUNT" == 51 ]] && pass "51 seed courses" || fail "course count" "got $COURSE_COUNT"
 LESSON_COUNT=$(echo "$COURSES_JSON" | jq '[.[].lessons[]] | length' 2>/dev/null)
-[[ "$LESSON_COUNT" == 200 ]] && pass "200 lessons across all courses" || fail "lesson count" "got $LESSON_COUNT"
+[[ "$LESSON_COUNT" == 204 ]] && pass "204 lessons across all courses" || fail "lesson count" "got $LESSON_COUNT"
 
 # Pick the first lesson (Hello, color) for follow-up tests
 FIRST_LESSON_ID=$(echo "$COURSES_JSON" | jq -r '.[0].lessons[0].id')

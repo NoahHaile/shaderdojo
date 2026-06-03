@@ -8,7 +8,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 -- ===== Course: hsv-color =====
 ((SELECT id FROM course WHERE slug = 'hsv-color'), 'p60fmIlW-3M', 0,
  'Hue wheel along x',
- '<p><strong>Goal.</strong> Meet HSV — the color space where "color" and "brightness" are two separate knobs.</p><p><strong>The three knobs.</strong></p><ul><li><strong>Hue</strong> (0..1) — which color: 0 red, 0.33 green, 0.67 blue, back to red at 1.</li><li><strong>Saturation</strong> (0..1) — how strong: 0 is gray, 1 is full color.</li><li><strong>Value</strong> (0..1) — how bright: 0 is black, 1 is the brightest the channel will go.</li></ul><p><strong>The recipe.</strong> The starter ships a 4-line <code>hsv2rgb</code> helper — paste-once, use everywhere. Feed it <code>vec3(uv.x, 1.0, 1.0)</code>: hue runs left-to-right, saturation and value pinned to max. Result: the full hue spectrum sweeping across the canvas.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders — Colors (HSB section)</a>.</p>',
+ '<p>HSV is a color space. It splits color into three knobs. The first knob is hue. Hue picks which color you see. 0 is red, 0.33 is green, 0.67 is blue, and 1 is red again.</p><p>The second knob is saturation. 0 is gray and 1 is full color. The third knob is value. 0 is black and 1 is the brightest. The helper <code>hsv2rgb</code> turns those three numbers into red, green, and blue.</p><p>Now feed it <code>vec3(uv.x, 1.0, 1.0)</code>. Hue runs left to right. Saturation and value stay at the top. You will see every hue across the canvas.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders — Colors (HSB section)</a>.</p>',
  'vec3 hsv2rgb(vec3 c) {
     vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
     vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
@@ -34,7 +34,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'hsv-color'), '2RCHfX2ZA7s', 1,
  'Hue from polar angle',
- '<p><strong>Goal.</strong> Drive hue by direction instead of by x. The result is the classic color wheel.</p><p><strong>The recipe.</strong></p><ol><li>Get the polar angle of the centered position: <code>atan(p.y, p.x)</code> returns radians in <code>[-π, π]</code>.</li><li>Divide by <code>2π</code> to get <code>[-0.5, 0.5]</code>.</li><li>Add <code>0.5</code> so the range becomes <code>[0, 1]</code> — exactly what HSV wants for hue.</li><li>Feed that into <code>hsv2rgb(vec3(h, 1.0, 1.0))</code>.</li></ol><p>Pure red points right, green points up-left, blue points down-left — the standard color wheel orientation.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders — Colors</a>.</p>',
+ '<p>Last time hue ran left to right. Now it will spin around a center. You will get the classic color wheel.</p><p>Start with the centered position <code>p</code>. Call <code>atan(p.y, p.x)</code>. That gives the angle in radians from <code>-π</code> to <code>π</code>. Radians are just a way to measure angles. Divide by <code>2π</code> to get a range from <code>-0.5</code> to <code>0.5</code>. Add <code>0.5</code> to slide it to <code>0</code> to <code>1</code>. That is the range hue wants.</p><p>Then feed it to <code>hsv2rgb(vec3(h, 1.0, 1.0))</code>. Red points right. Green points up and left. Blue points down and left.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders — Colors</a>.</p>',
  'vec3 hsv2rgb(vec3 c) {
     vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
     vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
@@ -62,7 +62,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'hsv-color'), '_XPXs6awl8U', 2,
  'Saturation by radius',
- '<p><strong>Goal.</strong> Lock the hue to one value, drive saturation by distance from the center.</p><p><strong>The setup.</strong> Hue <code>0.07</code> is a salmon-orange. Saturation goes from 0 at the center (gray) to 1 at radius ≥ 0.5 (fully saturated).</p><p><strong>The recipe.</strong></p><ol><li>Centered, aspect-corrected position <code>p</code>.</li><li><code>s = clamp(length(p) * 2.0, 0.0, 1.0)</code> — multiply by 2 so saturation reaches 1 at radius 0.5; clamp so points beyond the disc stay at 1.</li><li><code>hsv2rgb(vec3(0.07, s, 1.0))</code>.</li></ol><p>You''ll see a salmon disc that fades to white at its center.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders — Colors</a>.</p>',
+ '<p>This time hue stays locked. Saturation does the work. Hue <code>0.07</code> is a salmon-orange. The center will be gray. The edge will be full salmon.</p><p>Start with the centered position <code>p</code>. Get the distance from the center with <code>length(p)</code>. Multiply it by <code>2.0</code> so saturation hits <code>1</code> at radius <code>0.5</code>. Wrap that in <code>clamp(..., 0.0, 1.0)</code> so points past the disc stay at <code>1</code>. Clamp just pins a value inside a range.</p><p>Then call <code>hsv2rgb(vec3(0.07, s, 1.0))</code>. You will see a salmon disc that fades to white at the center.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders — Colors</a>.</p>',
  'vec3 hsv2rgb(vec3 c) {
     vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
     vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
@@ -90,7 +90,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'hsv-color'), 'uQitrBNNf48', 3,
  'Value pulse on time',
- '<p><strong>Goal.</strong> Pin hue and saturation, drive value with the time oscillator from Family A.</p><p><strong>Why this matters.</strong> Unlike RGB, HSV lets you change "brightness" without changing "color." Drop <code>v = 0.5 + 0.5 * sin(u_time)</code> into the value slot and the canvas pulses dark↔bright without the hue drifting.</p><p>This is one of the practical wins of HSV: animate brightness independently of color.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders — Colors</a>.</p>',
+ '<p>Now pin hue and saturation. Move the value knob with time. Use the same wave from Family A: <code>v = 0.5 + 0.5 * sin(u_time)</code>. That wave swings between <code>0</code> and <code>1</code>.</p><p>Drop <code>v</code> into the third slot of <code>hsv2rgb</code>. The canvas pulses dark and bright. The color stays the same.</p><p>This is what HSV is good for. You can move brightness on its own. The hue does not drift.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders — Colors</a>.</p>',
  'vec3 hsv2rgb(vec3 c) {
     vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
     vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
@@ -117,7 +117,7 @@ void main() {
 -- ===== Course: cosine-palettes =====
 ((SELECT id FROM course WHERE slug = 'cosine-palettes'), 'lUI79_46ook', 0,
  'Static cosine palette',
- '<p><strong>Goal.</strong> Build an infinitely-tunable palette generator from one cosine and four vectors.</p><p><strong>The formula (Inigo Quilez).</strong> <code>color(t) = a + b · cos(2π · (c · t + d))</code>. Each input is a <code>vec3</code> (one channel each); <code>t</code> is the position along the palette.</p><ul><li><code>a</code> — the average color (DC bias).</li><li><code>b</code> — how much each channel varies (amplitude).</li><li><code>c</code> — how many cycles each channel makes over the range (frequency).</li><li><code>d</code> — where each channel''s cycle starts (phase).</li></ul><p><strong>The default rainbow.</strong> <code>a = b = vec3(0.5)</code>, <code>c = vec3(1.0)</code>, <code>d = vec3(0.00, 0.33, 0.67)</code>. Feed <code>uv.x</code> as <code>t</code> — every hue appears across the canvas.</p><p>Reference: <a href="https://iquilezles.org/articles/palettes/" target="_blank" rel="noreferrer">IQ — Palettes</a>.</p>',
+ '<p>You can build a palette from one cosine and four <code>vec3</code> inputs. The formula is <code>color(t) = a + b · cos(2π · (c · t + d))</code>. Inigo Quilez made it. The input <code>t</code> picks a spot along the palette.</p><p>Each <code>vec3</code> has one number per color channel. <code>a</code> is the average color. <code>b</code> is how much each channel moves. <code>c</code> is how many waves each channel makes. <code>d</code> is where each wave starts.</p><p>The rainbow uses <code>a = b = vec3(0.5)</code>, <code>c = vec3(1.0)</code>, and <code>d = vec3(0.00, 0.33, 0.67)</code>. Feed <code>uv.x</code> as <code>t</code>. Every hue shows up across the canvas.</p><p>Reference: <a href="https://iquilezles.org/articles/palettes/" target="_blank" rel="noreferrer">IQ — Palettes</a>.</p>',
  'vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
     return a + b * cos(6.28318 * (c * t + d));
 }
@@ -139,7 +139,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'cosine-palettes'), 'a1X-bvkK6Nw', 1,
  'Animated palette',
- '<p><strong>Goal.</strong> Replace the spatial <code>t</code> with a temporal one. The whole canvas becomes a single color that cycles through every shade of the palette.</p><p><strong>The change.</strong> Pass <code>u_time * 0.2</code> as <code>t</code> instead of <code>uv.x</code>. The <code>0.2</code> slows the cycle to about one full sweep every 5 seconds.</p><p>Reference: <a href="https://iquilezles.org/articles/palettes/" target="_blank" rel="noreferrer">IQ — Palettes</a>.</p>',
+ '<p>Last time <code>t</code> came from space. Now it will come from time. The whole canvas turns one color. That color cycles through the palette.</p><p>Swap <code>uv.x</code> for <code>u_time * 0.2</code>. The <code>0.2</code> slows the cycle. One full loop takes about five seconds.</p><p>Reference: <a href="https://iquilezles.org/articles/palettes/" target="_blank" rel="noreferrer">IQ — Palettes</a>.</p>',
  'vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
     return a + b * cos(6.28318 * (c * t + d));
 }
@@ -159,7 +159,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'cosine-palettes'), 'G2adWB1gqbk', 2,
  'Radial palette',
- '<p><strong>Goal.</strong> Use distance-from-center as <code>t</code> and the palette wraps into concentric rings.</p><p><strong>The recipe.</strong> Centered, aspect-corrected <code>p</code>, then <code>r = length(p)</code>, then <code>palette(r, ...)</code>. Because <code>r</code> grows from 0 outward but the palette cycles at <code>t = 1, 2, 3, ...</code>, the canvas reveals rings of color as <code>r</code> crosses each integer.</p><p>Reference: <a href="https://iquilezles.org/articles/palettes/" target="_blank" rel="noreferrer">IQ — Palettes</a>.</p>',
+ '<p>This time <code>t</code> comes from distance. The palette will wrap into rings around the center.</p><p>Start with the centered position <code>p</code>. Get the distance with <code>r = length(p)</code>. Call <code>palette(r, ...)</code>. The value <code>r</code> grows from <code>0</code> at the center. The palette loops every <code>1</code> unit. Each loop draws one ring.</p><p>Reference: <a href="https://iquilezles.org/articles/palettes/" target="_blank" rel="noreferrer">IQ — Palettes</a>.</p>',
  'vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
     return a + b * cos(6.28318 * (c * t + d));
 }
@@ -183,7 +183,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'cosine-palettes'), 'JIh3Pj3mAuw', 3,
  'Custom sunset palette',
- '<p><strong>Goal.</strong> Pick four new vectors to build a palette of your own.</p><p><strong>What each vector controls (recap).</strong> <code>a</code> is bias, <code>b</code> is contrast, <code>c</code> is per-channel frequency, <code>d</code> is per-channel phase. By dropping <code>c</code> below 1 you keep more of the cycle off-screen, biasing toward a partial color range — exactly what a sunset is.</p><p><strong>The palette.</strong> <code>a=(0.66, 0.50, 0.40)</code>, <code>b=(0.50, 0.40, 0.20)</code>, <code>c=(0.8, 0.6, 0.5)</code>, <code>d=(0.00, 0.20, 0.50)</code>. Index by <code>uv.y</code> so warmth rises toward the top.</p><p>Reference: <a href="https://iquilezles.org/articles/palettes/" target="_blank" rel="noreferrer">IQ — Palettes</a>.</p>',
+ '<p>Now pick your own four <code>vec3</code> inputs. As a recap: <code>a</code> sets the bias, <code>b</code> sets the contrast, <code>c</code> sets the wave count, and <code>d</code> sets the wave start. If <code>c</code> drops below <code>1</code>, less of the cycle fits on screen. That gives you a small slice of colors. A sunset is one of those slices.</p><p>Try <code>a=(0.66, 0.50, 0.40)</code>, <code>b=(0.50, 0.40, 0.20)</code>, <code>c=(0.8, 0.6, 0.5)</code>, and <code>d=(0.00, 0.20, 0.50)</code>. Use <code>uv.y</code> for <code>t</code>. Warm tones rise to the top.</p><p>Reference: <a href="https://iquilezles.org/articles/palettes/" target="_blank" rel="noreferrer">IQ — Palettes</a>.</p>',
  'vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
     return a + b * cos(6.28318 * (c * t + d));
 }
@@ -206,7 +206,7 @@ void main() {
 -- ===== Course: tone-vignette-gamma =====
 ((SELECT id FROM course WHERE slug = 'tone-vignette-gamma'), 'hK5QJQ86oMc', 0,
  'Gamma correction',
- '<p><strong>Goal.</strong> Fix the "everything looks too dark" problem on real monitors.</p><p><strong>What''s happening.</strong> Pixel values that <em>look</em> like a linear gradient on the screen are actually nonlinear — monitors apply about a <code>2.2</code> exponent when displaying. A linear ramp in code looks crushed in the dark half.</p><p><strong>The fix.</strong> At the very end of your shader, raise the color to the <code>1.0 / 2.2</code> power: <code>pow(color, vec3(1.0 / 2.2))</code>. This is the inverse of what the monitor does, so the on-screen ramp is finally linear to the eye.</p><p><strong>Compare.</strong> Run the starter with the gamma fix commented out and you''ll see a dark gradient; uncomment it and the midpoint shifts up to ~0.5 brightness, as it should.</p><p>Reference: <a href="https://iquilezles.org/articles/gamma/" target="_blank" rel="noreferrer">IQ — Gamma correct blurring</a>.</p>',
+ '<p>Monitors do not show colors in a straight line. They use a curve. They raise each color value to about a <code>2.2</code> power. So an even ramp in code looks dark on screen. The dark half gets crushed.</p><p>The fix is to bend the color the other way. At the end of your shader, write <code>pow(color, vec3(1.0 / 2.2))</code>. The function <code>pow</code> raises one number to the power of another. This new bend cancels the monitor''s bend. The ramp looks even to your eye.</p><p>Run the starter without the fix to see the dark gradient. Then add the line. The middle moves up to about <code>0.5</code>, like it should.</p><p>Reference: <a href="https://iquilezles.org/articles/gamma/" target="_blank" rel="noreferrer">IQ — Gamma correct blurring</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec3 c = vec3(uv.x);
@@ -223,7 +223,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'tone-vignette-gamma'), 'BPmLthBAT2s', 1,
  'Radial vignette',
- '<p><strong>Goal.</strong> Darken the corners of the frame so the eye is drawn to the center.</p><p><strong>The recipe.</strong> Same distance-then-smoothstep pattern from Family A:</p><ol><li>Centered position <code>p</code>.</li><li>Smoothstep the radius: <code>smoothstep(0.4, 0.75, length(p))</code> is 0 inside radius 0.4, 1 outside radius 0.75. Subtract from 1 to get a bright disc that fades to 0 at the corners.</li><li>Multiply your color by that mask.</li></ol><p>Tweak the smoothstep edges to taste — narrower gap is a more aggressive vignette.</p><p>Reference: <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ — Outdoors lighting</a>.</p>',
+ '<p>A vignette darkens the corners of the frame. Your eye then moves to the middle. You use the same distance and smoothstep trick from Family A.</p><p>Start with the centered position <code>p</code>. Call <code>smoothstep(0.4, 0.75, length(p))</code>. That gives <code>0</code> inside radius <code>0.4</code> and <code>1</code> outside radius <code>0.75</code>. Subtract from <code>1</code> to flip it. Now you have a bright disc that fades to <code>0</code> at the corners.</p><p>Multiply your color by that mask. Move the two smoothstep edges to taste. A smaller gap makes a stronger vignette.</p><p>Reference: <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ — Outdoors lighting</a>.</p>',
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     vec3 c = vec3(0.95, 0.81, 0.36);
@@ -242,7 +242,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'tone-vignette-gamma'), 'B9_W_mw16Gc', 2,
  'Reinhard tone map',
- '<p><strong>Goal.</strong> Squash out-of-range color values back into the visible <code>[0, 1]</code> band — also known as tone mapping.</p><p><strong>Why you need it.</strong> Real shaders generate HDR values that go above 1 (a sun, a glowing palette, a bloom pass). If you just clamp, the brightest highlights become flat white blobs.</p><p><strong>The Reinhard formula.</strong> <code>c / (c + 1.0)</code>. Component-wise: values near 0 stay near 0, values near 1 land near 0.5, values way above 1 asymptote to 1. The result preserves detail in highlights.</p><p>The starter builds a deliberately over-bright color (<code>uv.x * 4</code> and <code>uv.y * 2</code>) so you can see Reinhard pulling those highlights down.</p><p>Reference: <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ — Outdoors lighting</a>.</p>',
+ '<p>Some shaders make color values above <code>1</code>. A sun, a bright palette, or a bloom pass all do this. The screen can only show <code>0</code> to <code>1</code>. If you just clamp the top, the bright spots turn into flat white blobs. Tone mapping squashes those big values back into the visible range and keeps the detail.</p><p>The Reinhard formula is <code>c / (c + 1.0)</code>. Values near <code>0</code> stay near <code>0</code>. Values near <code>1</code> land near <code>0.5</code>. Values way above <code>1</code> get close to <code>1</code> but never reach it.</p><p>The starter makes a too-bright color on purpose. It uses <code>uv.x * 4</code> and <code>uv.y * 2</code>. Add the line and watch Reinhard pull the highlights down.</p><p>Reference: <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ — Outdoors lighting</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec3 c = vec3(uv.x * 4.0, uv.y * 2.0, 1.0);
@@ -259,7 +259,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'tone-vignette-gamma'), 'Ae7sCWNcjgw', 3,
  'ACES tone map approximation',
- '<p><strong>Goal.</strong> Use the same family of tone-mapping idea, but with a film-like curve that compresses highlights more gracefully than Reinhard.</p><p><strong>The fit (Krzysztof Narkowicz).</strong> <code>(c · (2.51c + 0.03)) / (c · (2.43c + 0.59) + 0.14)</code>, clamped to <code>[0, 1]</code>. It''s a rational approximation to the ACES filmic curve used in film and games.</p><p><strong>What changes visually.</strong> Same starter color as the Reinhard lesson, but now the highlights bend toward a warm, photographic roll-off instead of asymptoting toward gray.</p><p>Reference: <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ — Outdoors lighting</a>.</p>',
+ '<p>ACES is another tone map. It bends highlights in a film-like way. Films and games use it. The curve looks warmer and softer than Reinhard.</p><p>Krzysztof Narkowicz fit it to a short formula: <code>(c · (2.51c + 0.03)) / (c · (2.43c + 0.59) + 0.14)</code>, clamped to <code>[0, 1]</code>. The helper <code>aces</code> in the starter does this for you. Clamp pins the result inside the <code>0</code> to <code>1</code> range.</p><p>The starter uses the same too-bright color as the Reinhard lesson. Call <code>aces(c)</code>. The highlights now roll off warm instead of fading to gray.</p><p>Reference: <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ — Outdoors lighting</a>.</p>',
  'vec3 aces(vec3 x) {
     return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
 }
