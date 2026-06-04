@@ -14,7 +14,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 -- ===== Course: uv-coordinates =====
 ((SELECT id FROM course WHERE slug = 'uv-coordinates'), 'Y9NUVKnImBU', 0,
  'UV as RG color',
- '<p>You will give every pixel an address. You will turn that address into a color so you can see it.</p><p><code>gl_FragCoord.xy</code> is the pixel''s spot on the screen in pixels. <code>(0, 0)</code> is the bottom-left. Divide it by <code>u_resolution.xy</code> to get <code>uv</code>. Now the value runs from <code>0</code> to <code>1</code> across the canvas. Put <code>uv.x</code> on red and <code>uv.y</code> on green.</p><p>You will see a smooth gradient. Black is in the bottom-left. Red is on the right. Green is on top. Yellow is in the top-right.</p><p>Reference: <a href="https://thebookofshaders.com/03/" target="_blank" rel="noreferrer">Book of Shaders — Uniforms</a>.</p>',
+ '<p>You will give every pixel an address. You will turn that address into a color so you can see it.</p><p><code>gl_FragCoord.xy</code> is the pixel''s spot on the canvas, measured in pixels. <code>(0, 0)</code> is the bottom-left pixel; the count grows right and up.</p><p><code>u_resolution</code> is a <strong>uniform</strong> — a value the app hands the shader once per frame, the same for every pixel. It is a <code>vec2</code> holding the canvas size in pixels: <code>u_resolution.x</code> is the width and <code>u_resolution.y</code> is the height. (The exact numbers depend on how big the canvas is drawn on your screen, so never hard-code them — always read this uniform.)</p><p>Divide the pixel''s spot by the canvas size: <code>uv = gl_FragCoord.xy / u_resolution.xy</code>. Splitting a position by the full width and height rescales it to run from <code>0</code> to <code>1</code> across the canvas, whatever the real pixel count is. Put <code>uv.x</code> on red and <code>uv.y</code> on green.</p><p>You will see a smooth gradient. Black is in the bottom-left. Red is on the right. Green is on top. Yellow is in the top-right.</p><p>Reference: <a href="https://thebookofshaders.com/03/" target="_blank" rel="noreferrer">Book of Shaders — Uniforms</a>.</p>',
  'void main() {
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
@@ -25,7 +25,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'uv-coordinates'), 'u0ntUSvRPHI', 1,
  'Centered UV',
- '<p>You will move the zero point from the corner to the middle.</p><p>Circles and stars are easier to draw from the middle. Subtract <code>0.5</code> from <code>uv</code>. Now the value runs from <code>-0.5</code> in the bottom-left to <code>+0.5</code> in the top-right. Zero is in the middle.</p><p>Centered values can be negative. You cannot show negative colors. Use <code>abs(uv)</code> to flip negatives to positives. Then times by <code>2</code> to fill the <code>0</code> to <code>1</code> range. You will see a dark middle and bright corners.</p><p>Reference: <a href="https://thebookofshaders.com/03/" target="_blank" rel="noreferrer">Book of Shaders — Uniforms</a>.</p>',
+ '<p>You will move the zero point from the corner to the middle.</p><p>Circles and stars are easier to draw from the middle. Subtract <code>0.5</code> from <code>uv</code>. Now the value runs from <code>-0.5</code> in the bottom-left to <code>+0.5</code> in the top-right. Zero is in the middle.</p><p>Centered values can be negative, and you cannot show a negative color. <code>abs()</code> is a function built into GLSL. It returns a number with its sign dropped, so <code>abs(-0.3)</code> is <code>0.3</code>. Called on a <code>vec2</code> it flips each part on its own. Use <code>abs(uv)</code> to turn the negatives positive, then times by <code>2</code> to fill the <code>0</code> to <code>1</code> range. You will see a dark middle and bright corners.</p><p>Want another way of seeing why the middle goes dark and the corners go bright? Ask the <strong>Concierge</strong> in the terminal below — it can trace a single pixel through this code for you.</p><p>Reference: <a href="https://thebookofshaders.com/03/" target="_blank" rel="noreferrer">Book of Shaders — Uniforms</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     gl_FragColor = vec4(uv, 0.0, 1.0);
@@ -37,7 +37,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'uv-coordinates'), 'ISrgvAd5SMg', 2,
  'Aspect-corrected UV',
- '<p>You will fix a stretch problem. You want circles to look like circles.</p><p>The plain <code>uv = gl_FragCoord.xy / u_resolution.xy</code> stretches the picture. On a wide canvas, x is wider than y. Shapes get squished.</p><p>To fix it, subtract half the size to center it. Then divide both x and y by the same number. Use <code>u_resolution.y</code>, the height. Now x and y use the same scale. The starter draws a disc. With the bad <code>uv</code> it is an oval. With the good <code>uv</code> it is a circle.</p><p>Reference: <a href="https://thebookofshaders.com/03/" target="_blank" rel="noreferrer">Book of Shaders — Uniforms</a>.</p>',
+ '<p>The starter already draws a filled disc for you. Do not worry about <em>how</em> it is drawn — that is the <code>length</code> and <code>step</code> code, and we will cover making shapes in a bit. For now, just look at the shape.</p><p>Notice it is not symmetric. It comes out as a squished oval, not a round circle. That is the problem you will fix in this lesson.</p><p>The cause is the canvas <strong>aspect ratio</strong> — its width compared to its height. The canvas is usually wider than it is tall. The plain <code>uv = gl_FragCoord.xy / u_resolution.xy</code> divides x by the width but y by the height. Those are different numbers, so one step sideways covers a different distance than one step up. A shape that should be round gets stretched sideways into an oval.</p><p>To <strong>normalize</strong> here means to put x and y on one shared scale, so a unit of distance means the same in both directions. Do it in two parts:</p><ul><li>Center first: <code>gl_FragCoord.xy - 0.5 * u_resolution.xy</code> moves <code>(0, 0)</code> to the middle of the canvas.</li><li>Then divide <em>both</em> x and y by the same number — the height, <code>u_resolution.y</code>.</li></ul><p>So <code>uv = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y</code>. Now both axes share one scale and the oval snaps back into a round circle.</p><p>This is a real mental step — take it slowly. Open the <strong>Concierge</strong> in the terminal below and ask it to walk you through the new <code>uv</code> line one piece at a time. It is happy to go gently.</p><p>Reference: <a href="https://thebookofshaders.com/03/" target="_blank" rel="noreferrer">Book of Shaders — Uniforms</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy - 0.5;
     float d = length(uv);
@@ -51,15 +51,17 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'uv-coordinates'), 'RmYF8JiNb5A', 3,
  'Polar coordinates',
- '<p>You will name a pixel by two new numbers. One is how far it is from the middle. The other is which way it points.</p><p>Start with a centered position <code>p</code>. Then:</p><ul><li><code>r = length(p)</code> is the distance from the middle. It is <code>0</code> in the middle and bigger at the edges.</li><li><code>a = atan(p.y, p.x)</code> is the angle. It runs from <code>-π</code> to <code>π</code>. <code>0</code> points right. <code>π/2</code> points up.</li></ul><p>Put <code>r</code> on red. Put <code>a/π</code> on green. Red gets brighter going out from the middle. Green sweeps around the canvas.</p><p>Reference: <a href="https://thebookofshaders.com/07/" target="_blank" rel="noreferrer">Book of Shaders — Shapes (polar section)</a>.</p>',
+ '<p>You will name a pixel by two new numbers instead of x and y. One is how far the pixel is from the middle. The other is which way it points. Together these are <strong>polar coordinates</strong>.</p><p>The starter already gives you <code>p</code> — the centered, aspect-corrected position from the last lesson, with <code>(0, 0)</code> in the middle. You only need to read two things off it.</p><p><code>length()</code> is a built-in GLSL function. It returns how long a vector is — the straight-line distance from the origin to the point. Because <code>p</code> is centered, <code>r = length(p)</code> is the distance from the middle. It is <code>0</code> at the center and grows toward the edges.</p><p><code>atan()</code> is built in too. Called with two arguments as <code>atan(p.y, p.x)</code>, it gives the angle the point makes, measured from the positive x-axis. It runs from <code>-π</code> to <code>π</code>: <code>0</code> points right, <code>π/2</code> points up.</p><p>GLSL has no built-in name for π, so spell the value out yourself: <code>float PI = 3.14159265;</code>. Then put <code>r</code> on red and <code>a / PI</code> on green — dividing by π squeezes the angle into the <code>-1</code> to <code>1</code> range. Red brightens going out from the middle, and green sweeps around the canvas.</p><p>Reference: <a href="https://thebookofshaders.com/07/" target="_blank" rel="noreferrer">Book of Shaders — Shapes (polar section)</a>.</p>',
  'void main() {
+    vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
+    float PI = 3.14159265;
     float r = length(p);
     float a = atan(p.y, p.x);
-    gl_FragColor = vec4(r, a / 3.14159265, 0.0, 1.0);
+    gl_FragColor = vec4(r, a / PI, 0.0, 1.0);
 }'),
 
 -- ===== Course: time-oscillation =====
@@ -381,3 +383,10 @@ void main() {
     }
     gl_FragColor = vec4(vec3(0.5 + 0.05 * s), 1.0);
 }');
+
+-- Per-lesson Concierge guidance: the aspect-corrected UV lesson is the first hard
+-- mental step for a brand-new learner, so soften the tutor for this one lesson.
+UPDATE lesson SET concierge_hint =
+ 'This learner is just starting out and is on the hardest step so far: correcting the canvas aspect ratio so a circle stops looking like an oval. Go especially gentle. Take it one small piece at a time and check they follow before moving on. Do not assume they know what gl_FragCoord, u_resolution, centering, or dividing by the height do — explain each plainly. Be warm and encouraging. Never paste the whole corrected uv line at once; build it up with them.'
+WHERE slug = 'ISrgvAd5SMg'
+  AND course_id = (SELECT id FROM course WHERE slug = 'uv-coordinates');

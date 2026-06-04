@@ -84,6 +84,7 @@ export interface AdminLessonSolution {
     title: string;
     canonicalFragmentShader: string | null;
     starterVertexShader: string | null;
+    conciergeHint: string | null;
 }
 export interface CreateLessonPayload {
     courseId: string;
@@ -94,6 +95,7 @@ export interface CreateLessonPayload {
     starterVertexShader?: string;
     starterFragmentShader?: string;
     canonicalFragmentShader?: string;
+    conciergeHint?: string;
     hashedAnswer?: string;
 }
 export type UpdateLessonPayload = Partial<Omit<CreateLessonPayload, 'courseId'>>;

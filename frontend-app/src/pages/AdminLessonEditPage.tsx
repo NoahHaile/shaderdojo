@@ -26,6 +26,7 @@ export function AdminLessonEditPage() {
             'attribute vec4 aVertexPosition;\nvoid main() { gl_Position = aVertexPosition; }',
         starterFragmentShader: 'void main() {\n    // TODO\n    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n}',
         canonicalFragmentShader: '',
+        conciergeHint: '',
     });
     const [previewBody, setPreviewBody] = useState<string>(form.starterFragmentShader ?? '');
     const [saving, setSaving] = useState(false);
@@ -53,6 +54,7 @@ export function AdminLessonEditPage() {
                     starterVertexShader: l.starterVertexShader ?? '',
                     starterFragmentShader: l.starterFragmentShader ?? '',
                     canonicalFragmentShader: sol?.canonicalFragmentShader ?? '',
+                    conciergeHint: sol?.conciergeHint ?? '',
                 });
                 setPreviewBody(l.starterFragmentShader ?? '');
             })
@@ -74,6 +76,8 @@ export function AdminLessonEditPage() {
                 starterVertexShader: form.starterVertexShader?.trim() || undefined,
                 starterFragmentShader: form.starterFragmentShader?.trim() || undefined,
                 canonicalFragmentShader: form.canonicalFragmentShader?.trim() || undefined,
+                // Always send a string (even empty) so clearing the field clears the stored hint.
+                conciergeHint: form.conciergeHint?.trim() ?? '',
             };
             const saved = isNew
                 ? await adminApi.createLesson(payload)
@@ -187,6 +191,17 @@ export function AdminLessonEditPage() {
                                 </div>
                             </div>
                         )}
+                    </div>
+
+                    <div className="card space-y-4">
+                        <h3 className="text-sm font-semibold">Concierge tutor</h3>
+                        <Row
+                            label="Per-lesson hint (optional)"
+                            hint="Injected into the Concierge AI's system prompt for this lesson only — e.g. 'this step is hard, go gentle, never paste the full line'. Not shown to students. Leave empty for none.">
+                            <textarea className="field text-sm" rows={4}
+                                      value={form.conciergeHint ?? ''}
+                                      onChange={(e) => update('conciergeHint', e.target.value)} />
+                        </Row>
                     </div>
 
                     <div className="card space-y-4">

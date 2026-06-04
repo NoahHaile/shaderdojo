@@ -67,6 +67,10 @@ export class Lesson {
     @Column({ name: 'canonical_fragment_shader', type: 'text', nullable: true })
     canonicalFragmentShader?: string;
 
+    /** Optional plain-text guidance injected into the Concierge AI's system prompt for this lesson only. */
+    @Column({ name: 'concierge_hint', type: 'text', nullable: true })
+    conciergeHint?: string;
+
     @Column({ name: 'hashed_answer', nullable: true })
     hashedAnswer?: string;
 

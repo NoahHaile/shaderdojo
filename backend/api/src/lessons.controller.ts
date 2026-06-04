@@ -25,6 +25,7 @@ class LessonDto {
 class LessonSolutionDto {
     id: string; title: string;
     canonicalFragmentShader: string | null; starterVertexShader: string | null;
+    conciergeHint: string | null;
 }
 
 class VerifyLessonBody {
@@ -40,6 +41,7 @@ class CreateLessonBody {
     starterVertexShader?: string;
     starterFragmentShader?: string;
     canonicalFragmentShader?: string;
+    conciergeHint?: string;
     hashedAnswer?: string;
 }
 class UpdateLessonBody extends CreateLessonBody {} // partial; all fields optional in practice
@@ -92,6 +94,7 @@ export class LessonsController {
             id: l.id, title: l.title,
             canonicalFragmentShader: l.canonicalFragmentShader ?? null,
             starterVertexShader: l.starterVertexShader ?? null,
+            conciergeHint: l.conciergeHint ?? null,
         };
     }
 
@@ -184,6 +187,7 @@ export class LessonsController {
             starterVertexShader: body.starterVertexShader ?? null,
             starterFragmentShader: body.starterFragmentShader ?? null,
             canonicalFragmentShader: body.canonicalFragmentShader ?? null,
+            conciergeHint: body.conciergeHint?.trim() || null,
             hashedAnswer: body.hashedAnswer ?? null,
         });
         return toDto(await this.lessons.save(l));
@@ -201,6 +205,8 @@ export class LessonsController {
         if (body.starterVertexShader != null) l.starterVertexShader = body.starterVertexShader;
         if (body.starterFragmentShader != null) l.starterFragmentShader = body.starterFragmentShader;
         if (body.canonicalFragmentShader != null) l.canonicalFragmentShader = body.canonicalFragmentShader;
+        // Empty string is meaningful here: it clears the hint (back to "no special guidance").
+        if (body.conciergeHint != null) l.conciergeHint = body.conciergeHint.trim() || null;
         if (body.hashedAnswer != null) l.hashedAnswer = body.hashedAnswer;
         return toDto(await this.lessons.save(l));
     }

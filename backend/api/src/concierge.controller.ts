@@ -98,13 +98,21 @@ export class ConciergeController {
             ? `The learner's last compile failed. The WebGL info log:\n\`\`\`\n${body.compileError.slice(0, 2000)}\n\`\`\`\nIf the learner asks for help, read the error first. Point to the line. Say the cause in plain words.`
             : 'The learner\'s last compile succeeded. No compile error to read right now.';
 
+        // Optional per-lesson author guidance (e.g. "go gentle, this step is hard").
+        const hint = lesson.conciergeHint?.trim();
+        const hintBlock = hint
+            ? `Special guidance from the lesson author for this lesson — follow it:\n${hint}`
+            : null;
+
         // OpenAI takes one combined system message. Concatenate the persona,
-        // the lesson context, and the volatile code/error block.
+        // the lesson context, the optional per-lesson hint, and the volatile
+        // code/error block.
         const systemPrompt = [
             PERSONA,
             '',
             `Lesson title: ${lesson.title}`,
             `Lesson description (plain text): ${stripHtml(lesson.description)}`,
+            ...(hintBlock ? ['', hintBlock] : []),
             '',
             codeBlock,
             '',

@@ -37,6 +37,8 @@ CREATE INDEX idx_course_category_order ON course (category, display_order);
 -- description is HTML (sanitized in the frontend).
 -- slug is a YouTube-style 11-char base64url id, unique per course.
 -- hashed_answer NULL = awaiting `POST /app/lessons/recompute-hashes` after seed boot.
+-- concierge_hint is optional plain-text guidance injected into the Concierge AI's
+-- system prompt for this lesson only (e.g. "go gentle, this step is hard"). NULL = none.
 CREATE TABLE lesson
 (
     id                        VARCHAR(36) PRIMARY KEY DEFAULT (gen_random_uuid()::text),
@@ -48,6 +50,7 @@ CREATE TABLE lesson
     starter_vertex_shader     TEXT,
     starter_fragment_shader   TEXT,
     canonical_fragment_shader TEXT,
+    concierge_hint            TEXT,
     hashed_answer             VARCHAR(128),
     created_at                TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (course_id, slug)
