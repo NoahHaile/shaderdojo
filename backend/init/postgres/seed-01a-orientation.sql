@@ -1,53 +1,57 @@
 \c shader_dojo;
 
 -- Level 0 — Orientation (1 course, 4 lessons)
--- Runs after seed-01-courses.sql (alphabetical sort: "01-" < "01a-" < "02-").
+-- Code style: the description teaches. The starter is a near-empty shader,
+-- the canonical is the full working answer. No didactic comments inside the
+-- code — the learner writes meaningful lines from a recipe in the description.
+-- Each lesson's canonical includes ideas from the prior lesson, so progression
+-- is visible just by reading the code.
 
 INSERT INTO lesson (course_id, slug, display_order, title, description, starter_fragment_shader, canonical_fragment_shader) VALUES
 
 ((SELECT id FROM course WHERE slug = 'glsl-environment'), 'yOfy60x1XkM', 0,
- 'One program per pixel',
- '<p>A shader is a small program. The GPU runs it once for each pixel on the canvas. The preview is 400 by 400, so the GPU runs your code 160,000 times in parallel. Every copy runs the same code.</p><p>Each copy has one job. It must set <code>gl_FragColor</code>. That is the pixel''s final color. It is a <code>vec4</code> with four numbers: red, green, blue, and alpha. Each number goes from 0 to 1.</p><p>Try this: set <code>gl_FragColor</code> to red. Use <code>vec4(1.0, 0.0, 0.0, 1.0)</code>. Read more at <a href="https://thebookofshaders.com/02/" target="_blank" rel="noreferrer">Book of Shaders, Hello World</a>.</p>',
+ 'Hello pixel',
+ '<p>A shader is a small program. The GPU runs it once for each pixel on the canvas. The preview is 400 by 400. So the GPU runs your code 160,000 times in parallel. Every copy runs the same code.</p><p>Each copy must set <code>gl_FragColor</code>. That is the pixel''s final color. It is a <code>vec4</code> with red, green, blue, and alpha. Each part is a number from 0 to 1.</p><p>Paint every pixel a warm yellow. Use the values <code>0.95</code> for red, <code>0.81</code> for green, and <code>0.36</code> for blue. Keep alpha at <code>1.0</code>.</p><p>To add a touch of life, multiply the whole color by a slow vertical wave: <code>0.85 + 0.15 * sin(gl_FragCoord.y * 0.04)</code>. Soft horizontal bands appear, all in the same warm yellow family.</p><p>Read more at <a href="https://thebookofshaders.com/02/" target="_blank" rel="noreferrer">Book of Shaders, Hello World</a>.</p>',
  'void main() {
-    // TODO: set gl_FragColor to opaque red, i.e. vec4(1.0, 0.0, 0.0, 1.0).
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {
-    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    float band = 0.85 + 0.15 * sin(gl_FragCoord.y * 0.04);
+    gl_FragColor = vec4(0.95 * band, 0.81 * band, 0.36 * band, 1.0);
 }'),
 
 ((SELECT id FROM course WHERE slug = 'glsl-environment'), 'Hkx6a0ctuj8', 1,
- 'Variables and types',
- '<p>GLSL has numbers and groups of numbers. A single number is a <code>float</code>. A group of two is a <code>vec2</code>. A group of three is a <code>vec3</code>. A group of four is a <code>vec4</code>.</p><p>You can build a bigger group from a smaller one. <code>vec4(rgb, 1.0)</code> takes a <code>vec3</code> of color and adds an alpha of 1. You can also pick parts out. <code>color.r</code> gets the red. <code>color.xy</code> gets the first two numbers.</p><p>Try this: make a <code>vec3</code> with the warm yellow <code>(0.95, 0.81, 0.36)</code>. Then put it in a <code>vec4</code> with alpha 1. Read more at <a href="https://thebookofshaders.com/02/" target="_blank" rel="noreferrer">Book of Shaders, Hello World</a>.</p>',
+ 'Build with variables',
+ '<p>GLSL has scalars (a single number) and vectors (a small group of numbers). The scalar is <code>float</code>. The vectors are <code>vec2</code>, <code>vec3</code>, and <code>vec4</code>.</p><p>You can build a wider vector from a narrower one. <code>vec4(rgb, 1.0)</code> takes a <code>vec3</code> and adds an alpha. You can read parts with swizzle: <code>color.r</code>, <code>color.xy</code>, <code>color.bgr</code>.</p><p>Store a soft salmon <code>(0.96, 0.62, 0.51)</code> in a <code>vec3</code> named <code>sunset</code>. Then fade it toward black from top to bottom: scale the color by <code>gl_FragCoord.y / 400.0</code>. The result is a sunset gradient that''s bright at the top and dark at the bottom.</p><p>Read more at <a href="https://thebookofshaders.com/02/" target="_blank" rel="noreferrer">Book of Shaders, Hello World</a>.</p>',
  'void main() {
-    // TODO: declare vec3 rgb = vec3(0.95, 0.81, 0.36); then gl_FragColor = vec4(rgb, 1.0);
-    gl_FragColor = vec4(0.5, 0.5, 0.5, 1.0);
-}',
- 'void main() {
-    vec3 rgb = vec3(0.95, 0.81, 0.36);
-    gl_FragColor = vec4(rgb, 1.0);
-}'),
-
-((SELECT id FROM course WHERE slug = 'glsl-environment'), 'oXidWKram9w', 2,
- 'Your pixel''s address',
- '<p>Every copy of your code runs at a different pixel. How does a copy know which pixel it is? It reads <code>gl_FragCoord.xy</code>. That is the pixel''s spot on the canvas, like <code>(0, 0)</code> at the bottom left.</p><p>The other inputs are the same for every pixel. They are called uniforms. You get <code>u_resolution</code> (the canvas size), <code>u_time</code> (seconds since the page loaded), and <code>u_image</code> (a 256 by 256 picture you can sample).</p><p>Try this: divide <code>gl_FragCoord.xy</code> by <code>u_resolution.xy</code>. That gives you <code>uv</code>, a number from 0 to 1 across the screen. Output it with a blue of 0.5. Read more at <a href="https://thebookofshaders.com/03/" target="_blank" rel="noreferrer">Book of Shaders, Uniforms</a>.</p>',
- 'void main() {
-    // TODO: vec2 uv = gl_FragCoord.xy / u_resolution.xy;  then gl_FragColor = vec4(uv, 0.5, 1.0);
-    gl_FragColor = vec4(0.0, 0.0, 0.5, 1.0);
-}',
- 'void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    gl_FragColor = vec4(uv, 0.5, 1.0);
-}'),
-
-((SELECT id FROM course WHERE slug = 'glsl-environment'), '2ALiNoL9MVE', 3,
- 'Time as an input',
- '<p>The uniform <code>u_time</code> is a number. It counts the seconds since the page loaded. It grows every frame.</p><p>Pass it into <code>sin()</code> or <code>cos()</code>. Those give a smooth wave between -1 and 1. The line <code>0.5 + 0.5 * sin(u_time)</code> gives you a value that moves between 0 and 1 over time.</p><p>Try this: set <code>v</code> to that wave. Then output <code>vec4(v, 0.0, 0.0, 1.0)</code>. The whole canvas will pulse red. Read more at <a href="https://thebookofshaders.com/03/" target="_blank" rel="noreferrer">Book of Shaders, Uniforms</a>.</p>',
- 'void main() {
-    // TODO: float v = 0.5 + 0.5 * sin(u_time); then gl_FragColor = vec4(v, 0.0, 0.0, 1.0);
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {
-    float v = 0.5 + 0.5 * sin(u_time);
-    gl_FragColor = vec4(v, 0.0, 0.0, 1.0);
+    vec3 sunset = vec3(0.96, 0.62, 0.51);
+    float falloff = gl_FragCoord.y / 400.0;
+    gl_FragColor = vec4(sunset * falloff, 1.0);
+}'),
+
+((SELECT id FROM course WHERE slug = 'glsl-environment'), 'oXidWKram9w', 2,
+ 'Every pixel knows its place',
+ '<p>So far every pixel had the same color. To make pixels differ, the shader needs an input that changes per pixel.</p><p>That input is <code>gl_FragCoord.xy</code>. It is the pixel''s position in screen pixels. <code>(0, 0)</code> is the bottom-left. Everything else (<code>u_resolution</code>, <code>u_time</code>, <code>u_image</code>) is a <strong>uniform</strong> — the same value for every pixel in the frame.</p><p>Compute <code>uv = gl_FragCoord.xy / u_resolution.xy</code>. That is a coordinate from 0 to 1 across the canvas. Put <code>uv.x</code> on red, <code>uv.y</code> on green, and <code>0.5</code> on blue.</p><p>Read more at <a href="https://thebookofshaders.com/03/" target="_blank" rel="noreferrer">Book of Shaders, Uniforms</a>.</p>',
+ 'void main() {
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+}',
+ 'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    gl_FragColor = vec4(uv.x, uv.y, 0.5, 1.0);
+}'),
+
+((SELECT id FROM course WHERE slug = 'glsl-environment'), '2ALiNoL9MVE', 3,
+ 'Make it breathe',
+ '<p>The uniform <code>u_time</code> is a float. It counts the seconds since the page loaded. It is the same for every pixel in a frame, but it grows each frame, so it drives animation.</p><p>Plug <code>u_time</code> into <code>sin()</code>. Raw <code>sin</code> swings between -1 and 1, but color channels go from 0 to 1. So remap with <code>0.5 + 0.5 * sin(u_time)</code>. Multiply by 0.5 to shrink the swing. Add 0.5 to lift it up.</p><p>Use that wave on the red channel. Build on the last lesson by keeping <code>uv.y</code> on green and <code>0.5</code> on blue. The canvas will pulse red while the green gradient stays still.</p><p>Read more at <a href="https://thebookofshaders.com/03/" target="_blank" rel="noreferrer">Book of Shaders, Uniforms</a>.</p>',
+ 'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    gl_FragColor = vec4(uv.x, uv.y, 0.5, 1.0);
+}',
+ 'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    float wave = 0.5 + 0.5 * sin(u_time);
+    gl_FragColor = vec4(wave, uv.y, 0.5, 1.0);
 }');

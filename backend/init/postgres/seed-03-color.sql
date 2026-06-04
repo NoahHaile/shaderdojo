@@ -1,7 +1,9 @@
 \c shader_dojo;
 
 -- Family B — Color (3 courses, 12 lessons)
--- Same lecture-style rules as Foundations: explicit recipes, hand-holding TODOs.
+-- Code style: the description teaches. The starter is a near-empty shader
+-- (or the prior lesson's canonical when the next step builds on it). The
+-- canonical is the full working answer. No didactic comments inside the code.
 
 INSERT INTO lesson (course_id, slug, display_order, title, description, starter_fragment_shader, canonical_fragment_shader) VALUES
 
@@ -15,11 +17,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    // TODO: hue from uv.x, saturation and value at 1.0.
-    // vec3 c = hsv2rgb(vec3(uv.x, 1.0, 1.0));
-    vec3 c = vec3(0.5);
-    gl_FragColor = vec4(c, 1.0);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'vec3 hsv2rgb(vec3 c) {
     vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
@@ -41,11 +39,8 @@ void main() {
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 void main() {
-    vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
-    // TODO: hue = atan(p.y, p.x) / (2π) + 0.5.
-    // float h = atan(p.y, p.x) / (2.0 * 3.14159) + 0.5;
-    // vec3 c = hsv2rgb(vec3(h, 1.0, 1.0));
-    vec3 c = vec3(0.5);
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    vec3 c = hsv2rgb(vec3(uv.x, 1.0, 1.0));
     gl_FragColor = vec4(c, 1.0);
 }',
  'vec3 hsv2rgb(vec3 c) {
@@ -70,10 +65,8 @@ void main() {
 }
 void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
-    // TODO: saturation = clamp(length(p) * 2.0, 0.0, 1.0).
-    // float s = clamp(length(p) * 2.0, 0.0, 1.0);
-    // vec3 c = hsv2rgb(vec3(0.07, s, 1.0));
-    vec3 c = vec3(1.0);
+    float h = atan(p.y, p.x) / (2.0 * 3.14159) + 0.5;
+    vec3 c = hsv2rgb(vec3(h, 1.0, 1.0));
     gl_FragColor = vec4(c, 1.0);
 }',
  'vec3 hsv2rgb(vec3 c) {
@@ -97,9 +90,6 @@ void main() {
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 void main() {
-    // TODO: v = 0.5 + 0.5 * sin(u_time); plug into hsv2rgb.
-    // float v = 0.5 + 0.5 * sin(u_time);
-    // vec3 c = hsv2rgb(vec3(0.55, 1.0, v));
     vec3 c = hsv2rgb(vec3(0.55, 1.0, 1.0));
     gl_FragColor = vec4(c, 1.0);
 }',
@@ -122,11 +112,7 @@ void main() {
     return a + b * cos(6.28318 * (c * t + d));
 }
 void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    // TODO: classic rainbow palette indexed by uv.x.
-    // vec3 c = palette(uv.x, vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.00, 0.33, 0.67));
-    vec3 c = vec3(0.5);
-    gl_FragColor = vec4(c, 1.0);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
     return a + b * cos(6.28318 * (c * t + d));
@@ -144,9 +130,8 @@ void main() {
     return a + b * cos(6.28318 * (c * t + d));
 }
 void main() {
-    // TODO: t = u_time * 0.2 (slow cycle).
-    // vec3 c = palette(u_time * 0.2, vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.00, 0.33, 0.67));
-    vec3 c = vec3(0.5);
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    vec3 c = palette(uv.x, vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.00, 0.33, 0.67));
     gl_FragColor = vec4(c, 1.0);
 }',
  'vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
@@ -164,12 +149,7 @@ void main() {
     return a + b * cos(6.28318 * (c * t + d));
 }
 void main() {
-    vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
-    // TODO: r = length(p); palette indexed by r.
-    // float r = length(p);
-    // vec3 c = palette(r, vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.00, 0.33, 0.67));
-    vec3 c = vec3(0.5);
-    gl_FragColor = vec4(c, 1.0);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
     return a + b * cos(6.28318 * (c * t + d));
@@ -189,9 +169,7 @@ void main() {
 }
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    // TODO: sunset palette indexed by uv.y.
-    // vec3 c = palette(uv.y, vec3(0.66, 0.50, 0.40), vec3(0.50, 0.40, 0.20), vec3(0.8, 0.6, 0.5), vec3(0.00, 0.20, 0.50));
-    vec3 c = vec3(0.5);
+    vec3 c = palette(uv.x, vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.00, 0.33, 0.67));
     gl_FragColor = vec4(c, 1.0);
 }',
  'vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
@@ -210,8 +188,6 @@ void main() {
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec3 c = vec3(uv.x);
-    // TODO: apply gamma to the final color.
-    // c = pow(c, vec3(1.0 / 2.2));
     gl_FragColor = vec4(c, 1.0);
 }',
  'void main() {
@@ -227,9 +203,6 @@ void main() {
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     vec3 c = vec3(0.95, 0.81, 0.36);
-    // TODO: build the vignette mask, multiply into c.
-    // float v = 1.0 - smoothstep(0.4, 0.75, length(p));
-    // c *= v;
     gl_FragColor = vec4(c, 1.0);
 }',
  'void main() {
@@ -246,8 +219,6 @@ void main() {
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec3 c = vec3(uv.x * 4.0, uv.y * 2.0, 1.0);
-    // TODO: Reinhard tone map.
-    // c = c / (c + 1.0);
     gl_FragColor = vec4(c, 1.0);
 }',
  'void main() {
@@ -266,8 +237,7 @@ void main() {
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec3 c = vec3(uv.x * 4.0, uv.y * 2.0, 1.0);
-    // TODO: ACES tone map.
-    // c = aces(c);
+    c = c / (c + 1.0);
     gl_FragColor = vec4(c, 1.0);
 }',
  'vec3 aces(vec3 x) {

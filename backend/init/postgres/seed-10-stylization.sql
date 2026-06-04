@@ -11,7 +11,6 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec3 col = texture2D(u_image, uv).rgb;
-    // TODO: quantize col to 5 levels per channel: floor(col * 5.0) / 5.0
     gl_FragColor = vec4(col, 1.0);
 }',
  'void main() {
@@ -23,12 +22,11 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'posterize-dither'), '2TyvndnucHg', 1,
  'Bayer 4×4 dither',
- '<p>Dither scatters the seams between color steps with a tiny pattern. A Bayer matrix is one such pattern. It is a fixed grid of threshold numbers.</p><p>Build a threshold from <code>gl_FragCoord</code> mod 4. Add it to the scaled color before <code>floor</code>. Then divide back down.</p><p>The math <code>(2x + 3y) mod 16</code> makes the pattern. It fakes a 16-level look with only 4 real levels. Read more at <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
+ '<p>Posterize alone is brutal. Every smooth gradient snaps to a few flat levels, and the seams between those levels show up as ugly visible bands across the image.</p><p>A Bayer matrix scatters small offsets across the pixels in a deterministic, repeating 4×4 pattern. Add the offset before <code>floor</code> and neighbouring pixels land on different sides of each step boundary. The eye blends them and the bands turn into a smooth transition — without using random noise, which would look like static.</p><p>This is the trick old printers, early game consoles, and monochrome screens used to fake more shades than the hardware actually had. The math <code>(2x + 3y) mod 16</code> builds the pattern, so 4 real levels read as 16. Read more at <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec3 col = texture2D(u_image, uv).rgb;
-    // TODO: bayer = mod(2.0*float(int(mod(gl_FragCoord.x,4.0))) + 3.0*float(int(mod(gl_FragCoord.y,4.0))), 16.0) / 16.0;
-    // TODO: col = floor(col * 4.0 + bayer) / 4.0;
+    col = floor(col * 5.0) / 5.0;
     gl_FragColor = vec4(col, 1.0);
 }',
  'void main() {
@@ -45,8 +43,9 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
  'float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    // TODO: col = floor(texture2D(u_image, uv).rgb * 4.0 + hash(gl_FragCoord.xy)) / 4.0;
     vec3 col = texture2D(u_image, uv).rgb;
+    float bayer = mod(2.0 * float(int(mod(gl_FragCoord.x, 4.0))) + 3.0 * float(int(mod(gl_FragCoord.y, 4.0))), 16.0) / 16.0;
+    col = floor(col * 4.0 + bayer) / 4.0;
     gl_FragColor = vec4(col, 1.0);
 }',
  'float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
@@ -62,8 +61,6 @@ void main() {
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec3 col = vec3(uv.x);
-    // TODO: bayer = mod(2.0*float(int(mod(gl_FragCoord.x,4.0))) + 3.0*float(int(mod(gl_FragCoord.y,4.0))), 16.0) / 16.0;
-    // TODO: col = floor(col * 5.0 + bayer) / 5.0;
     gl_FragColor = vec4(col, 1.0);
 }',
  'void main() {
@@ -80,9 +77,6 @@ void main() {
  '<p>Chromatic aberration fakes a cheap camera lens. The lens bends each color a bit differently, so the channels do not line up.</p><p>Sample each color at a slightly different spot. Red shifts right. Green stays at the center. Blue shifts left. Put them back together. Read more at <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    // TODO: r = texture2D(u_image, uv + vec2(0.01, 0.0)).r;
-    // TODO: g = texture2D(u_image, uv).g;
-    // TODO: b = texture2D(u_image, uv - vec2(0.01, 0.0)).b;
     vec3 col = texture2D(u_image, uv).rgb;
     gl_FragColor = vec4(col, 1.0);
 }',
@@ -99,10 +93,10 @@ void main() {
  '<p>On a real lens, the color fringe spreads out from the center. Build an offset that points outward with <code>(uv - 0.5) * k</code>.</p><p>Use that offset to push red and blue the opposite way along the line from the middle. Read more at <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    // TODO: off = (uv - 0.5) * 0.05;
-    // TODO: r at uv + off, g at uv, b at uv - off
-    vec3 col = texture2D(u_image, uv).rgb;
-    gl_FragColor = vec4(col, 1.0);
+    float r = texture2D(u_image, uv + vec2(0.01, 0.0)).r;
+    float g = texture2D(u_image, uv).g;
+    float b = texture2D(u_image, uv - vec2(0.01, 0.0)).b;
+    gl_FragColor = vec4(r, g, b, 1.0);
 }',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
@@ -118,9 +112,11 @@ void main() {
  '<p>Make the offset strength change over time. Use a sine wave on <code>u_time</code>. The fringe will grow and shrink with each frame.</p><p>The fringe breathes in and out. You get a glitchy VHS look. Read more at <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    // TODO: off = (uv - 0.5) * 0.05 * (0.5 + 0.5 * sin(u_time));
-    vec3 col = texture2D(u_image, uv).rgb;
-    gl_FragColor = vec4(col, 1.0);
+    vec2 off = (uv - 0.5) * 0.05;
+    float r = texture2D(u_image, uv + off).r;
+    float g = texture2D(u_image, uv).g;
+    float b = texture2D(u_image, uv - off).b;
+    gl_FragColor = vec4(r, g, b, 1.0);
 }',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
@@ -141,8 +137,6 @@ void main() {
     float g = texture2D(u_image, uv).g;
     float b = texture2D(u_image, uv - off).b;
     vec3 col = vec3(r, g, b);
-    // TODO: v = 1.0 - smoothstep(0.4, 0.8, length(uv - 0.5));
-    // TODO: col *= v;
     gl_FragColor = vec4(col, 1.0);
 }',
  'void main() {
@@ -164,7 +158,6 @@ void main() {
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     float d = length(p) - 0.2;
-    // TODO: halo = exp(-d * 8.0); col = vec3(halo) * vec3(1.0, 0.8, 0.4);
     vec3 col = vec3(0.0);
     gl_FragColor = vec4(col, 1.0);
 }',
@@ -181,8 +174,9 @@ void main() {
  '<p>Bloom adds up. Pick three different centers and compute the halo for each one. Then add the three halos together.</p><p>Where they overlap, the canvas glows brighter. Read more at <a href="https://iquilezles.org/articles/gamma/" target="_blank" rel="noreferrer">IQ on gamma correct blurring</a>.</p>',
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
-    // TODO: sum exp(-(length(p - c_i) - 0.1) * 8.0) for c_i in {(-0.3,0), (0,0.2), (0.3,0)}
-    vec3 col = vec3(0.0);
+    float d = length(p) - 0.2;
+    float halo = exp(-d * 8.0);
+    vec3 col = vec3(halo) * vec3(1.0, 0.8, 0.4);
     gl_FragColor = vec4(col, 1.0);
 }',
  'void main() {
@@ -201,7 +195,6 @@ void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     float d = length(p) - 0.2;
     float halo = exp(-d * 8.0);
-    // TODO: halo *= 0.5 + 0.5 * sin(u_time);
     vec3 col = vec3(halo) * vec3(1.0, 0.8, 0.4);
     gl_FragColor = vec4(col, 1.0);
 }',
@@ -222,8 +215,7 @@ void main() {
 void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     float d = length(p) - 0.2;
-    float halo = exp(-d * 8.0);
-    // TODO: tint = palette(u_time * 0.1, vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.00, 0.33, 0.67));
+    float halo = exp(-d * 8.0) * (0.5 + 0.5 * sin(u_time));
     vec3 tint = vec3(1.0, 0.8, 0.4);
     gl_FragColor = vec4(vec3(halo) * tint, 1.0);
 }',
@@ -264,12 +256,6 @@ void main() {
         t += d;
     }
     vec3 col = vec3(0.7, 0.85, 1.0);
-    if (hit) {
-        vec3 p = ro + t * rd;
-        vec3 n = normal(p);
-        vec3 v = -rd;
-        // TODO: f = pow(1.0 - max(dot(n, v), 0.0), 3.0); col = vec3(f);
-    }
     gl_FragColor = vec4(col, 1.0);
 }',
  'float scene(vec3 p) { return length(p) - 0.7; }
@@ -333,9 +319,8 @@ void main() {
         vec3 p = ro + t * rd;
         vec3 n = normal(p);
         vec3 v = -rd;
-        // TODO: diff = max(dot(n, normalize(vec3(0.5, 0.8, 0.3))), 0.0);
-        // TODO: f = pow(1.0 - max(dot(n, v), 0.0), 3.0);
-        // TODO: col = vec3(diff) * 0.5 + f * vec3(0.4, 0.7, 1.0);
+        float f = pow(1.0 - max(dot(n, v), 0.0), 3.0);
+        col = vec3(f);
     }
     gl_FragColor = vec4(col, 1.0);
 }',
@@ -401,8 +386,9 @@ void main() {
         vec3 p = ro + t * rd;
         vec3 n = normal(p);
         vec3 v = -rd;
-        // TODO: f = pow(1.0 - max(dot(n, v), 0.0), 3.0);
-        // TODO: col = vec3(f) * vec3(1.0, 0.7, 0.3);
+        float diff = max(dot(n, normalize(vec3(0.5, 0.8, 0.3))), 0.0);
+        float f = pow(1.0 - max(dot(n, v), 0.0), 3.0);
+        col = vec3(diff) * 0.5 + f * vec3(0.4, 0.7, 1.0);
     }
     gl_FragColor = vec4(col, 1.0);
 }',
@@ -464,12 +450,7 @@ void main() {
     }
     vec3 col = vec3(0.7, 0.85, 1.0);
     if (hit) {
-        vec3 p = ro + t * rd;
-        vec3 n = normal(p);
-        vec3 v = -rd;
-        // TODO: diff = max(dot(n, normalize(vec3(0.5, 0.8, 0.3))), 0.0);
-        // TODO: f = pow(1.0 - max(dot(n, v), 0.0), 3.0);
-        // TODO: col = vec3(0.95, 0.81, 0.36) * (diff * 0.7 + 0.2) + f * vec3(1.0, 0.7, 0.3);
+        col = vec3(0.0);
     }
     gl_FragColor = vec4(col, 1.0);
 }',

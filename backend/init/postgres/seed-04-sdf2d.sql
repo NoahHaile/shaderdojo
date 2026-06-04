@@ -1,7 +1,10 @@
 \c shader_dojo;
 
 -- Family C — 2D distance fields (4 courses, 16 lessons)
--- Same lecture-style rules: explicit recipes, hand-holding TODOs, "what you'll see".
+-- Code style: the description teaches. The starter is a near-empty shader or
+-- the prior lesson's canonical. The canonical is the full working answer. No
+-- didactic comments inside the code — the learner writes meaningful lines from
+-- the recipe in the description.
 
 INSERT INTO lesson (course_id, slug, display_order, title, description, starter_fragment_shader, canonical_fragment_shader) VALUES
 
@@ -10,13 +13,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
  'Circle SDF',
  '<p>An SDF is a function. You give it a point. It tells you the distance to the nearest edge of a shape. The number is negative inside the shape and positive outside.</p><p>For a circle of radius <code>r</code> at the center, the SDF is <code>length(p) - r</code>. It is 0 on the edge. It is negative inside. It is positive outside.</p><p>Now fill the inside. <code>step(0.0, d)</code> gives 1 outside and 0 inside. Flip it with <code>1.0 - step(0.0, d)</code>. Then <code>mix(bg, fg, m)</code> paints the inside with <code>fg</code> on top of <code>bg</code>.</p><p>Reference: <a href="https://iquilezles.org/articles/distfunctions2d/" target="_blank" rel="noreferrer">IQ — 2D distance functions</a>.</p>',
  'void main() {
-    vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
-    float d = length(p) - 0.3;
-    // TODO: fill where d < 0.
-    // float m = 1.0 - step(0.0, d);
-    // vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), m);
-    vec3 c = vec3(0.10, 0.15, 0.35);
-    gl_FragColor = vec4(c, 1.0);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
@@ -31,12 +28,9 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
  '<p>A box needs two parts. Outside the box, the distance is how far past the nearest side you are. Inside the box, the distance is how deep in you are. The formula adds both parts.</p><p>Given half-sizes <code>b</code>, first do <code>vec2 d = abs(p) - b</code>. This folds <code>p</code> into one corner and subtracts the half-size. A negative number means you are inside on that axis.</p><p>The outside part is <code>length(max(d, 0.0))</code>. Only positive parts count. The inside part is <code>min(max(d.x, d.y), 0.0)</code>. It only fires when both axes are inside. Add them. Fill the inside like you did for the circle.</p><p>Reference: <a href="https://iquilezles.org/articles/distfunctions2d/" target="_blank" rel="noreferrer">IQ — 2D distance functions</a>.</p>',
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
-    vec2 d = abs(p) - vec2(0.3, 0.2);
-    // TODO: combine outside + inside parts; fill where dist < 0.
-    // float dist = length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
-    // float m = 1.0 - step(0.0, dist);
-    // vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), m);
-    vec3 c = vec3(0.10, 0.15, 0.35);
+    float d = length(p) - 0.3;
+    float m = 1.0 - step(0.0, d);
+    vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), m);
     gl_FragColor = vec4(c, 1.0);
 }',
  'void main() {
@@ -58,13 +52,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
     return length(pa - ba * h);
 }
 void main() {
-    vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
-    float d = sdSegment(p, vec2(-0.4, -0.3), vec2(0.4, 0.3));
-    // TODO: stroke = 1.0 - smoothstep(0.0, 0.03, d); mix bg/fg.
-    // float m = 1.0 - smoothstep(0.0, 0.03, d);
-    // vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), m);
-    vec3 c = vec3(0.10, 0.15, 0.35);
-    gl_FragColor = vec4(c, 1.0);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'float sdSegment(vec2 p, vec2 a, vec2 b) {
     vec2 pa = p - a;
@@ -86,11 +74,7 @@ void main() {
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     float d = length(p) - 0.3;
-    // TODO: fill mask from sign.
-    // float m = step(sign(d), 0.0);
-    // vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), m);
-    vec3 c = vec3(0.10, 0.15, 0.35);
-    gl_FragColor = vec4(c, 1.0);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
@@ -108,12 +92,7 @@ void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     float d1 = length(p - vec2(-0.2, 0.0)) - 0.25;
     float d2 = length(p - vec2( 0.2, 0.0)) - 0.25;
-    // TODO: union = min(d1, d2).
-    // float d = min(d1, d2);
-    float d = d1;
-    float m = 1.0 - step(0.0, d);
-    vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), m);
-    gl_FragColor = vec4(c, 1.0);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
@@ -132,9 +111,7 @@ void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     float d1 = length(p - vec2(-0.2, 0.0)) - 0.25;
     float d2 = length(p - vec2( 0.2, 0.0)) - 0.25;
-    // TODO: intersection = max(d1, d2).
-    // float d = max(d1, d2);
-    float d = d1;
+    float d = min(d1, d2);
     float m = 1.0 - step(0.0, d);
     vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), m);
     gl_FragColor = vec4(c, 1.0);
@@ -156,12 +133,7 @@ void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     float large = length(p) - 0.4;
     float small = length(p - vec2(0.15, 0.0)) - 0.25;
-    // TODO: subtract small from large.
-    // float d = max(large, -small);
-    float d = large;
-    float m = 1.0 - step(0.0, d);
-    vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), m);
-    gl_FragColor = vec4(c, 1.0);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
@@ -178,11 +150,9 @@ void main() {
  '<p>You can make a ring with the same subtraction rule. Put both circles at the center. The outer one has radius 0.4. The inner one has radius 0.3.</p><p>Take <code>d = max(outer, -inner)</code>. You get everything inside the big circle but outside the small one. The result is a ring 0.1 units wide.</p><p>The formula is the same as the last lesson. Only the positions changed.</p><p>Reference: <a href="https://mercury.sexy/hg_sdf/" target="_blank" rel="noreferrer">hg_sdf — distance field operations</a>.</p>',
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
-    float outer = length(p) - 0.4;
-    float inner = length(p) - 0.3;
-    // TODO: ring = max(outer, -inner).
-    // float d = max(outer, -inner);
-    float d = outer;
+    float large = length(p) - 0.4;
+    float small = length(p - vec2(0.15, 0.0)) - 0.25;
+    float d = max(large, -small);
     float m = 1.0 - step(0.0, d);
     vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), m);
     gl_FragColor = vec4(c, 1.0);
@@ -209,8 +179,6 @@ void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     float d1 = length(p - vec2(-0.18, 0.0)) - 0.2;
     float d2 = length(p - vec2( 0.18, 0.0)) - 0.2;
-    // TODO: smooth union with k = 0.1.
-    // float d = smin(d1, d2, 0.1);
     float d = min(d1, d2);
     float m = 1.0 - step(0.0, d);
     vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), m);
@@ -241,9 +209,7 @@ void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     float d1 = length(p - vec2(-0.25, 0.0)) - 0.2;
     float d2 = length(p - vec2( 0.25, 0.0)) - 0.2;
-    // TODO: smin with bigger k = 0.2 to bridge the gap.
-    // float d = smin(d1, d2, 0.2);
-    float d = min(d1, d2);
+    float d = smin(d1, d2, 0.1);
     float m = 1.0 - step(0.0, d);
     vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), m);
     gl_FragColor = vec4(c, 1.0);
@@ -274,9 +240,7 @@ void main() {
     float d1 = length(p - vec2(-0.3, 0.0)) - 0.18;
     float d2 = length(p - vec2( 0.0, 0.15)) - 0.18;
     float d3 = length(p - vec2( 0.3, 0.0)) - 0.18;
-    // TODO: chain two smins.
-    // float d = smin(smin(d1, d2, 0.12), d3, 0.12);
-    float d = min(min(d1, d2), d3);
+    float d = smin(d1, d2, 0.12);
     float m = 1.0 - step(0.0, d);
     vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), m);
     gl_FragColor = vec4(c, 1.0);
@@ -311,8 +275,6 @@ void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     float dc = length(p - vec2(-0.15, 0.0)) - 0.2;
     float db = sdBox(p - vec2(0.15, 0.0), vec2(0.18, 0.15));
-    // TODO: smin circle + box.
-    // float d = smin(dc, db, 0.1);
     float d = min(dc, db);
     float m = 1.0 - step(0.0, d);
     vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), m);
@@ -343,8 +305,6 @@ void main() {
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     float d = length(p) - 0.3;
-    // TODO: m = smoothstep(0.005, -0.005, d).
-    // float m = smoothstep(0.005, -0.005, d);
     float m = 1.0 - step(0.0, d);
     vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), m);
     gl_FragColor = vec4(c, 1.0);
@@ -363,10 +323,7 @@ void main() {
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     float d = length(p) - 0.3;
-    // TODO: pixel-wide AA from fwidth.
-    // float w = fwidth(d);
-    // float m = smoothstep(w, -w, d);
-    float m = 1.0 - step(0.0, d);
+    float m = smoothstep(0.005, -0.005, d);
     vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), m);
     gl_FragColor = vec4(c, 1.0);
 }',
@@ -385,11 +342,8 @@ void main() {
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     float d = length(p) - 0.3;
-    float e = abs(d) - 0.01;
-    // TODO: pixel AA on the outline.
-    // float w = fwidth(e);
-    // float m = smoothstep(w, -w, e);
-    float m = 0.0;
+    float w = fwidth(d);
+    float m = smoothstep(w, -w, d);
     vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), m);
     gl_FragColor = vec4(c, 1.0);
 }',
@@ -412,11 +366,7 @@ void main() {
     float d = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
     float w = fwidth(d);
     float fill = smoothstep(w, -w, d);
-    float stroke = smoothstep(w, -w, abs(d) - 0.01);
-    // TODO: combine fill and stroke.
-    // float m = max(fill, stroke);
-    float m = fill;
-    vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), m);
+    vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), fill);
     gl_FragColor = vec4(c, 1.0);
 }',
  'void main() {

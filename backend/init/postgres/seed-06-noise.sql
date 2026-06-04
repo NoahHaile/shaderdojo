@@ -12,10 +12,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
 void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    // TODO: v = hash(uv); output vec3(v).
-    float v = 0.0;
-    gl_FragColor = vec4(vec3(v), 1.0);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
@@ -33,9 +30,8 @@ void main() {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
 void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy * 8.0;
-    // TODO: cell = floor(uv); v = hash(cell); output vec3(v).
-    float v = 0.0;
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    float v = hash(uv);
     gl_FragColor = vec4(vec3(v), 1.0);
 }',
  'float hash(vec2 p) {
@@ -57,9 +53,8 @@ void main() {
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 8.0;
     vec2 cell = floor(uv);
-    // TODO: c = vec3(hash(cell), hash(cell + 17.0), hash(cell + 31.0));
-    vec3 c = vec3(hash(cell));
-    gl_FragColor = vec4(c, 1.0);
+    float v = hash(cell);
+    gl_FragColor = vec4(vec3(v), 1.0);
 }',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
@@ -78,9 +73,7 @@ void main() {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
 void main() {
-    // TODO: v = hash(gl_FragCoord.xy); output vec3(step(0.5, v)).
-    float v = 0.0;
-    gl_FragColor = vec4(vec3(v), 1.0);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
@@ -105,10 +98,7 @@ float vnoise(vec2 p) {
                mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
 }
 void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy * 6.0;
-    // TODO: v = vnoise(uv); output vec3(v).
-    float v = 0.0;
-    gl_FragColor = vec4(vec3(v), 1.0);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
@@ -127,8 +117,8 @@ void main() {
 }'),
 
 ((SELECT id FROM course WHERE slug = 'value-noise'), 'ZvRqVRXNQSM', 1,
- 'Sliding origin',
- '<p>You can move the noise by adding time to the input. Add <code>vec2(u_time * 0.3, 0.0)</code> to <code>uv</code> before you sample. The x part grows over time. The y part stays at 0.</p><p>The whole field scrolls sideways like a slow conveyor belt.</p><p>Read more at <a href="https://thebookofshaders.com/11/" target="_blank" rel="noreferrer">Book of Shaders, Noise</a>.</p>',
+ 'Tilt and rotate noise',
+ '<p>The input position does not have to map straight onto the noise grid. Multiply <code>uv</code> by a small 2x2 rotation matrix before you sample. Pick an angle like <code>0.7</code> radians. Build <code>mat2(c, -s, s, c)</code> with <code>c = cos(0.7)</code> and <code>s = sin(0.7)</code>.</p><p>Then scale the result by <code>1.4</code> for a zoom tweak. You get the same value noise field, but tilted on its side and a touch closer up.</p><p>Read more at <a href="https://thebookofshaders.com/08/" target="_blank" rel="noreferrer">Book of Shaders, Matrices</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -141,7 +131,6 @@ float vnoise(vec2 p) {
 }
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 6.0;
-    // TODO: v = vnoise(uv + vec2(u_time * 0.3, 0.0));
     float v = vnoise(uv);
     gl_FragColor = vec4(vec3(v), 1.0);
 }',
@@ -157,7 +146,9 @@ float vnoise(vec2 p) {
 }
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 6.0;
-    float v = vnoise(uv + vec2(u_time * 0.3, 0.0));
+    float c = cos(0.7), s = sin(0.7);
+    uv = mat2(c, -s, s, c) * uv * 1.4;
+    float v = vnoise(uv);
     gl_FragColor = vec4(vec3(v), 1.0);
 }'),
 
@@ -177,9 +168,7 @@ float vnoise(vec2 p) {
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 4.0;
     float h = vnoise(uv);
-    // TODO: c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), h);
-    vec3 c = vec3(h);
-    gl_FragColor = vec4(c, 1.0);
+    gl_FragColor = vec4(vec3(h), 1.0);
 }',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
@@ -213,9 +202,8 @@ float vnoise(vec2 p) {
 }
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 5.0;
-    // TODO: m = step(0.5, vnoise(uv));
-    float m = vnoise(uv);
-    gl_FragColor = vec4(vec3(m), 1.0);
+    float v = vnoise(uv);
+    gl_FragColor = vec4(vec3(v), 1.0);
 }',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
@@ -255,10 +243,7 @@ float gnoise(vec2 p) {
     return 0.5 + 0.5 * mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
 }
 void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy * 5.0;
-    // TODO: v = gnoise(uv); output vec3(v).
-    float v = 0.0;
-    gl_FragColor = vec4(vec3(v), 1.0);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
@@ -312,8 +297,7 @@ float gnoise(vec2 p) {
 }
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    // TODO: v = (uv.x < 0.5) ? vnoise(uv * 5.0) : gnoise(uv * 5.0);
-    float v = 0.0;
+    float v = gnoise(uv * 5.0);
     gl_FragColor = vec4(vec3(v), 1.0);
 }',
  'float hash(vec2 p) {
@@ -347,8 +331,8 @@ void main() {
 }'),
 
 ((SELECT id FROM course WHERE slug = 'gradient-noise'), '2Z-7PN_Q4WE', 2,
- 'Animated drift',
- '<p>Add <code>vec2(0.0, u_time * 0.2)</code> to the noise input. The y part grows over time. The whole field drifts up the screen.</p><p>You get slow-moving clouds or rolling fog.</p><p>Read more at <a href="https://iquilezles.org/articles/gradientnoise/" target="_blank" rel="noreferrer">IQ, Gradient noise</a>.</p>',
+ 'Two-octave gradient noise',
+ '<p>One noise layer is smooth but plain. Add a second layer at twice the frequency and half the amplitude: <code>gnoise(uv) + 0.5 * gnoise(uv * 2.0)</code>. The coarse layer gives the big shape. The finer layer adds little bumps inside it.</p><p>Divide by <code>1.5</code> to bring the total back into the 0 to 1 range. The result has visibly more detail than plain gradient noise. This is a tiny preview of fbm, where you stack many octaves.</p><p>Read more at <a href="https://thebookofshaders.com/13/" target="_blank" rel="noreferrer">Book of Shaders, Fractal Brownian Motion</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -368,7 +352,6 @@ float gnoise(vec2 p) {
 }
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 4.0;
-    // TODO: v = gnoise(uv + vec2(0.0, u_time * 0.2));
     float v = gnoise(uv);
     gl_FragColor = vec4(vec3(v), 1.0);
 }',
@@ -391,7 +374,8 @@ float gnoise(vec2 p) {
 }
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 4.0;
-    float v = gnoise(uv + vec2(0.0, u_time * 0.2));
+    float v = gnoise(uv) + 0.5 * gnoise(uv * 2.0);
+    v = v / 1.5;
     gl_FragColor = vec4(vec3(v), 1.0);
 }'),
 
@@ -418,9 +402,7 @@ float gnoise(vec2 p) {
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 4.0;
     float g = gnoise(uv);
-    // TODO: v = 1.0 - abs(2.0 * g - 1.0);
-    float v = g;
-    gl_FragColor = vec4(vec3(v), 1.0);
+    gl_FragColor = vec4(vec3(g), 1.0);
 }',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
@@ -468,10 +450,7 @@ float voronoi(vec2 uv) {
     return sqrt(minD);
 }
 void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy * 6.0;
-    // TODO: v = voronoi(uv); output vec3(v).
-    float v = 0.0;
-    gl_FragColor = vec4(vec3(v), 1.0);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
@@ -519,8 +498,7 @@ vec3 voronoiColor(vec2 uv) {
             }
         }
     }
-    // TODO: return vec3(hash(closest), hash(closest + 17.0), hash(closest + 31.0));
-    return vec3(0.5);
+    return vec3(sqrt(minD));
 }
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 6.0;
@@ -575,7 +553,6 @@ float voronoi(vec2 uv) {
 }
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 6.0;
-    // TODO: v = smoothstep(0.0, 0.05, voronoi(uv));
     float v = voronoi(uv);
     gl_FragColor = vec4(vec3(v), 1.0);
 }',
@@ -615,8 +592,6 @@ float voronoi(vec2 uv) {
     for (int y = -1; y <= 1; y++) {
         for (int x = -1; x <= 1; x++) {
             vec2 n = vec2(float(x), float(y));
-            // TODO: o = vec2(0.5 + 0.5*sin(u_time + hash(i+n)*6.28318),
-            //               0.5 + 0.5*sin(u_time + hash(i+n+vec2(7.0,13.0))*6.28318));
             vec2 o = vec2(hash(i + n), hash(i + n + vec2(7.0, 13.0)));
             vec2 r = n + o - f;
             minD = min(minD, dot(r, r));
@@ -676,10 +651,7 @@ float fbm(vec2 p) {
     return v;
 }
 void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy * 3.0;
-    // TODO: v = fbm(uv); output vec3(v).
-    float v = 0.0;
-    gl_FragColor = vec4(vec3(v), 1.0);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
@@ -732,7 +704,6 @@ float fbm(vec2 p) {
 }
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 3.0;
-    // TODO: v = floor(fbm(uv) * 8.0) / 8.0;
     float v = fbm(uv);
     gl_FragColor = vec4(vec3(v), 1.0);
 }',
@@ -779,7 +750,6 @@ float turb(vec2 p) {
     float v = 0.0;
     float a = 0.5;
     for (int i = 0; i < 4; i++) {
-        // TODO: v += a * abs(2.0 * vnoise(p) - 1.0);
         v += a * vnoise(p);
         p *= 2.0;
         a *= 0.5;
@@ -840,7 +810,6 @@ float fbm(vec2 p) {
 }
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 3.0;
-    // TODO: v = fbm(uv + vec2(0.0, u_time * 0.15));
     float v = fbm(uv);
     gl_FragColor = vec4(vec3(v), 1.0);
 }',
@@ -896,7 +865,6 @@ float fbm(vec2 p) {
 }
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 2.0;
-    // TODO: q = vec2(fbm(uv), fbm(uv + 5.2)); v = fbm(uv + 0.8 * q);
     float v = fbm(uv);
     gl_FragColor = vec4(vec3(v), 1.0);
 }',
@@ -954,9 +922,7 @@ void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 2.0;
     vec2 q = vec2(fbm(uv), fbm(uv + 5.2));
     float v = fbm(uv + 0.8 * q);
-    // TODO: c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), v);
-    vec3 c = vec3(v);
-    gl_FragColor = vec4(c, 1.0);
+    gl_FragColor = vec4(vec3(v), 1.0);
 }',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
@@ -1011,11 +977,8 @@ float fbm(vec2 p) {
 }
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 2.0;
-    // TODO:
-    // q = vec2(fbm(uv), fbm(uv + 5.2));
-    // r = vec2(fbm(uv + q + 1.7), fbm(uv + q + 9.2));
-    // v = fbm(uv + r);
-    float v = fbm(uv);
+    vec2 q = vec2(fbm(uv), fbm(uv + 5.2));
+    float v = fbm(uv + 0.8 * q);
     gl_FragColor = vec4(vec3(v), 1.0);
 }',
  'float hash(vec2 p) {
@@ -1047,8 +1010,8 @@ void main() {
 }'),
 
 ((SELECT id FROM course WHERE slug = 'domain-warping'), 'yc3PaZZSqcM', 3,
- 'Animated warp offset',
- '<p>Add <code>u_time * 0.1</code> to the input of the q sample. Now the warp itself moves over time.</p><p>The whole shape morphs as it drifts. The canvas looks like slowly stirring marble or oil paint.</p><p>Read more at <a href="https://iquilezles.org/articles/warp/" target="_blank" rel="noreferrer">IQ, Domain warping</a>.</p>',
+ 'Two-level warp (warp the warp)',
+ '<p>You can warp the warp. First compute <code>q</code> with two fbm samples, just like before. Then build a second offset <code>r</code> whose inputs already include <code>4.0 * q</code>. Each component of <code>r</code> uses its own constant offset so the two coordinates stay independent.</p><p>Finally sample <code>fbm(uv + 4.0 * r)</code>. Each warp bends the input that feeds the next one. The distortions compound and the field grows deep, twisted, marble-like swirls. This is the classic two-level pattern from IQ''s warp article.</p><p>Read more at <a href="https://iquilezles.org/articles/warp/" target="_blank" rel="noreferrer">IQ, Domain warping</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -1071,8 +1034,6 @@ float fbm(vec2 p) {
 }
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 2.0;
-    // TODO: q = vec2(fbm(uv + u_time * 0.1), fbm(uv + 5.2 + u_time * 0.1));
-    //       v = fbm(uv + 0.8 * q);
     vec2 q = vec2(fbm(uv), fbm(uv + 5.2));
     float v = fbm(uv + 0.8 * q);
     gl_FragColor = vec4(vec3(v), 1.0);
@@ -1099,7 +1060,8 @@ float fbm(vec2 p) {
 }
 void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 2.0;
-    vec2 q = vec2(fbm(uv + u_time * 0.1), fbm(uv + 5.2 + u_time * 0.1));
-    float v = fbm(uv + 0.8 * q);
+    vec2 q = vec2(fbm(uv + vec2(0.0, 0.0)), fbm(uv + vec2(5.2, 1.3)));
+    vec2 r = vec2(fbm(uv + 4.0 * q + vec2(1.7, 9.2)), fbm(uv + 4.0 * q + vec2(8.3, 2.8)));
+    float v = fbm(uv + 4.0 * r);
     gl_FragColor = vec4(vec3(v), 1.0);
 }');

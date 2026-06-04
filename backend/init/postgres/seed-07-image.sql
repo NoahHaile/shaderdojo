@@ -7,11 +7,9 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 -- ===== Course: image-sampling =====
 ((SELECT id FROM course WHERE slug = 'image-sampling'), 'zp-XRe_jywQ', 0,
  'Direct sample',
- '<p>A shader can read a picture. The call is <code>texture2D(sampler, uv)</code>. It looks up the color at the spot <code>uv</code>. The spot is a pair of numbers from 0 to 1.</p><p>You have a picture called <code>u_image</code>. It is 256 by 256. It has a color gradient, a bright circle, and a dark square. Those shapes help you see what your code does.</p><p>Try this: build <code>uv</code> from <code>gl_FragCoord.xy / u_resolution.xy</code>. Then output <code>texture2D(u_image, uv)</code>. Read more at <a href="https://iquilezles.org/articles/texture/" target="_blank" rel="noreferrer">IQ, Improved bilinear filtering</a>.</p>',
+ '<p>A shader can read a picture. The call is <code>texture2D(sampler, uv)</code>. It looks up the color at the spot <code>uv</code>, where the spot is a pair of numbers from 0 to 1.</p><p>The picture you have is <code>u_image</code>: 256 by 256 pixels. It holds an HSV rainbow that sweeps left to right, a bright disc in the upper-left, and a dark square in the lower-right. Those three landmarks make it easy to tell when your sampling is right.</p><p>Try this: build <code>uv</code> from <code>gl_FragCoord.xy / u_resolution.xy</code>, then output <code>texture2D(u_image, uv)</code>. You should see the rainbow stretched to fill the canvas, with the circle and square in their places.</p><p>Read more at <a href="https://iquilezles.org/articles/texture/" target="_blank" rel="noreferrer">IQ, Improved bilinear filtering</a>.</p>',
  'void main() {
-    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    // TODO: sample u_image at uv and output it.
-    gl_FragColor = vec4(uv, 0.0, 1.0);
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
@@ -23,7 +21,6 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
  '<p>The <code>uv</code> spot is just numbers. You can change those numbers before you sample. That moves or flips the picture.</p><p>Swap <code>uv.y</code> for <code>1.0 - uv.y</code>. Now the top reads from the bottom. The picture flips upside down. The same trick fixes pictures that load with their y axis the wrong way.</p><p>Try this: sample <code>u_image</code> at <code>vec2(uv.x, 1.0 - uv.y)</code>. Read more at <a href="https://iquilezles.org/articles/texture/" target="_blank" rel="noreferrer">IQ, Improved bilinear filtering</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    // TODO: sample u_image with y flipped: vec2(uv.x, 1.0 - uv.y).
     gl_FragColor = texture2D(u_image, uv);
 }',
  'void main() {
@@ -33,11 +30,10 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'image-sampling'), 'p1ZJ3WDcse4', 2,
  'Tiled fract sample',
- '<p>Multiply <code>uv</code> by 3 and the numbers go from 0 to 3. That asks for spots outside the picture. The result depends on how the sampler is set up.</p><p>Use <code>fract()</code> to keep the spot in 0 to 1. It throws away the whole part and keeps the decimal. So <code>fract(uv * 3.0)</code> tiles the picture in a 3 by 3 grid.</p><p>Try this: sample <code>u_image</code> at <code>fract(uv * 3.0)</code>. Read more at <a href="https://iquilezles.org/articles/texture/" target="_blank" rel="noreferrer">IQ, Improved bilinear filtering</a>.</p>',
+ '<p>Multiply <code>uv</code> by 3 and the numbers go from 0 to 3. That asks for spots outside the picture. The result depends on how the sampler is set up.</p><p>Use <code>fract()</code> to keep the spot in 0 to 1. It throws away the whole part and keeps the decimal. So <code>fract(uv * 3.0)</code> takes the address 1.7 and turns it into 0.7. The picture gets stamped down 3 by 3 across the canvas: 9 small copies of the rainbow, each with its own circle and square.</p><p>Try this: sample <code>u_image</code> at <code>fract(uv * 3.0)</code>. Bump the multiplier to 5.0 or 10.0 to see denser tiling. Read more at <a href="https://iquilezles.org/articles/texture/" target="_blank" rel="noreferrer">IQ, Improved bilinear filtering</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    // TODO: sample u_image at fract(uv * 3.0) for a 3x3 tiling.
-    gl_FragColor = texture2D(u_image, uv);
+    gl_FragColor = texture2D(u_image, vec2(uv.x, 1.0 - uv.y));
 }',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
@@ -49,8 +45,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
  '<p>Add <code>u_time</code> to one part of <code>uv</code>. The spot moves a little more each second. The picture scrolls.</p><p>Wrap it in <code>fract()</code> so the spot stays in 0 to 1. The picture loops without a seam. This is how scrolling backgrounds work.</p><p>Try this: sample <code>u_image</code> at <code>fract(uv + vec2(u_time * 0.1, 0.0))</code>. Read more at <a href="https://iquilezles.org/articles/texture/" target="_blank" rel="noreferrer">IQ, Improved bilinear filtering</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    // TODO: scroll horizontally: sample u_image at fract(uv + vec2(u_time * 0.1, 0.0)).
-    gl_FragColor = texture2D(u_image, uv);
+    gl_FragColor = texture2D(u_image, fract(uv * 3.0));
 }',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
@@ -63,10 +58,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
  '<p>A convolution kernel is a small grid of weights. You sample the neighbor pixels, multiply each by its weight, and add them up. That makes a new color.</p><p>The box blur uses 9 samples at offsets <code>(-1,-1)</code> through <code>(1,1)</code>. All weights are 1. You add them and divide by 9. One pixel step in <code>uv</code> is <code>1.0 / u_image_resolution</code>.</p><p>Try this: sum 9 samples and divide by 9. Read more at <a href="https://iquilezles.org/articles/filtering/" target="_blank" rel="noreferrer">IQ, Filtering procedural textures</a> and <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia filter module</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    vec2 px = 1.0 / u_image_resolution;
-    // TODO: sum 9 samples of u_image at offsets (-1..1, -1..1) * px and divide by 9.
-    vec3 c = texture2D(u_image, uv).rgb;
-    gl_FragColor = vec4(c, 1.0);
+    gl_FragColor = texture2D(u_image, uv);
 }',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
@@ -91,8 +83,17 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec2 px = 1.0 / u_image_resolution;
-    // TODO: weighted sum with [1,2,1; 2,4,2; 1,2,1] / 16.
-    vec3 c = texture2D(u_image, uv).rgb;
+    vec3 c = vec3(0.0);
+    c += texture2D(u_image, uv + vec2(-1.0, -1.0) * px).rgb;
+    c += texture2D(u_image, uv + vec2( 0.0, -1.0) * px).rgb;
+    c += texture2D(u_image, uv + vec2( 1.0, -1.0) * px).rgb;
+    c += texture2D(u_image, uv + vec2(-1.0,  0.0) * px).rgb;
+    c += texture2D(u_image, uv + vec2( 0.0,  0.0) * px).rgb;
+    c += texture2D(u_image, uv + vec2( 1.0,  0.0) * px).rgb;
+    c += texture2D(u_image, uv + vec2(-1.0,  1.0) * px).rgb;
+    c += texture2D(u_image, uv + vec2( 0.0,  1.0) * px).rgb;
+    c += texture2D(u_image, uv + vec2( 1.0,  1.0) * px).rgb;
+    c /= 9.0;
     gl_FragColor = vec4(c, 1.0);
 }',
  'void main() {
@@ -118,8 +119,17 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec2 px = 1.0 / u_image_resolution;
-    // TODO: compute Sobel gx and gy on grayscale samples, output sqrt(gx*gx + gy*gy).
-    vec3 c = texture2D(u_image, uv).rgb;
+    vec3 c = vec3(0.0);
+    c += 1.0 * texture2D(u_image, uv + vec2(-1.0, -1.0) * px).rgb;
+    c += 2.0 * texture2D(u_image, uv + vec2( 0.0, -1.0) * px).rgb;
+    c += 1.0 * texture2D(u_image, uv + vec2( 1.0, -1.0) * px).rgb;
+    c += 2.0 * texture2D(u_image, uv + vec2(-1.0,  0.0) * px).rgb;
+    c += 4.0 * texture2D(u_image, uv + vec2( 0.0,  0.0) * px).rgb;
+    c += 2.0 * texture2D(u_image, uv + vec2( 1.0,  0.0) * px).rgb;
+    c += 1.0 * texture2D(u_image, uv + vec2(-1.0,  1.0) * px).rgb;
+    c += 2.0 * texture2D(u_image, uv + vec2( 0.0,  1.0) * px).rgb;
+    c += 1.0 * texture2D(u_image, uv + vec2( 1.0,  1.0) * px).rgb;
+    c /= 16.0;
     gl_FragColor = vec4(c, 1.0);
 }',
  'void main() {
@@ -146,9 +156,19 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec2 px = 1.0 / u_image_resolution;
-    // TODO: kernel [0,-1,0; -1,5,-1; 0,-1,0]; clamp result to [0, 1].
-    vec3 c = texture2D(u_image, uv).rgb;
-    gl_FragColor = vec4(c, 1.0);
+    vec3 lum = vec3(0.299, 0.587, 0.114);
+    float s00 = dot(texture2D(u_image, uv + vec2(-1.0, -1.0) * px).rgb, lum);
+    float s10 = dot(texture2D(u_image, uv + vec2( 0.0, -1.0) * px).rgb, lum);
+    float s20 = dot(texture2D(u_image, uv + vec2( 1.0, -1.0) * px).rgb, lum);
+    float s01 = dot(texture2D(u_image, uv + vec2(-1.0,  0.0) * px).rgb, lum);
+    float s21 = dot(texture2D(u_image, uv + vec2( 1.0,  0.0) * px).rgb, lum);
+    float s02 = dot(texture2D(u_image, uv + vec2(-1.0,  1.0) * px).rgb, lum);
+    float s12 = dot(texture2D(u_image, uv + vec2( 0.0,  1.0) * px).rgb, lum);
+    float s22 = dot(texture2D(u_image, uv + vec2( 1.0,  1.0) * px).rgb, lum);
+    float gx = -s00 + s20 - 2.0 * s01 + 2.0 * s21 - s02 + s22;
+    float gy = -s00 - 2.0 * s10 - s20 + s02 + 2.0 * s12 + s22;
+    float m = sqrt(gx * gx + gy * gy);
+    gl_FragColor = vec4(vec3(m), 1.0);
 }',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
