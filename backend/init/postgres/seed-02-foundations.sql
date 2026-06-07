@@ -67,7 +67,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 -- ===== Course: time-oscillation =====
 ((SELECT id FROM course WHERE slug = 'time-oscillation'), 'RysomZQB5N8', 0,
  'Sine brightness',
- '<p>You will make the canvas pulse with <code>u_time</code>. <code>u_time</code> is the seconds since the shader started.</p><p>Plain <code>sin(u_time)</code> goes from <code>-1</code> to <code>+1</code>. Brightness must be from <code>0</code> to <code>1</code>. Use <code>0.5 + 0.5 * sin(u_time)</code>. Times by <code>0.5</code> to shrink the swing. Add <code>0.5</code> to shift it up. Now the value is from <code>0</code> to <code>1</code>. You will use this same trick a lot.</p><p>The canvas will breathe from black to white. One full pulse takes about <code>6.28</code> seconds.</p><p>References: <a href="https://thebookofshaders.com/03/" target="_blank" rel="noreferrer">BoS — Uniforms</a>, <a href="https://iquilezles.org/articles/trigfunctions/" target="_blank" rel="noreferrer">IQ — Trig functions</a>.</p>',
+ '<p>You will make the canvas pulse with <code>u_time</code>. <code>u_time</code> is a <code>float</code>. It counts the seconds since the shader started.</p><p>Plain <code>sin(u_time)</code> swings from <code>-1</code> to <code>+1</code>. Brightness must be from <code>0</code> to <code>1</code>. Reshape the swing with the same two steps you used in Orientation:</p><ul><li>Times by <code>0.5</code> to shrink the swing.</li><li>Add <code>0.5</code> to shift it up.</li></ul><p>So <code>0.5 + 0.5 * sin(u_time)</code> swings between <code>0</code> and <code>1</code>. Store it in a <code>float</code> named <code>v</code>:</p><p><code>float v = 0.5 + 0.5 * sin(u_time);</code></p><p>Then put <code>v</code> on all three color channels. <code>vec3(v)</code> builds a <code>vec3</code> where x, y, and z all equal <code>v</code>. Wrap it in a <code>vec4</code> with alpha <code>1.0</code>:</p><p><code>gl_FragColor = vec4(vec3(v), 1.0);</code></p><p>The canvas will breathe from black to white. One full pulse takes about <code>6.28</code> seconds.</p><p>References: <a href="https://thebookofshaders.com/03/" target="_blank" rel="noreferrer">BoS, Uniforms</a>, <a href="https://iquilezles.org/articles/trigfunctions/" target="_blank" rel="noreferrer">IQ, Trig functions</a>.</p>',
  'void main() {
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
@@ -78,10 +78,10 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'time-oscillation'), 'Rh5lJolvCpE', 1,
  'Two-color crossfade',
- '<p>You will use the last lesson''s pulse to fade between two colors.</p><p><code>mix(a, b, t)</code> gives you <code>a</code> when <code>t</code> is <code>0</code>. It gives you <code>b</code> when <code>t</code> is <code>1</code>. In between, it blends them. The pulse from last lesson goes from <code>0</code> to <code>1</code>. You can plug it right in as <code>t</code>.</p><p>Use salmon <code>(0.96, 0.62, 0.51)</code> for <code>a</code>. Use yellow <code>(0.95, 0.81, 0.36)</code> for <code>b</code>. The canvas will fade between the two colors.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders — Colors</a>.</p>',
+ '<p>You will use the last lesson''s pulse to fade between two colors.</p><p><code>mix(a, b, t)</code> is a built-in function that blends two values. It mixes them with this exact recipe:</p><p><code>mix(a, b, t) = a * (1.0 - t) + b * t</code></p><p>Read it like a slider. When <code>t</code> is <code>0</code>, you get pure <code>a</code>. When <code>t</code> is <code>1</code>, you get pure <code>b</code>. At <code>0.5</code>, you get the halfway color. So <code>t</code> picks where you are between the two.</p><p>Your <code>t</code> from last lesson already swings smoothly from <code>0</code> to <code>1</code>. Plug it right in.</p><p>Use salmon <code>(0.96, 0.62, 0.51)</code> for <code>a</code> and yellow <code>(0.95, 0.81, 0.36)</code> for <code>b</code>:</p><p><code>vec3 c = mix(vec3(0.96, 0.62, 0.51), vec3(0.95, 0.81, 0.36), t);</code></p><p>The canvas will fade between the two colors.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders, Colors</a>.</p>',
  'void main() {
-    float v = 0.5 + 0.5 * sin(u_time);
-    gl_FragColor = vec4(vec3(v), 1.0);
+    float t = 0.5 + 0.5 * sin(u_time);
+    gl_FragColor = vec4(vec3(t), 1.0);
 }',
  'void main() {
     float t = 0.5 + 0.5 * sin(u_time);
@@ -91,19 +91,21 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'time-oscillation'), '5Wv1Wxu93pY', 2,
  'Phase-offset RGB',
- '<p>You will pulse each color channel on its own clock. The canvas will cycle through colors.</p><p>GLSL lets you call <code>cos</code> on a <code>vec3</code>. It runs <code>cos</code> on each part on its own. So <code>cos(u_time + vec3(0.0, 2.094, 4.189))</code> gives three cosines. Each one starts at a different time. The offsets <code>0</code>, <code>2.094</code>, and <code>4.189</code> are <code>2π/3</code> apart. That spaces the three colors out around the cycle.</p><p>Use the same <code>0.5 + 0.5 * (...)</code> trick as before. But now the inside is a <code>vec3</code>. You will see a smooth rainbow cycle.</p><p>Reference: <a href="https://iquilezles.org/articles/trigfunctions/" target="_blank" rel="noreferrer">IQ — Trig functions</a>.</p>',
+ '<p>You will pulse each color channel on its own clock. The canvas will cycle through colors.</p><p>The starter already has a <code>vec3 col</code> set to a gray pulse. All three channels are tied to the same <code>sin(u_time)</code>, so they rise and fall together.</p><p>To get color motion, the three channels need to be out of sync. Replace the line with this:</p><p><code>vec3 col = 0.5 + 0.5 * cos(u_time + vec3(0.0, 2.094, 4.189));</code></p><p>Two things changed.</p><p><strong>Why cos instead of sin?</strong> Either one swings between <code>-1</code> and <code>+1</code>. They are the same wave, just shifted. Cosine is the convention here. The same formula returns in the cosine palettes lesson later, and matching the convention now will make it feel familiar then.</p><p><strong>Why a vec3 offset?</strong> GLSL lets you call <code>cos</code> on a <code>vec3</code>. It runs <code>cos</code> on each part on its own. So <code>cos(u_time + vec3(0.0, 2.094, 4.189))</code> gives three cosines. Each one starts at a different time. The offsets <code>0</code>, <code>2.094</code>, and <code>4.189</code> are <code>2π/3</code> apart. That spaces the three colors evenly around the cycle, so the canvas glides through red, green, and blue instead of pulsing gray.</p><p>Reference: <a href="https://iquilezles.org/articles/trigfunctions/" target="_blank" rel="noreferrer">IQ, Trig functions</a>.</p>',
  'void main() {
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    vec3 col = vec3(0.5 + 0.5 * sin(u_time));
+    gl_FragColor = vec4(col, 1.0);
 }',
  'void main() {
-    vec3 c = 0.5 + 0.5 * cos(u_time + vec3(0.0, 2.094, 4.189));
-    gl_FragColor = vec4(c, 1.0);
+    vec3 col = 0.5 + 0.5 * cos(u_time + vec3(0.0, 2.094, 4.189));
+    gl_FragColor = vec4(col, 1.0);
 }'),
 
 ((SELECT id FROM course WHERE slug = 'time-oscillation'), '8LOHoVrvY5s', 3,
  'Per-axis frequency',
- '<p>You will mix space and time inside one <code>sin</code>. The wave will depend on both <code>uv.x</code> and <code>u_time</code>.</p><p>Look at <code>sin(uv.x * k + u_time)</code>:</p><ul><li>The <code>uv.x * k</code> part makes the wave change across the canvas. You see <code>k / (2π)</code> stripes at any moment.</li><li>The <code>+ u_time</code> part slides the wave each frame. The stripes scroll.</li></ul><p>Pick <code>k = 12.566</code>, which is about <code>4π</code>. That gives two full bright and dark cycles across the canvas.</p><p>Reference: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">Book of Shaders — Shaping functions</a>.</p>',
+ '<p>You will mix space and time inside one <code>sin</code>. The wave will depend on both <code>uv.x</code> and <code>u_time</code>.</p><p>The starter already gives you <code>uv = gl_FragCoord.xy / u_resolution.xy</code>. You have seen this line before in Orientation and in the UV course. It gives every pixel a spot from <code>0</code> to <code>1</code> across the canvas.</p><p>The line you will write is:</p><p><code>float v = 0.5 + 0.5 * sin(uv.x * k + u_time);</code></p><p>The <code>0.5 + 0.5 * (...)</code> wrapper is the same trick you have been using. It matters here for a special reason. Plain <code>sin</code> dips below <code>0</code> for half its swing, and a negative color value just shows up as black. Without the wrapper, big stripes of the canvas would be flat black with no shape. The wrapper lifts the swing into the <code>0</code> to <code>1</code> range so every pixel gets a real brightness.</p><p>Now look at what is inside the <code>sin</code>:</p><ul><li><code>uv.x * k</code> makes the wave repeat across the canvas. <code>k</code> controls how fast that repeat happens. A bigger <code>k</code> packs more bright and dark cycles into the same width.</li><li><code>+ u_time</code> slides the whole wave each frame. The stripes scroll.</li></ul><p>Pick <code>k = 12.566</code>. That is about <code>4π</code>. It gives two full bright and dark cycles across the canvas.</p><p>Reference: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">Book of Shaders, Shaping functions</a>.</p>',
  'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {
