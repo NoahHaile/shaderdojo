@@ -117,8 +117,9 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 -- ===== Course: step-smoothstep =====
 ((SELECT id FROM course WHERE slug = 'step-smoothstep'), 'p0O1Dv3P-vA', 0,
  'step() half-plane',
- '<p>You will meet a function that gives a yes-or-no answer for each pixel.</p><p><code>step(edge, x)</code> gives <code>0.0</code> when <code>x</code> is less than <code>edge</code>. It gives <code>1.0</code> otherwise. There is no blend. The change happens in zero pixels. It is a yes-or-no question at every pixel.</p><p>Ask "is this pixel past <code>uv.x = 0.5</code>?" with <code>step(0.5, uv.x)</code>. Put the answer on all three color channels. The left half is black. The right half is white. The edge looks jagged. <code>step</code> has no smoothing. You will fix that in the next lesson.</p><p>References: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">BoS — Shaping functions</a>, <a href="https://iquilezles.org/articles/functions/" target="_blank" rel="noreferrer">IQ — Useful little functions</a>.</p>',
+ '<p>You will meet a function that gives a yes-or-no answer for each pixel.</p><p><code>step(edge, x)</code> gives <code>0.0</code> when <code>x</code> is less than <code>edge</code>. It gives <code>1.0</code> otherwise. There is no blend. The change happens in zero pixels. It is a yes-or-no question at every pixel.</p><p>The starter gives you <code>uv = gl_FragCoord.xy / u_resolution.xy</code>. Ask "is this pixel past <code>uv.x = 0.5</code>?" with <code>step(0.5, uv.x)</code>. Put the answer on all three color channels. The left half is black. The right half is white. The edge looks jagged. <code>step</code> has no smoothing. You will fix that in the next lesson.</p><p>References: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">BoS, Shaping functions</a>, <a href="https://iquilezles.org/articles/functions/" target="_blank" rel="noreferrer">IQ, Useful little functions</a>.</p>',
  'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {
@@ -143,8 +144,9 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'step-smoothstep'), 'DMpqeHFWXBM', 2,
  'Stripe via two smoothsteps',
- '<p>You will draw a bright stripe in the middle. You will do this by subtracting one smoothstep from another.</p><p>The first one, <code>smoothstep(0.30, 0.32, uv.x)</code>, goes from <code>0</code> to <code>1</code> near <code>uv.x = 0.31</code>. The second one, <code>smoothstep(0.68, 0.70, uv.x)</code>, goes from <code>0</code> to <code>1</code> near <code>uv.x = 0.69</code>. Subtract them. The result is <code>0</code> on the sides. It is <code>1</code> in the middle. The edges are soft.</p><p>Rising edge minus rising edge gives a band. You will use this same pattern to draw stripes and rings and ribbons later.</p><p>Reference: <a href="https://iquilezles.org/articles/smoothsteps/" target="_blank" rel="noreferrer">IQ — Smoothsteps</a>.</p>',
+ '<p>You will draw a bright stripe in the middle. You will do this by subtracting one smoothstep from another.</p><p>The starter gives you <code>uv = gl_FragCoord.xy / u_resolution.xy</code>. The first smoothstep, <code>smoothstep(0.30, 0.32, uv.x)</code>, goes from <code>0</code> to <code>1</code> near <code>uv.x = 0.31</code>. The second, <code>smoothstep(0.68, 0.70, uv.x)</code>, goes from <code>0</code> to <code>1</code> near <code>uv.x = 0.69</code>. Subtract them. The result is <code>0</code> on the sides. It is <code>1</code> in the middle. The edges are soft.</p><p>Rising edge minus rising edge gives a band. You will use this same pattern to draw stripes and rings and ribbons later.</p><p>Reference: <a href="https://iquilezles.org/articles/smoothsteps/" target="_blank" rel="noreferrer">IQ, Smoothsteps</a>.</p>',
  'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {
@@ -154,17 +156,16 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 }'),
 
 ((SELECT id FROM course WHERE slug = 'step-smoothstep'), 'J0cVn8u2KQM', 3,
- 'Signed-threshold band',
- '<p>You will draw the same band a new way. You will use one smoothstep and a distance.</p><p><code>abs(uv.x - 0.5)</code> is the distance from the middle line. It is <code>0</code> at the middle. It is <code>0.5</code> at the edges. Put it into smoothstep. Then flip the result with <code>1.0 -</code>. Now the inside of the band is bright.</p><p>This pattern is distance, then smoothstep, then flip. It works for more shapes than the last lesson. You will see it again in every SDF lesson. Find the distance from a shape. Smooth it. Flip to fill the inside.</p><p>Reference: <a href="https://iquilezles.org/articles/functions/" target="_blank" rel="noreferrer">IQ — Useful little functions</a>.</p>',
+ 'Reversed smoothstep',
+ '<p>You will flip a smoothstep. You will see that swapping the first two arguments turns a rising edge into a falling edge.</p><p>The starter has a rising edge: <code>smoothstep(0.3, 0.7, uv.x)</code>. The canvas is dark on the left and bright on the right. The smooth transition happens between <code>uv.x = 0.3</code> and <code>uv.x = 0.7</code>.</p><p>Now swap the first two arguments: <code>smoothstep(0.7, 0.3, uv.x)</code>. Same numbers. Same x. Just flipped.</p><p>Run it. The canvas flips. It is now bright on the left and dark on the right. The transition still sits between <code>0.3</code> and <code>0.7</code>, but the direction is reversed.</p><p><strong>Why it works.</strong> Inside, smoothstep computes <code>(x - edge0) / (edge1 - edge0)</code>. Swap edge0 and edge1 and that fraction flips sign. The whole curve flips with it. You get the same shape, mirrored.</p><p>This is a clean way to make a falling edge. It saves you from writing <code>1.0 - smoothstep(...)</code> every time.</p><p>Reference: <a href="https://iquilezles.org/articles/smoothsteps/" target="_blank" rel="noreferrer">IQ, Smoothsteps</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    float m = smoothstep(0.30, 0.32, uv.x) - smoothstep(0.68, 0.70, uv.x);
+    float m = smoothstep(0.3, 0.7, uv.x);
     gl_FragColor = vec4(vec3(m), 1.0);
 }',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    float d = abs(uv.x - 0.5);
-    float m = 1.0 - smoothstep(0.18, 0.22, d);
+    float m = smoothstep(0.7, 0.3, uv.x);
     gl_FragColor = vec4(vec3(m), 1.0);
 }'),
 
