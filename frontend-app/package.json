@@ -9,7 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^3.0.0",
     "@radix-ui/react-dialog": "^1.1.4",
+    "@xyflow/react": "^12.11.0",
     "ace-builds": "^1.37.5",
     "canvas-confetti": "^1.9.3",
     "dompurify": "^3.2.3",
