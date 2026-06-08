@@ -28,18 +28,11 @@ export function HomePage() {
                     <h1 className="text-4xl md:text-5xl font-semibold leading-tight tracking-tight text-ink">
                         Imagine you had control over every pixel on the screen
                     </h1>
-                    <p className="mt-4 text-lg text-ink/75 max-w-prose">
-                        A shader is a small program that runs once for every pixel on your screen.
-                        You write a function. A position, the current moment, your inputs and buffers
-                        go in. A color comes out. That is the whole job, and every pixel is yours.
-                    </p>
                     <p className="mt-3 text-base text-ink/60 max-w-prose">
-                        ShaderDojo teaches that function one named technique at a time. You write
-                        the GLSL in your browser. The page runs it. It checks each pixel against
-                        the goal. Kind of like{' '}
+                        ShaderDojo teaches a range of techniques that allow you to do this effectively. It is a mix between{' '}
                         <a className="text-accent font-medium hover:underline" href="https://shadertoy.com/" target="_blank" rel="noreferrer">
                             ShaderToy
-                        </a>{' '}meets{' '}
+                        </a>{' '}and{' '}
                         <a className="text-accent font-medium hover:underline" href="https://www.freecodecamp.org/" target="_blank" rel="noreferrer">
                             freeCodeCamp
                         </a>.
