@@ -1,7 +1,7 @@
 \c shader_dojo;
 
--- Family J — Iteration & fractals (6 courses, 24 lessons).
--- loop-fundamentals moved to Foundations (seed-02) — it's a prerequisite for noise & raymarching.
+-- Family J, Iteration & fractals (6 courses, 24 lessons).
+-- loop-fundamentals moved to Foundations (seed-02), it's a prerequisite for noise & raymarching.
 
 INSERT INTO lesson (course_id, slug, display_order, title, description, starter_fragment_shader, canonical_fragment_shader) VALUES
 
@@ -10,6 +10,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
  'N-tap blur on image',
  '<p>A box blur reads many pixels near each pixel. You add them all up and divide. That gives a smooth average.</p><p>Use a 5 by 5 grid of samples. That is 25 reads. Set <code>px = 0.005</code> as the step. Sum <code>texture2D(u_image, uv + vec2(x, y) * px)</code> for every <code>(x, y)</code>. Then divide by 25.</p><p>Read more at <a href="https://thebookofshaders.com/13/" target="_blank" rel="noreferrer">Book of Shaders, Fractal Brownian Motion</a>.</p>',
  'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {
@@ -480,6 +481,7 @@ void main() {
  '2D Sierpinski',
  '<p>An IFS fold bends and shrinks space. Each step adds more detail near the origin. The Sierpinski fold takes <code>abs</code>, flips when the sum is over 1, then scales by 2 and shifts.</p><p>Run 6 fold steps on a centered <code>p</code>. Use <code>step(length(p), 1.0)</code> as the mask.</p><p>Read more at <a href="https://iquilezles.org/articles/ifsfractals/" target="_blank" rel="noreferrer">IQ, IFS fractals</a>.</p>',
  'void main() {
+    vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {
@@ -524,7 +526,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'ifs-folding'), 'DbJr87pcKpo', 2,
  'Asymmetric IFS',
- '<p>The Sierpinski fold scales x and y by the same factor, which is why the result is symmetric. Pick different scale factors for x and y and the fractal stretches in one direction — same fold rule, very different shape.</p><p>Keep the Sierpinski abs and corner flip. Then replace <code>p * 2.0 - vec2(1.0)</code> with <code>vec2(p.x * 2.0, p.y * 1.6) - vec2(1.0, 0.8)</code>. The x axis still doubles each step but the y axis grows slower, so the fractal looks visibly stretched horizontally.</p><p>Read more at <a href="https://iquilezles.org/articles/ifsfractals/" target="_blank" rel="noreferrer">IQ, IFS fractals</a>.</p>',
+ '<p>The Sierpinski fold scales x and y by the same factor, which is why the result is symmetric. Pick different scale factors for x and y and the fractal stretches in one direction, same fold rule, very different shape.</p><p>Keep the Sierpinski abs and corner flip. Then replace <code>p * 2.0 - vec2(1.0)</code> with <code>vec2(p.x * 2.0, p.y * 1.6) - vec2(1.0, 0.8)</code>. The x axis still doubles each step but the y axis grows slower, so the fractal looks visibly stretched horizontally.</p><p>Read more at <a href="https://iquilezles.org/articles/ifsfractals/" target="_blank" rel="noreferrer">IQ, IFS fractals</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec2 p = (uv - 0.5) * 2.0;
@@ -673,7 +675,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'kifs-raymarched'), 'Hk7dP6NHCus', 2,
  'Off-center fold pivot',
- '<p>The standard KIFS folds around the origin: <code>abs(p) - vec3(1.0)</code> mirrors space across the three planes through <code>x = 0</code>, <code>y = 0</code>, <code>z = 0</code>. Shifting the pivot is a tiny code change with a dramatic visual one — the same fold rule, applied around a different center, produces a different fractal entirely.</p><p>Add an <code>offset = vec3(1.2, 1.0, 0.8)</code> and replace <code>abs(p) - vec3(1.0)</code> with <code>abs(p + offset) - offset</code>. The fold now mirrors space across planes through <code>-offset</code> instead of through the origin, so each iteration carves a new asymmetric structure.</p><p>Read more at <a href="https://mercury.sexy/hg_sdf/" target="_blank" rel="noreferrer">hg_sdf, SDF library</a>.</p>',
+ '<p>The standard KIFS folds around the origin: <code>abs(p) - vec3(1.0)</code> mirrors space across the three planes through <code>x = 0</code>, <code>y = 0</code>, <code>z = 0</code>. Shifting the pivot is a tiny code change with a dramatic visual one, the same fold rule, applied around a different center, produces a different fractal entirely.</p><p>Add an <code>offset = vec3(1.2, 1.0, 0.8)</code> and replace <code>abs(p) - vec3(1.0)</code> with <code>abs(p + offset) - offset</code>. The fold now mirrors space across planes through <code>-offset</code> instead of through the origin, so each iteration carves a new asymmetric structure.</p><p>Read more at <a href="https://mercury.sexy/hg_sdf/" target="_blank" rel="noreferrer">hg_sdf, SDF library</a>.</p>',
  'float scene(vec3 p) {
     float s = 1.0;
     for (int i = 0; i < 6; i++) {

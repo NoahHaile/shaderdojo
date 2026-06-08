@@ -1,6 +1,6 @@
 \c shader_dojo;
 
--- Family F — Image sampling (2 courses, 8 lessons)
+-- Family F, Image sampling (2 courses, 8 lessons)
 
 INSERT INTO lesson (course_id, slug, display_order, title, description, starter_fragment_shader, canonical_fragment_shader) VALUES
 
@@ -9,6 +9,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
  'Direct sample',
  '<p>A shader can read a picture. The call is <code>texture2D(sampler, uv)</code>. It looks up the color at the spot <code>uv</code>, where the spot is a pair of numbers from 0 to 1.</p><p>The picture you have is <code>u_image</code>: 256 by 256 pixels. It holds an HSV rainbow that sweeps left to right, a bright disc in the upper-left, and a dark square in the lower-right. Those three landmarks make it easy to tell when your sampling is right.</p><p>Try this: build <code>uv</code> from <code>gl_FragCoord.xy / u_resolution.xy</code>, then output <code>texture2D(u_image, uv)</code>. You should see the rainbow stretched to fill the canvas, with the circle and square in their places.</p><p>Read more at <a href="https://iquilezles.org/articles/texture/" target="_blank" rel="noreferrer">IQ, Improved bilinear filtering</a>.</p>',
  'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {

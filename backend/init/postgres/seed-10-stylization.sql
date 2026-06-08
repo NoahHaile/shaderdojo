@@ -1,6 +1,6 @@
 \c shader_dojo;
 
--- Family I — Stylization / post-process (4 courses, 16 lessons)
+-- Family I, Stylization / post-process (4 courses, 16 lessons)
 
 INSERT INTO lesson (course_id, slug, display_order, title, description, starter_fragment_shader, canonical_fragment_shader) VALUES
 
@@ -22,7 +22,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'posterize-dither'), '2TyvndnucHg', 1,
  'Bayer 4×4 dither',
- '<p>Posterize alone is brutal. Every smooth gradient snaps to a few flat levels, and the seams between those levels show up as ugly visible bands across the image.</p><p>A Bayer matrix scatters small offsets across the pixels in a deterministic, repeating 4×4 pattern. Add the offset before <code>floor</code> and neighbouring pixels land on different sides of each step boundary. The eye blends them and the bands turn into a smooth transition — without using random noise, which would look like static.</p><p>This is the trick old printers, early game consoles, and monochrome screens used to fake more shades than the hardware actually had. The math <code>(2x + 3y) mod 16</code> builds the pattern, so 4 real levels read as 16. Read more at <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
+ '<p>Posterize alone is brutal. Every smooth gradient snaps to a few flat levels, and the seams between those levels show up as ugly visible bands across the image.</p><p>A Bayer matrix scatters small offsets across the pixels in a deterministic, repeating 4×4 pattern. Add the offset before <code>floor</code> and neighbouring pixels land on different sides of each step boundary. The eye blends them and the bands turn into a smooth transition, without using random noise, which would look like static.</p><p>This is the trick old printers, early game consoles, and monochrome screens used to fake more shades than the hardware actually had. The math <code>(2x + 3y) mod 16</code> builds the pattern, so 4 real levels read as 16. Read more at <a href="https://lygia.xyz/" target="_blank" rel="noreferrer">Lygia shader library</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec3 col = texture2D(u_image, uv).rgb;

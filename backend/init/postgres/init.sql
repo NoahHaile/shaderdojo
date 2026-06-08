@@ -83,6 +83,6 @@ CREATE TABLE attempt
 
 CREATE INDEX idx_attempt_account_lesson ON attempt (account, lesson);
 
--- Seed data lives in `seed-*.sql` files alongside this one — Postgres docker
+-- Seed data lives in `seed-*.sql` files alongside this one. Postgres docker
 -- entrypoint runs every *.sql in alphabetical order, so courses load before
 -- their lessons. Edit each family file independently.

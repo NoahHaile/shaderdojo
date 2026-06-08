@@ -1,6 +1,6 @@
 \c shader_dojo;
 
--- Family E — Noise (6 courses, 24 lessons)
+-- Family E, Noise (6 courses, 24 lessons)
 
 INSERT INTO lesson (course_id, slug, display_order, title, description, starter_fragment_shader, canonical_fragment_shader) VALUES
 
@@ -12,6 +12,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
 void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'float hash(vec2 p) {
@@ -73,6 +74,7 @@ void main() {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
 void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'float hash(vec2 p) {

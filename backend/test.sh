@@ -77,11 +77,11 @@ else
     fail "/app/courses content" "$STATUS"
 fi
 
-# Curriculum totals: 51 courses (Orientation + 10 families), 195 lessons after the quality pass.
+# Curriculum totals: 51 courses (Orientation + 10 families), 193 lessons after the quality pass.
 COURSE_COUNT=$(echo "$COURSES_JSON" | jq 'length' 2>/dev/null)
 [[ "$COURSE_COUNT" == 51 ]] && pass "51 seed courses" || fail "course count" "got $COURSE_COUNT"
 LESSON_COUNT=$(echo "$COURSES_JSON" | jq '[.[].lessons[]] | length' 2>/dev/null)
-[[ "$LESSON_COUNT" == 195 ]] && pass "195 lessons across all courses" || fail "lesson count" "got $LESSON_COUNT"
+[[ "$LESSON_COUNT" == 193 ]] && pass "193 lessons across all courses" || fail "lesson count" "got $LESSON_COUNT"
 
 # Pick the first lesson (Hello, color) for follow-up tests
 FIRST_LESSON_ID=$(echo "$COURSES_JSON" | jq -r '.[0].lessons[0].id')

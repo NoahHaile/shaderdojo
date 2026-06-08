@@ -1,9 +1,9 @@
 \c shader_dojo;
 
--- Family D — Space transforms (4 courses, 16 lessons)
+-- Family D, Space transforms (4 courses, 16 lessons)
 -- Code style: the description teaches. The starter is a near-empty shader,
 -- the canonical is the full working answer. No didactic comments inside the
--- code — the learner writes meaningful lines from a recipe in the description.
+-- code, the learner writes meaningful lines from a recipe in the description.
 -- Each lesson's canonical includes ideas from the prior lesson, so progression
 -- is visible just by reading the code.
 
@@ -14,6 +14,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
  'Rotate around origin',
  '<p>You will spin the whole coordinate plane. To turn pixels, you use a 2x2 matrix. That is a small box of 4 numbers that twists coordinates.</p><p>Pick an angle <code>a</code>. Set <code>c = cos(a)</code> and <code>s = sin(a)</code>. The matrix is <code>mat2(c, -s, s, c)</code>. GLSL fills the matrix one column at a time. So the first column is <code>(c, -s)</code> and the second is <code>(s, c)</code>.</p><p>Try this: set <code>a</code> to <code>π/6</code> (30 degrees). Then write <code>p = mat2(c, -s, s, c) * p;</code>. The box you draw will tilt. Read more at <a href="https://thebookofshaders.com/08/" target="_blank" rel="noreferrer">Book of Shaders, Matrices</a>.</p>',
  'void main() {
+    vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {
@@ -120,6 +121,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
  'Radial gradient',
  '<p>You will draw with polar coordinates. Polar means you use distance and angle in place of x and y. Distance from the center is called the radius.</p><p>Set <code>r = length(p)</code>. That is how far the pixel is from the center. Output <code>vec3(r)</code> on all three channels. The middle is black. The outside gets brighter. The corners go past 1, so they clamp to white.</p><p>Try this: compute <code>r</code> and put it in the color. Every polar pattern after this will build on <code>r</code> and the angle. Read more at <a href="https://thebookofshaders.com/07/" target="_blank" rel="noreferrer">Book of Shaders, Shapes (polar section)</a>.</p>',
  'void main() {
+    vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {
@@ -183,6 +185,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
  'Grid via fract',
  '<p>You will tile one shape into a grid. Tiling uses <code>fract</code> to repeat a small picture in every cell.</p><p>First, scale <code>uv</code> so one unit covers one tile. <code>uv * 6.0</code> gives 6 tiles across. Then <code>fract(uv)</code> gives the local spot inside each cell. That value always sits in <code>[0, 1)</code>. Subtract <code>0.5</code> so each cell is centered on <code>(0, 0)</code>. Now any shape you draw at the center shows up in every cell.</p><p>Try this: write <code>vec2 f = fract(uv) - 0.5;</code> then <code>m = smoothstep(0.005, -0.005, length(f) - 0.3);</code>. One disc becomes 36. Read more at <a href="https://thebookofshaders.com/09/" target="_blank" rel="noreferrer">Book of Shaders, Patterns</a>, and <a href="https://iquilezles.org/articles/sdfrepetition/" target="_blank" rel="noreferrer">IQ, Domain repetition</a>.</p>',
  'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {

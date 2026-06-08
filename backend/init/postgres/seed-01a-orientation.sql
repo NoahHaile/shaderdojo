@@ -1,9 +1,9 @@
 \c shader_dojo;
 
--- Level 0 — Orientation (1 course, 4 lessons)
+-- Level 0. Orientation (1 course, 4 lessons)
 -- Code style: the description teaches. The starter is a near-empty shader,
 -- the canonical is the full working answer. No didactic comments inside the
--- code — the learner writes meaningful lines from a recipe in the description.
+-- code, the learner writes meaningful lines from a recipe in the description.
 -- Each lesson's canonical includes ideas from the prior lesson, so progression
 -- is visible just by reading the code.
 
