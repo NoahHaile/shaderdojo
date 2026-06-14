@@ -172,13 +172,16 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 -- ===== Course: mix-gradients =====
 ((SELECT id FROM course WHERE slug = 'mix-gradients'), 'C9NOPPTcO8c', 0,
  'Horizontal two-color',
- '<p>You will blend from one color on the left to another on the right.</p><p><code>mix(a, b, t)</code> does the math <code>a * (1 - t) + b * t</code> on each part. When <code>t</code> is <code>0</code>, you get <code>a</code>. When <code>t</code> is <code>1</code>, you get <code>b</code>. Halfway gives the average.</p><p>Use <code>uv.x</code> as <code>t</code>. Salmon shows on the left where <code>uv.x</code> is near <code>0</code>. Yellow shows on the right where <code>uv.x</code> is near <code>1</code>. Every shade is in between.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders, Colors</a>.</p>',
+ '<p>You will blend from salmon on the left to yellow on the right.</p><p><code>mix(a, b, t)</code> is the GLSL built-in for blending. It does the math <code>a * (1 - t) + b * t</code> on each part. When <code>t</code> is <code>0</code>, you get <code>a</code>. When <code>t</code> is <code>1</code>, you get <code>b</code>. Halfway gives the average.</p><p>The starter shows a flat salmon canvas. Now mix it with yellow as the pixel moves across the canvas. Store <code>uv.x</code> in a <code>float</code> named <code>t</code>:</p><p><code>float t = uv.x;</code></p><p>Then pass it as the third argument of <code>mix</code>:</p><p><code>vec3 c = mix(vec3(0.96, 0.62, 0.51), vec3(0.95, 0.81, 0.36), t);</code></p><p>Salmon shows on the left where <code>t</code> is near <code>0</code>. Yellow shows on the right where <code>t</code> is near <code>1</code>. Every shade is in between.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders, Colors</a>.</p>',
  'void main() {
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    vec3 c = vec3(0.96, 0.62, 0.51);
+    gl_FragColor = vec4(c, 1.0);
 }',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    vec3 c = mix(vec3(0.96, 0.62, 0.51), vec3(0.95, 0.81, 0.36), uv.x);
+    float t = uv.x;
+    vec3 c = mix(vec3(0.96, 0.62, 0.51), vec3(0.95, 0.81, 0.36), t);
     gl_FragColor = vec4(c, 1.0);
 }'),
 
@@ -193,47 +196,59 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     float t = (uv.x + uv.y) * 0.5;
-    vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), t);
+    vec3 c = mix(vec3(0.96, 0.62, 0.51), vec3(0.95, 0.81, 0.36), t);
     gl_FragColor = vec4(c, 1.0);
 }'),
 
 ((SELECT id FROM course WHERE slug = 'mix-gradients'), 'VyyQdFs8C0s', 2,
  'Three-stop nested mix',
- '<p>You will add a third color in the middle. You will split the gradient in half.</p><p>Below <code>uv.x = 0.5</code>, blend <code>a</code> to <code>b</code>. Above it, blend <code>b</code> to <code>c</code>. At <code>uv.x = 0.5</code> the color is <code>b</code> on both sides. The join is hidden.</p><p>Each half needs its own <code>0</code> to <code>1</code> ramp:</p><ul><li>Left half: <code>uv.x</code> from <code>0</code> to <code>0.5</code> becomes <code>t = uv.x * 2.0</code>.</li><li>Right half: <code>uv.x</code> from <code>0.5</code> to <code>1</code> becomes <code>t = (uv.x - 0.5) * 2.0</code>.</li></ul><p>Pick the right one with <code>uv.x &lt; 0.5 ? leftMix : rightMix</code>.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders, Colors</a>.</p>',
+ '<p>You will add a third color so the gradient has three stops instead of two. The trick: at the middle, both halves must arrive at the same color.</p>
+<p>The starter ships the diagonal salmon-to-yellow gradient from last lesson. Add a third color, navy, that takes over on the left.</p>
+<p>Each half of the canvas needs its own <code>0</code>-to-<code>1</code> ramp:</p>
+<ul><li>Left half: <code>uv.x</code> from <code>0</code> to <code>0.5</code> becomes <code>uv.x * 2.0</code>. Use this to blend navy to salmon.</li>
+<li>Right half: <code>uv.x</code> from <code>0.5</code> to <code>1</code> becomes <code>(uv.x - 0.5) * 2.0</code>. Use this to blend salmon to yellow.</li></ul>
+<p>Compute both mixes and pick the right one with a ternary:</p>
+<p><code>vec3 leftMix = mix(navy, salmon, uv.x * 2.0);<br>vec3 rightMix = mix(salmon, yellow, (uv.x - 0.5) * 2.0);<br>vec3 col = uv.x &lt; 0.5 ? leftMix : rightMix;</code></p>
+<p>At <code>uv.x = 0.5</code>, both halves arrive at salmon. The join is invisible.</p>
+<p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders, Colors</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     float t = (uv.x + uv.y) * 0.5;
-    vec3 c = mix(vec3(0.10, 0.15, 0.35), vec3(0.95, 0.81, 0.36), t);
+    vec3 c = mix(vec3(0.96, 0.62, 0.51), vec3(0.95, 0.81, 0.36), t);
     gl_FragColor = vec4(c, 1.0);
 }',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    vec3 a = vec3(0.10, 0.15, 0.35);
-    vec3 b = vec3(0.96, 0.62, 0.51);
-    vec3 c = vec3(0.95, 0.81, 0.36);
-    vec3 col = uv.x < 0.5 ? mix(a, b, uv.x * 2.0) : mix(b, c, (uv.x - 0.5) * 2.0);
+    vec3 navy   = vec3(0.10, 0.15, 0.35);
+    vec3 salmon = vec3(0.96, 0.62, 0.51);
+    vec3 yellow = vec3(0.95, 0.81, 0.36);
+    vec3 leftMix  = mix(navy, salmon, uv.x * 2.0);
+    vec3 rightMix = mix(salmon, yellow, (uv.x - 0.5) * 2.0);
+    vec3 col = uv.x < 0.5 ? leftMix : rightMix;
     gl_FragColor = vec4(col, 1.0);
 }'),
 
 ((SELECT id FROM course WHERE slug = 'mix-gradients'), 'RmXFv-4OZwk', 3,
  'Radial gradient',
- '<p>You will blend by distance from the middle, not by an axis.</p><p>The recipe:</p><ul><li>Use the centered, aspect-fixed <code>uv</code> from earlier.</li><li><code>r = length(uv)</code> is the distance from the middle.</li><li>Put <code>r</code> through <code>smoothstep(0.0, 0.6, r)</code>. Now <code>t</code> is <code>0</code> at the middle and <code>1</code> past radius <code>0.6</code>.</li><li><code>mix</code> the bright yellow middle with a dark blue outside by <code>t</code>.</li></ul><p>You just drew your first spotlight.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders, Colors</a>.</p>',
+ '<p>You will blend by distance from the middle, not by an axis.</p><p>The starter ships the centered, aspect-fixed <code>p</code> from the polar lesson. The recipe:</p><ul><li>Get the distance to the middle with <code>float r = length(p);</code>.</li><li>Put <code>r</code> through <code>smoothstep(0.0, 0.6, r)</code> and store it in a <code>float</code> named <code>t</code>. Now <code>t</code> is <code>0</code> at the middle and <code>1</code> past radius <code>0.6</code>.</li><li><code>mix</code> bright yellow in the middle with dark navy outside, using <code>t</code> as the blend factor.</li></ul><p>You just drew your first spotlight.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders, Colors</a>.</p>',
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {
-    vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
-    float r = length(uv);
-    vec3 c = mix(vec3(0.95, 0.81, 0.36), vec3(0.10, 0.15, 0.35), smoothstep(0.0, 0.6, r));
-    gl_FragColor = vec4(c, 1.0);
+    vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
+    float r = length(p);
+    float t = smoothstep(0.0, 0.6, r);
+    vec3 col = mix(vec3(0.95, 0.81, 0.36), vec3(0.10, 0.15, 0.35), t);
+    gl_FragColor = vec4(col, 1.0);
 }'),
 
 -- ===== Course: plotting-curves =====
 ((SELECT id FROM course WHERE slug = 'plotting-curves'), 'c3su8EDPRds', 0,
  'Plot y = x',
- '<p>You will draw the line <code>y = x</code>. This is the simplest plot.</p><p>The recipe works for any curve:</p><ol><li>Find <code>d = abs(uv.y - f(uv.x))</code>. That is the up-down distance from the pixel to the curve.</li><li>Put <code>d</code> through a thin smoothstep. Pixels close to the curve get <code>1</code>. Pixels far away get <code>0</code>. Flip with <code>1.0 -</code> to draw a bright line on dark.</li></ol><p>For <code>y = x</code>, <code>f(uv.x) = uv.x</code>. So <code>d = abs(uv.y - uv.x)</code>. Use <code>smoothstep(0.005, 0.015, d)</code> for a clean diagonal.</p><p>Reference: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">Book of Shaders, Shaping functions (plot section)</a>.</p>',
+ '<p>You will draw the line <code>y = x</code>. This is the simplest plot.</p><p>The recipe works for any curve:</p><ol><li>Find <code>float d = abs(uv.y - f(uv.x));</code>. That is the up-down distance from the pixel to the curve.</li><li>Put <code>d</code> through a thin smoothstep. Pixels close to the curve get <code>1</code>. Pixels far away get <code>0</code>. Flip with <code>1.0 -</code> to draw a bright line on dark.</li></ol><p>For <code>y = x</code>, <code>f(uv.x) = uv.x</code>. So <code>float d = abs(uv.y - uv.x);</code>. Use <code>float m = 1.0 - smoothstep(0.005, 0.015, d);</code> for a clean diagonal.</p><p>The starter ships <code>uv</code> ready to go. You write the two lines above and feed <code>m</code> into <code>gl_FragColor</code>.</p><p>Reference: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">Book of Shaders, Shaping functions (plot section)</a>.</p>',
  'void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {
@@ -245,7 +260,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'plotting-curves'), 'w60pXClCffU', 1,
  'Plot y = sin(x)',
- '<p>You will use the same plot recipe on a real curve.</p><p>A sine looks better centered. Remap <code>uv</code> from <code>0</code>-to-<code>1</code> to <code>-1</code>-to-<code>1</code> first. Use <code>* 2.0 - 1.0</code>. Now <code>uv.y = 0</code> is the middle of the canvas. That is where the sine baseline goes.</p><p><code>sin(uv.x * 6.28318)</code> is one full wave from left to right. <code>6.28318</code> is about <code>2π</code>. Times the sine by <code>0.5</code>. Now the peaks land at <code>uv.y = ±0.5</code>, not off the top.</p><p>Same plot pattern: distance, smoothstep, flip.</p><p>Reference: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">Book of Shaders, Shaping functions (plot section)</a>.</p>',
+ '<p>You will use the same plot recipe on a real curve.</p><p>A sine looks better centered. Remap <code>uv</code> from <code>0</code>-to-<code>1</code> to <code>-1</code>-to-<code>1</code> first. Change the starter''s <code>uv</code> line to:</p><p><code>vec2 uv = gl_FragCoord.xy / u_resolution.xy * 2.0 - 1.0;</code></p><p>Now <code>uv.y = 0</code> is the middle of the canvas. That is where the sine baseline goes.</p><p><code>sin(uv.x * 6.28318)</code> is one full wave from left to right. <code>6.28318</code> is about <code>2π</code>. Times the sine by <code>0.5</code> so the peaks land at <code>uv.y = ±0.5</code>, not off the top. Store the result in a <code>float</code> named <code>y</code>:</p><p><code>float y = 0.5 * sin(uv.x * 6.28318);</code></p><p>Then the plot recipe is the same as last lesson, but with <code>y</code> in place of <code>uv.x</code>:</p><p><code>float d = abs(uv.y - y);<br>float m = 1.0 - smoothstep(0.01, 0.03, d);</code></p><p>Reference: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">Book of Shaders, Shaping functions (plot section)</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     float d = abs(uv.y - uv.x);
@@ -262,7 +277,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'plotting-curves'), 'A97U3mk9yUE', 2,
  'Curve thickness',
- '<p>You will see that the smoothstep edges <code>(a, b)</code> set the curve thickness.</p><p>Look at <code>1.0 - smoothstep(a, b, d)</code>. It is <code>1</code> when <code>d</code> is less than <code>a</code>. It drops to <code>0</code> when <code>d</code> is more than <code>b</code>. So pixels closer than <code>a</code> are solid. Pixels between <code>a</code> and <code>b</code> are the soft edge. Pixels past <code>b</code> are dark. Push <code>a</code> out to make the curve thicker. Spread <code>b - a</code> to make the edges softer.</p><p>The recipe is the same as the last lesson. Use thicker edges: <code>smoothstep(0.05, 0.08, d)</code>. The cosine here uses <code>π</code>, not <code>2π</code>. That makes the curve gentler.</p><p>Reference: <a href="https://iquilezles.org/articles/smoothsteps/" target="_blank" rel="noreferrer">IQ, Smoothsteps</a>.</p>',
+ '<p>You will see that the smoothstep edges <code>(a, b)</code> set the curve thickness.</p><p>Look at <code>1.0 - smoothstep(a, b, d)</code>. It is <code>1</code> when <code>d</code> is less than <code>a</code>. It drops to <code>0</code> when <code>d</code> is more than <code>b</code>. So pixels closer than <code>a</code> are solid. Pixels between <code>a</code> and <code>b</code> are the soft edge. Pixels past <code>b</code> are dark. Push <code>a</code> out to make the curve thicker. Spread <code>b - a</code> to make the edges softer.</p><p>Everything else from last lesson stays the same. Only change the smoothstep edges. Use <code>smoothstep(0.05, 0.08, d)</code> for a curve that is about three times as thick, with the same soft falloff.</p><p>Reference: <a href="https://iquilezles.org/articles/smoothsteps/" target="_blank" rel="noreferrer">IQ, Smoothsteps</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 2.0 - 1.0;
     float y = 0.5 * sin(uv.x * 6.28318);
@@ -272,7 +287,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 }',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 2.0 - 1.0;
-    float y = 0.5 * cos(uv.x * 3.14159);
+    float y = 0.5 * sin(uv.x * 6.28318);
     float d = abs(uv.y - y);
     float m = 1.0 - smoothstep(0.05, 0.08, d);
     gl_FragColor = vec4(vec3(m), 1.0);
@@ -285,14 +300,14 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 2.0 - 1.0;
     float y = 0.5 * sin(uv.x * 6.28318);
     float d = abs(uv.y - y);
-    float m = 1.0 - smoothstep(0.01, 0.03, d);
+    float m = 1.0 - smoothstep(0.05, 0.08, d);
     gl_FragColor = vec4(vec3(m), 1.0);
 }',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy * 2.0 - 1.0;
     float y = 0.5 * sin(uv.x * 6.28318 + u_time);
     float d = abs(uv.y - y);
-    float m = 1.0 - smoothstep(0.01, 0.03, d);
+    float m = 1.0 - smoothstep(0.05, 0.08, d);
     gl_FragColor = vec4(vec3(m), 1.0);
 }'),
 
@@ -303,9 +318,12 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'loop-fundamentals'), 'WWkoco-M-vA', 0,
  'Count steps to threshold',
- '<p>You will write your first loop. You will turn the loop count into a picture.</p><p>GLSL has one big rule for loops. The number of times must be a fixed number the compiler can see. <code>for (int i = 0; i &lt; 32; i++)</code> works. <code>for (int i = 0; i &lt; n; i++)</code> does not, if <code>n</code> is a uniform.</p><p>Walk a counter <code>v</code> from <code>0</code> in steps of <code>0.05</code>. Each time: if <code>v</code> is past <code>uv.x</code>, stop. Otherwise add <code>1</code> to <code>steps</code>. The pixel''s gray value is <code>steps / 32</code>. Brighter pixels are the ones that took more steps. You get a stepped horizontal gradient.</p><p>Reference: <a href="https://registry.khronos.org/OpenGL/specs/es/2.0/GLSL_ES_Specification_1.00.pdf" target="_blank" rel="noreferrer">Khronos, GLSL ES 1.0 spec</a>.</p>',
+ '<p>You will write your first loop. You will turn the loop count into a picture.</p><p>GLSL has one big rule for loops. The number of times must be a fixed number the compiler can see. <code>for (int i = 0; i &lt; 32; i++)</code> works. <code>for (int i = 0; i &lt; n; i++)</code> does not, if <code>n</code> is a uniform.</p><p>The starter ships <code>uv</code>, <code>steps</code>, and <code>v</code> ready, plus the final <code>gl_FragColor</code> that turns <code>steps</code> into gray. All you write is the loop.</p><p>The loop walks <code>v</code> up by <code>0.05</code> at each step. If <code>v</code> goes past <code>uv.x</code>, <code>break</code>. Otherwise add <code>1</code> to <code>steps</code>:</p><p><code>for (int i = 0; i &lt; 32; i++) {<br>&nbsp;&nbsp;&nbsp;&nbsp;v += 0.05;<br>&nbsp;&nbsp;&nbsp;&nbsp;if (v &gt; uv.x) break;<br>&nbsp;&nbsp;&nbsp;&nbsp;steps++;<br>}</code></p><p>Brighter pixels are the ones that took more steps. You get a stepped horizontal gradient.</p><p>Reference: <a href="https://registry.khronos.org/OpenGL/specs/es/2.0/GLSL_ES_Specification_1.00.pdf" target="_blank" rel="noreferrer">Khronos, GLSL ES 1.0 spec</a>.</p>',
  'void main() {
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    int steps = 0;
+    float v = 0.0;
+    gl_FragColor = vec4(vec3(float(steps) / 32.0), 1.0);
 }',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
@@ -321,12 +339,14 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'loop-fundamentals'), '0VcH_tOJHZw', 1,
  'Break on first hit',
- '<p>You will use a loop to search at each pixel.</p><p>The function <code>fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453)</code> is a fake-random hash. The same <code>p</code> always gives the same number. Two nearby <code>p</code> values look unrelated. Treat it as a black box for now. The noise family will explain those numbers.</p><p>Loop 32 times. Each time, hash <code>uv * float(i + 1)</code>. A different <code>i</code> gives a different number at the same pixel. The first time the value goes past <code>0.7</code>, break. Save <code>i</code> in <code>it</code>. The picture looks grainy. Each pixel stops at a random step.</p><p>Reference: <a href="https://iquilezles.org/articles/gpuconditionals/" target="_blank" rel="noreferrer">IQ, GPU conditionals</a>.</p>',
+ '<p>You will use a loop to search at each pixel.</p><p>The helper <code>hash(p)</code> returns <code>fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453)</code>. It is a fake-random function. The same <code>p</code> always gives the same number. Two nearby <code>p</code> values look unrelated. Treat it as a black box for now. The noise family will explain those numbers.</p><p>The starter ships <code>uv</code>, <code>it</code>, and the final <code>gl_FragColor</code> that turns <code>it</code> into gray. All you write is the loop.</p><p>Loop 32 times. At step <code>i</code>, hash <code>uv * float(i + 1)</code>. A different <code>i</code> gives a different number at the same pixel. The first time the value goes past <code>0.7</code>, <code>break</code>. Otherwise save <code>i</code> in <code>it</code>:</p><p><code>for (int i = 0; i &lt; 32; i++) {<br>&nbsp;&nbsp;&nbsp;&nbsp;if (hash(uv * float(i + 1)) &gt; 0.7) break;<br>&nbsp;&nbsp;&nbsp;&nbsp;it = i;<br>}</code></p><p>The picture looks grainy. Each pixel stops at a random step.</p><p>Reference: <a href="https://iquilezles.org/articles/gpuconditionals/" target="_blank" rel="noreferrer">IQ, GPU conditionals</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
 void main() {
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    int it = 0;
+    gl_FragColor = vec4(vec3(float(it) / 32.0), 1.0);
 }',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
@@ -343,12 +363,14 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'loop-fundamentals'), 'WxfbsGl4W28', 2,
  'Running maximum',
- '<p>You will use a loop to keep only the biggest value out of many.</p><p>Start with <code>m = -1.0</code>. That is below anything <code>sin</code> can give. For <code>i</code> from <code>0</code> to <code>15</code>, work out <code>sin(uv.x * float(i))</code>. Keep the bigger of the old <code>m</code> and the new value. The result is the top edge of many sines at different speeds.</p><p>The waves overlap. So the running max stays near <code>1</code> most of the time. You will see a bright canvas with thin dark seams.</p><p>Reference: <a href="https://registry.khronos.org/OpenGL/specs/es/2.0/GLSL_ES_Specification_1.00.pdf" target="_blank" rel="noreferrer">Khronos, GLSL ES 1.0 spec</a>.</p>',
+ '<p>You will use a loop to keep only the biggest value out of many.</p><p>The starter ships <code>uv</code>, <code>m</code> set to <code>-1.0</code>, and the final <code>gl_FragColor</code> that maps <code>m</code> from <code>-1</code>-to-<code>1</code> into a gray value. <code>-1.0</code> is the right starting point because it sits below anything <code>sin</code> can give. The first comparison will always lift <code>m</code> up.</p><p>All you write is the loop. For <code>i</code> from <code>0</code> to <code>15</code>, work out <code>sin(uv.x * float(i))</code>. Keep the bigger of the old <code>m</code> and the new value:</p><p><code>for (int i = 0; i &lt; 16; i++) {<br>&nbsp;&nbsp;&nbsp;&nbsp;m = max(m, sin(uv.x * float(i)));<br>}</code></p><p>The result is the top edge of 16 sines at different speeds. The waves overlap, so the running max stays near <code>1</code> most of the time. You will see a bright canvas with thin dark seams.</p><p>Reference: <a href="https://registry.khronos.org/OpenGL/specs/es/2.0/GLSL_ES_Specification_1.00.pdf" target="_blank" rel="noreferrer">Khronos, GLSL ES 1.0 spec</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
 void main() {
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    float m = -1.0;
+    gl_FragColor = vec4(vec3(0.5 + 0.5 * m), 1.0);
 }',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
