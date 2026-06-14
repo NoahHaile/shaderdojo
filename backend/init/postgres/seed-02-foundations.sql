@@ -187,10 +187,11 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'mix-gradients'), '5U6D3uvCGzQ', 1,
  'Diagonal gradient',
- '<p>You will turn the gradient by <code>45°</code>. You will use both axes for the blend.</p><p>Last time you used <code>t = uv.x</code>. This time, average the two axes. Use <code>t = (uv.x + uv.y) * 0.5</code>. Now <code>t</code> is <code>0</code> at the bottom-left. It is <code>0.5</code> along the diagonal. It is <code>1</code> at the top-right.</p><p>The <code>mix</code> stays the same. Only <code>t</code> changes. The gradient now runs corner to corner.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders, Colors</a>.</p>',
+ '<p>You will turn the gradient by <code>45°</code>. You will use both axes for the blend.</p><p>The starter has <code>float t = uv.x;</code> from last lesson. Change that one line to average both axes:</p><p><code>float t = (uv.x + uv.y) * 0.5;</code></p><p>Now <code>t</code> is <code>0</code> at the bottom-left, <code>0.5</code> along the diagonal, and <code>1</code> at the top-right. The <code>mix</code> stays the same: salmon <code>(0.96, 0.62, 0.51)</code> on one side, yellow <code>(0.95, 0.81, 0.36)</code> on the other. Only <code>t</code> changes. The gradient now runs corner to corner.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders, Colors</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    vec3 c = mix(vec3(0.96, 0.62, 0.51), vec3(0.95, 0.81, 0.36), uv.x);
+    float t = uv.x;
+    vec3 c = mix(vec3(0.96, 0.62, 0.51), vec3(0.95, 0.81, 0.36), t);
     gl_FragColor = vec4(c, 1.0);
 }',
  'void main() {
@@ -203,13 +204,16 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 ((SELECT id FROM course WHERE slug = 'mix-gradients'), 'VyyQdFs8C0s', 2,
  'Three-stop nested mix',
  '<p>You will add a third color so the gradient has three stops instead of two. The trick: at the middle, both halves must arrive at the same color.</p>
-<p>The starter ships the diagonal salmon-to-yellow gradient from last lesson. Add a third color, navy, that takes over on the left.</p>
+<p>The starter ships the diagonal salmon-to-yellow gradient from last lesson. Add a third color, navy, that takes over on the left. Declare all three as named vectors:</p>
+<p><code>vec3 navy   = vec3(0.10, 0.15, 0.35);<br>vec3 salmon = vec3(0.96, 0.62, 0.51);<br>vec3 yellow = vec3(0.95, 0.81, 0.36);</code></p>
 <p>Each half of the canvas needs its own <code>0</code>-to-<code>1</code> ramp:</p>
 <ul><li>Left half: <code>uv.x</code> from <code>0</code> to <code>0.5</code> becomes <code>uv.x * 2.0</code>. Use this to blend navy to salmon.</li>
 <li>Right half: <code>uv.x</code> from <code>0.5</code> to <code>1</code> becomes <code>(uv.x - 0.5) * 2.0</code>. Use this to blend salmon to yellow.</li></ul>
-<p>Compute both mixes and pick the right one with a ternary:</p>
-<p><code>vec3 leftMix = mix(navy, salmon, uv.x * 2.0);<br>vec3 rightMix = mix(salmon, yellow, (uv.x - 0.5) * 2.0);<br>vec3 col = uv.x &lt; 0.5 ? leftMix : rightMix;</code></p>
-<p>At <code>uv.x = 0.5</code>, both halves arrive at salmon. The join is invisible.</p>
+<p>Compute both mixes and store each in its own variable:</p>
+<p><code>vec3 leftMix  = mix(navy, salmon, uv.x * 2.0);<br>vec3 rightMix = mix(salmon, yellow, (uv.x - 0.5) * 2.0);</code></p>
+<p>Now pick whichever applies to the current pixel. The <strong>ternary operator</strong> <code>condition ? a : b</code> is a one-line if/else. It returns <code>a</code> when the condition is true, <code>b</code> when it is false. Use <code>uv.x &lt; 0.5</code> as the condition so the left half draws <code>leftMix</code> and the right half draws <code>rightMix</code>:</p>
+<p><code>vec3 col = uv.x &lt; 0.5 ? leftMix : rightMix;</code></p>
+<p>At <code>uv.x = 0.5</code> exactly, both <code>leftMix</code> and <code>rightMix</code> evaluate to pure salmon. So the join is invisible: the colors meet seamlessly in the middle.</p>
 <p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders, Colors</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
@@ -230,7 +234,14 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'mix-gradients'), 'RmXFv-4OZwk', 3,
  'Radial gradient',
- '<p>You will blend by distance from the middle, not by an axis.</p><p>The starter ships the centered, aspect-fixed <code>p</code> from the polar lesson. The recipe:</p><ul><li>Get the distance to the middle with <code>float r = length(p);</code>.</li><li>Put <code>r</code> through <code>smoothstep(0.0, 0.6, r)</code> and store it in a <code>float</code> named <code>t</code>. Now <code>t</code> is <code>0</code> at the middle and <code>1</code> past radius <code>0.6</code>.</li><li><code>mix</code> bright yellow in the middle with dark navy outside, using <code>t</code> as the blend factor.</li></ul><p>You just drew your first spotlight.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders, Colors</a>.</p>',
+ '<p>You will blend by distance from the middle, not by an axis.</p>
+<p>The starter ships the centered, aspect-fixed <code>p</code> from the polar lesson. The recipe:</p>
+<ul><li>Get the distance to the middle with <code>float r = length(p);</code>.</li>
+<li>Put <code>r</code> through <code>smoothstep(0.0, 0.6, r)</code> and store it in a <code>float</code> named <code>t</code>. Now <code>t</code> is <code>0</code> at the middle and <code>1</code> past radius <code>0.6</code>.</li>
+<li><code>mix</code> bright yellow <code>(0.95, 0.81, 0.36)</code> in the middle with dark navy <code>(0.10, 0.15, 0.35)</code> outside, using <code>t</code> as the blend factor:</li></ul>
+<p><code>vec3 col = mix(vec3(0.95, 0.81, 0.36), vec3(0.10, 0.15, 0.35), t);</code></p>
+<p>You just drew your first spotlight.</p>
+<p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders, Colors</a>.</p>',
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
