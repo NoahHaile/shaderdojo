@@ -257,7 +257,14 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 -- ===== Course: plotting-curves =====
 ((SELECT id FROM course WHERE slug = 'plotting-curves'), 'c3su8EDPRds', 0,
  'Plot y = x',
- '<p>You will draw the line <code>y = x</code>. This is the simplest plot.</p><p>The recipe works for any curve:</p><ol><li>Find <code>float d = abs(uv.y - f(uv.x));</code>. That is the up-down distance from the pixel to the curve.</li><li>Put <code>d</code> through a thin smoothstep. Pixels close to the curve get <code>1</code>. Pixels far away get <code>0</code>. Flip with <code>1.0 -</code> to draw a bright line on dark.</li></ol><p>For <code>y = x</code>, <code>f(uv.x) = uv.x</code>. So <code>float d = abs(uv.y - uv.x);</code>. Use <code>float m = 1.0 - smoothstep(0.005, 0.015, d);</code> for a clean diagonal.</p><p>The starter ships <code>uv</code> ready to go. You write the two lines above and feed <code>m</code> into <code>gl_FragColor</code>.</p><p>Reference: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">Book of Shaders, Shaping functions (plot section)</a>.</p>',
+ '<p>You will draw the line <code>y = x</code>. This is the simplest plot.</p>
+<p>Each pixel sits at <code>(uv.x, uv.y)</code>. On the line <code>y = x</code>, the vertical position equals the horizontal position. So at column <code>uv.x</code>, the line sits at vertical position <code>uv.x</code> too. The up-down distance from a pixel to the line is the gap between <code>uv.y</code> and that target:</p>
+<p><code>float d = abs(uv.y - uv.x);</code></p>
+<p>Now turn that distance into brightness. Use <code>smoothstep</code> with two close edges so only pixels very near the line stay bright. Flip the result with <code>1.0 -</code> so close pixels become <code>1</code> and far pixels become <code>0</code>:</p>
+<p><code>float m = 1.0 - smoothstep(0.005, 0.015, d);</code></p>
+<p>The starter ships <code>uv</code> ready. You write the two lines above and put <code>vec3(m)</code> into <code>gl_FragColor</code>.</p>
+<p>The pattern <code>abs(uv.y - [vertical position at uv.x])</code> is the whole plot recipe. The next lesson swaps in a sine for that vertical position, and everything else stays the same.</p>
+<p>Reference: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">Book of Shaders, Shaping functions (plot section)</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
