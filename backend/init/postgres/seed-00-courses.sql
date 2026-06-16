@@ -16,6 +16,11 @@ INSERT INTO course (slug, title, description, category, difficulty, display_orde
 ('hsv-color',            'HSV color',             'Pick a color by hue, not red-green-blue. Spin the hue to walk a rainbow.',                                                                 'Color',       'beginner', 7),
 ('cosine-palettes',      'Cosine palettes',       'Make any palette with one cosine. Four numbers in, smooth color out. A trick by Inigo Quilez.',                                            'Color',       'beginner', 8),
 ('tone-vignette-gamma',  'Tone, vignette, gamma', 'Polish the colors at the end. Gamma. Vignette. Tone map. The final pass on every shader.',                                                 'Color',       'intermediate', 9),
+-- ===== Trials. First creative checkpoint =====
+-- Shares display_order 9 with the last Color course on purpose. The UI orders
+-- categories by their minimum display_order, so 9 places Trials between Color
+-- (min 7) and 2D Distance Fields (min 10) with no renumbering of later courses.
+('first-masterwork',     'Your first masterwork', 'No new technique. Take everything from Foundations and Color and make one piece you are proud of, then share it with the world.',           'Trials',      'intermediate', 9),
 -- ===== Family C. 2D distance fields =====
 ('sdf-2d-primitives',    '2D SDF shapes',         'Draw shapes by distance. A circle is the spots within r of the center. Same idea for boxes and lines.',                                    '2D Distance Fields', 'intermediate', 10),
 ('sdf-booleans',         'SDF booleans',          'Combine SDF shapes. Take the smaller distance to join them. Take the larger to clip them.',                                                '2D Distance Fields', 'intermediate', 11),

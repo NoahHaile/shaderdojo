@@ -25,6 +25,10 @@ export const COURSE_PREREQUISITES: Record<string, string[]> = {
     'cosine-palettes':      ['time-oscillation', 'mix-gradients'],
     'tone-vignette-gamma':  ['mix-gradients'],
 
+    // Trials -- a creative capstone that gathers the whole Color section.
+    // Nothing depends on it: it is a non-blocking branch, not a gate.
+    'first-masterwork':     ['hsv-color', 'cosine-palettes', 'tone-vignette-gamma'],
+
     // 2D distance fields.
     'sdf-2d-primitives':    ['uv-coordinates'],
     'sdf-booleans':         ['sdf-2d-primitives'],

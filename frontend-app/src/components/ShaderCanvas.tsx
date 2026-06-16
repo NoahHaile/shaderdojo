@@ -3,6 +3,7 @@ import {
     buildFragmentShader, createProgram, makeFullScreenQuad,
     VERTEX_SHADER_SOURCE, type ShaderProgram,
 } from '../shader-pipeline';
+import type { CaptureResult } from '../gif-encoder';
 
 export interface ShaderCanvasHandle {
     /** Recompile + run with a new fragment body. Returns true if the shader compiled. */
@@ -12,6 +13,12 @@ export interface ShaderCanvasHandle {
     setTime(t: number): void;
     /** Returns true if paused. */
     isPaused(): boolean;
+    /**
+     * Render `frames` evenly-spaced frames (starting at the current time) and
+     * read each off the backbuffer. Synchronous so readPixels lands before the
+     * browser composites. Returns null if the canvas/program isn't ready.
+     */
+    capture(opts?: { frames?: number; fps?: number }): CaptureResult | null;
 }
 
 interface Props {
@@ -70,6 +77,36 @@ export const ShaderCanvas = forwardRef<ShaderCanvasHandle, Props>(function Shade
         resume() { stateRef.current.paused = false; },
         setTime(t: number) { stateRef.current.elapsed = t; stateRef.current.startMs = performance.now() - t * 1000; },
         isPaused() { return stateRef.current.paused; },
+        capture(opts) {
+            const gl = glRef.current;
+            const canvas = canvasRef.current;
+            const prog = programRef.current;
+            if (!gl || !canvas || !prog) return null;
+
+            const fps = opts?.fps ?? 12;
+            const count = Math.max(1, opts?.frames ?? 30);
+            const w = canvas.width, h = canvas.height;
+            if (w < 1 || h < 1) return null;
+
+            const start = stateRef.current.elapsed;
+            const frames: CaptureResult['frames'] = [];
+            gl.viewport(0, 0, w, h);
+            for (let i = 0; i < count; i++) {
+                gl.clearColor(0, 0, 0, 1);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                if (prog.uResolution) gl.uniform2f(prog.uResolution, w, h);
+                if (prog.uTime) gl.uniform1f(prog.uTime, start + i / fps);
+                if (prog.uImageResolution) {
+                    const sz = imageSizeRef.current;
+                    gl.uniform2f(prog.uImageResolution, sz.w, sz.h);
+                }
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                const buf = new Uint8Array(w * h * 4);
+                gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, buf);
+                frames.push({ data: buf, width: w, height: h });
+            }
+            return { frames, fps };
+        },
     }), []);
 
     function compileAndUse(body: string): boolean {

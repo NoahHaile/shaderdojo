@@ -18,8 +18,10 @@ import { ShaderCanvas, type ShaderCanvasHandle } from '../components/ShaderCanva
 import { ConciergeTerminal } from '../components/ConciergeTerminal';
 import { FRAGMENT_HEADER } from '../shader-pipeline';
 import { isStargazed } from '../stargazed';
+import { encodeGif } from '../gif-encoder';
 
 type Verdict = 'idle' | 'verifying' | 'correct' | 'incorrect' | 'error';
+type GifState = 'idle' | 'recording' | 'encoding';
 
 const PANE_HEIGHT = 460;
 const PANE_HEADER_HEIGHT = 40;          // matches `h-10` on the pane header
@@ -59,6 +61,7 @@ export function LessonPage() {
     const [verdict, setVerdict] = useState<Verdict>('idle');
     const [verdictMsg, setVerdictMsg] = useState<string>('');
     const [compileError, setCompileError] = useState<string | null>(null);
+    const [gifState, setGifState] = useState<GifState>('idle');
     // Re-read the localStorage flag on every visit + when Concierge fires its event.
     const [stargazed, setStargazed] = useState<boolean>(false);
 
@@ -191,6 +194,39 @@ export function LessonPage() {
         clearLessonCode(lesson.id);
     }, [lesson]);
 
+    // Exploratory (ungraded) lessons can't be auto-verified. The learner marks
+    // them done themselves — for the masterwork checkpoint, after posting it.
+    const markShared = useCallback(() => {
+        if (!lesson) return;
+        markLocallyCompleted(lesson.id);
+        celebrate();
+    }, [lesson]);
+
+    // Record the live shader as a looping GIF and trigger a download.
+    const downloadGif = useCallback(async () => {
+        if (!lesson || !canvasRef.current || gifState !== 'idle') return;
+        setGifState('recording');
+        try {
+            canvasRef.current.run(code);
+            await new Promise(r => requestAnimationFrame(() => r(null)));
+            const clip = canvasRef.current.capture({ frames: 30, fps: 12 });
+            if (!clip) return;
+            setGifState('encoding');
+            await new Promise(r => setTimeout(r, 30));   // let the "Encoding…" label paint
+            const blob = encodeGif(clip.frames, { fps: clip.fps, maxSize: 360 });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${lesson.slug || 'shader'}.gif`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
+        } finally {
+            setGifState('idle');
+        }
+    }, [code, gifState, lesson]);
+
     const goToNext = useCallback(() => {
         if (nextLesson) navigate(`/lesson/${nextLesson.id}`);
         else if (course) navigate(`/courses?slug=${course.slug}`);
@@ -311,11 +347,28 @@ export function LessonPage() {
                 <div className="flex gap-2">
                     <button onClick={run} className="btn-secondary">Run</button>
                     <button
-                        onClick={submit}
-                        disabled={!lesson.verified || verdict === 'verifying'}
-                        className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
-                        {verdict === 'verifying' ? 'Verifying…' : 'Submit'}
+                        onClick={downloadGif}
+                        disabled={gifState !== 'idle'}
+                        className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Record the output as a looping GIF you can post">
+                        {gifState === 'recording' ? 'Recording…' : gifState === 'encoding' ? 'Encoding GIF…' : 'Download GIF'}
                     </button>
+                    {lesson.verified ? (
+                        <button
+                            onClick={submit}
+                            disabled={verdict === 'verifying'}
+                            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
+                            {verdict === 'verifying' ? 'Verifying…' : 'Submit'}
+                        </button>
+                    ) : (
+                        <button
+                            onClick={markShared}
+                            disabled={completed.has(lesson.id)}
+                            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Mark this checkpoint done once you've posted your piece">
+                            {completed.has(lesson.id) ? 'Shared ✓' : 'Mark as shared'}
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -380,7 +433,11 @@ function AttemptBadge({ attempt, locallyCompleted, verified, authed }: {
     verified: boolean;
     authed: boolean;
 }) {
-    if (!verified) return <span className="pill-explore">Exploratory</span>;
+    if (!verified) {
+        return locallyCompleted
+            ? <span className="pill-passed">Shared ✓</span>
+            : <span className="pill-explore">Exploratory</span>;
+    }
 
     // Anonymous users get a localStorage-only verdict.
     if (!authed) {

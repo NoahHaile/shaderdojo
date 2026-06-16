@@ -33,7 +33,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'hsv-color'), '2RCHfX2ZA7s', 1,
  'Hue from polar angle',
- '<p>Last time hue ran left to right. Now it will spin around a center. You will get the classic color wheel.</p><p>Start with the centered position <code>p</code>. Call <code>atan(p.y, p.x)</code>. That gives the angle in radians from <code>-π</code> to <code>π</code>. Radians are just a way to measure angles. Divide by <code>2π</code> to get a range from <code>-0.5</code> to <code>0.5</code>. Add <code>0.5</code> to slide it to <code>0</code> to <code>1</code>. That is the range hue wants.</p><p>Then feed it to <code>hsv2rgb(vec3(h, 1.0, 1.0))</code>. Red points right. Green points up and left. Blue points down and left.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders, Colors</a>.</p>',
+ '<p>Last time hue ran left to right. Now it will spin around a center. You will get the classic color wheel.</p><p>The starter ships the centered position <code>p</code>. To get the angle of a point, GLSL has a built-in function called <code>atan</code>. Called with two arguments as <code>atan(y, x)</code>, it returns the angle in radians from the positive x-axis to the point <code>(x, y)</code>. The result runs from <code>-π</code> to <code>π</code>. Radians are just a way to measure angles.</p><p>GLSL has no built-in name for π, so declare it yourself as a constant:</p><p><code>float PI = 3.14159265;</code></p><p>For our centered <code>p</code>, the call is <code>atan(p.y, p.x)</code>. Divide that by <code>2 * PI</code> to get a range from <code>-0.5</code> to <code>0.5</code>, then add <code>0.5</code> to shift it into <code>0</code> to <code>1</code>. That is the range hue wants:</p><p><code>float h = atan(p.y, p.x) / (2.0 * PI) + 0.5;</code></p><p>Then feed it to <code>hsv2rgb(vec3(h, 1.0, 1.0))</code>. Red points right. Green points up and left. Blue points down and left.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders, Colors</a>.</p>',
  'vec3 hsv2rgb(vec3 c) {
     vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
     vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
@@ -50,7 +50,8 @@ void main() {
 }
 void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
-    float h = atan(p.y, p.x) / (2.0 * 3.14159) + 0.5;
+    float PI = 3.14159265;
+    float h = atan(p.y, p.x) / (2.0 * PI) + 0.5;
     vec3 c = hsv2rgb(vec3(h, 1.0, 1.0));
     gl_FragColor = vec4(c, 1.0);
 }'),
@@ -65,7 +66,8 @@ void main() {
 }
 void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
-    float h = atan(p.y, p.x) / (2.0 * 3.14159) + 0.5;
+    float PI = 3.14159265;
+    float h = atan(p.y, p.x) / (2.0 * PI) + 0.5;
     vec3 c = hsv2rgb(vec3(h, 1.0, 1.0));
     gl_FragColor = vec4(c, 1.0);
 }',
@@ -131,13 +133,21 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'cosine-palettes'), 'G2adWB1gqbk', 2,
  'Radial palette',
- '<p>This time <code>t</code> comes from distance. The palette will wrap into rings around the center.</p><p>Start with the centered position <code>p</code>. Get the distance with <code>r = length(p)</code>. Call <code>palette(r, ...)</code>. The value <code>r</code> grows from <code>0</code> at the center. The palette loops every <code>1</code> unit. Each loop draws one ring.</p><p>Reference: <a href="https://iquilezles.org/articles/palettes/" target="_blank" rel="noreferrer">IQ, Palettes</a>.</p>',
+ '<p>This time <code>t</code> comes from distance from the center. The palette will wrap into rings.</p>
+<p>The starter ships the static rainbow palette from last lesson. Two things change:</p>
+<ol><li>Swap the plain <code>uv</code> for a centered, aspect-fixed position. Use the same recipe from the polar lesson:<br><code>vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;</code></li>
+<li>Use the distance from the middle as the palette input:<br><code>float r = length(p);</code></li></ol>
+<p>Then pass <code>r</code> to the palette in place of <code>uv.x</code>. The four <code>vec3</code> parameters stay the same rainbow set from last lesson:</p>
+<p><code>vec3 c = palette(r, vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.00, 0.33, 0.67));</code></p>
+<p>The value <code>r</code> grows from <code>0</code> at the center. The palette loops every <code>1</code> unit. Each loop draws one ring.</p>
+<p>Reference: <a href="https://iquilezles.org/articles/palettes/" target="_blank" rel="noreferrer">IQ, Palettes</a>.</p>',
  'vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
     return a + b * cos(6.28318 * (c * t + d));
 }
 void main() {
-    vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    vec3 c = palette(uv.x, vec3(0.5), vec3(0.5), vec3(1.0), vec3(0.00, 0.33, 0.67));
+    gl_FragColor = vec4(c, 1.0);
 }',
  'vec3 palette(float t, vec3 a, vec3 b, vec3 c, vec3 d) {
     return a + b * cos(6.28318 * (c * t + d));
@@ -172,7 +182,13 @@ void main() {
 -- ===== Course: tone-vignette-gamma =====
 ((SELECT id FROM course WHERE slug = 'tone-vignette-gamma'), 'hK5QJQ86oMc', 0,
  'Gamma correction',
- '<p>Monitors do not show colors in a straight line. They use a curve. They raise each color value to about a <code>2.2</code> power. So an even ramp in code looks dark on screen. The dark half gets crushed.</p><p>The fix is to bend the color the other way. At the end of your shader, write <code>pow(color, vec3(1.0 / 2.2))</code>. The function <code>pow</code> raises one number to the power of another. This new bend cancels the monitor''s bend. The ramp looks even to your eye.</p><p>Run the starter without the fix to see the dark gradient. Then add the line. The middle moves up to about <code>0.5</code>, like it should.</p><p>Reference: <a href="https://iquilezles.org/articles/gamma/" target="_blank" rel="noreferrer">IQ, Gamma correct blurring</a>.</p>',
+ '<p>Monitors apply a curve to every pixel value before lighting up the screen. They raise the value to about the <code>2.2</code> power. So when you write <code>0.5</code> in code expecting middle gray, the monitor shows <code>0.5<sup>2.2</sup> ≈ 0.22</code>, which is much darker than the middle.</p>
+<p>The effect is visible right away: the starter draws an even ramp from <code>0</code> on the left to <code>1</code> on the right, but on screen the dark half looks crushed. Everything below code-value <code>0.5</code> gets squished into the bottom quarter of visible brightness. The bright half spreads across the top three-quarters. You see lots of bright detail and a clump of dark.</p>
+<p>The fix is to bend the value the other way before output. <code>pow</code> is a built-in GLSL function. Called as <code>pow(base, exponent)</code>, it raises <code>base</code> to that power. Both can be vectors; in that case it raises each part on its own.</p>
+<p>Raise <code>c</code> to the power of <code>1.0 / 2.2</code> right before <code>gl_FragColor</code>:</p>
+<p><code>c = pow(c, vec3(1.0 / 2.2));</code></p>
+<p>This new curve is the inverse of the monitor''s curve. The two cancel. The middle of your ramp now lands near <code>0.5</code> on screen, where it should.</p>
+<p>Reference: <a href="https://iquilezles.org/articles/gamma/" target="_blank" rel="noreferrer">IQ, Gamma correct blurring</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     vec3 c = vec3(uv.x);
@@ -187,7 +203,14 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'tone-vignette-gamma'), 'BPmLthBAT2s', 1,
  'Radial vignette',
- '<p>A vignette darkens the corners of the frame. Your eye then moves to the middle. You use the same distance and smoothstep trick from Family A.</p><p>Start with the centered position <code>p</code>. Call <code>smoothstep(0.4, 0.75, length(p))</code>. That gives <code>0</code> inside radius <code>0.4</code> and <code>1</code> outside radius <code>0.75</code>. Subtract from <code>1</code> to flip it. Now you have a bright disc that fades to <code>0</code> at the corners.</p><p>Multiply your color by that mask. Move the two smoothstep edges to taste. A smaller gap makes a stronger vignette.</p><p>Reference: <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ, Outdoors lighting</a>.</p>',
+ '<p>A vignette darkens the corners of the frame. Your eye then moves to the middle. You will use the reversed-smoothstep trick from the step-smoothstep course.</p>
+<p>The starter ships a flat warm-yellow canvas. Add a mask that is <code>1</code> in the middle and fades to <code>0</code> at the corners.</p>
+<p>Call <code>smoothstep(0.75, 0.4, length(p))</code> with the larger edge first. Remember from <strong>Reversed smoothstep</strong>: when the first edge is bigger than the second, the curve flips. So this returns <code>1</code> inside radius <code>0.4</code> and <code>0</code> outside radius <code>0.75</code>. That is the mask you need, in one line, with no <code>1.0 -</code> flip:</p>
+<p><code>float v = smoothstep(0.75, 0.4, length(p));</code></p>
+<p>Multiply your color by that mask:</p>
+<p><code>c *= v;</code></p>
+<p>The corners darken. A smaller gap between the two edges makes a stronger, more abrupt vignette.</p>
+<p>Reference: <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ, Outdoors lighting</a>.</p>',
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     vec3 c = vec3(0.95, 0.81, 0.36);
@@ -196,7 +219,7 @@ void main() {
  'void main() {
     vec2 p = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
     vec3 c = vec3(0.95, 0.81, 0.36);
-    float v = 1.0 - smoothstep(0.4, 0.75, length(p));
+    float v = smoothstep(0.75, 0.4, length(p));
     c *= v;
     gl_FragColor = vec4(c, 1.0);
 }'),
@@ -218,7 +241,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'tone-vignette-gamma'), 'Ae7sCWNcjgw', 3,
  'ACES tone map approximation',
- '<p>ACES is another tone map. It bends highlights in a film-like way. Films and games use it. The curve looks warmer and softer than Reinhard.</p><p>Krzysztof Narkowicz fit it to a short formula: <code>(c · (2.51c + 0.03)) / (c · (2.43c + 0.59) + 0.14)</code>, clamped to <code>[0, 1]</code>. The helper <code>aces</code> in the starter does this for you. Clamp pins the result inside the <code>0</code> to <code>1</code> range.</p><p>The starter uses the same too-bright color as the Reinhard lesson. Call <code>aces(c)</code>. The highlights now roll off warm instead of fading to gray.</p><p>Reference: <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ, Outdoors lighting</a>.</p>',
+ '<p>ACES is another tone map. It bends highlights in a film-like way. Films and games use it. The curve looks warmer and softer than Reinhard.</p><p>Krzysztof Narkowicz fit it to a short formula: <code>(c · (2.51c + 0.03)) / (c · (2.43c + 0.59) + 0.14)</code>, clamped to <code>[0, 1]</code>. The helper <code>aces</code> in the starter does this for you. <code>clamp</code> pins the result inside the <code>0</code> to <code>1</code> range.</p><p>The starter ships the Reinhard line from last lesson: <code>c = c / (c + 1.0);</code>. Replace that one line with the ACES call:</p><p><code>c = aces(c);</code></p><p>Same input color, different curve. The highlights now roll off warm instead of fading to gray.</p><p>Reference: <a href="https://iquilezles.org/articles/outdoorslighting/" target="_blank" rel="noreferrer">IQ, Outdoors lighting</a>.</p>',
  'vec3 aces(vec3 x) {
     return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
 }

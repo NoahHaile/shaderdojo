@@ -78,7 +78,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'time-oscillation'), 'Rh5lJolvCpE', 1,
  'Two-color crossfade',
- '<p>You will use the last lesson''s pulse to fade between two colors.</p><p><code>mix(a, b, t)</code> is a built-in function that blends two values. It mixes them with this exact recipe:</p><p><code>mix(a, b, t) = a * (1.0 - t) + b * t</code></p><p>Read it like a slider. When <code>t</code> is <code>0</code>, you get pure <code>a</code>. When <code>t</code> is <code>1</code>, you get pure <code>b</code>. At <code>0.5</code>, you get the halfway color. So <code>t</code> picks where you are between the two.</p><p>Your <code>t</code> from last lesson already swings smoothly from <code>0</code> to <code>1</code>. Plug it right in.</p><p>Use salmon <code>(0.96, 0.62, 0.51)</code> for <code>a</code> and yellow <code>(0.95, 0.81, 0.36)</code> for <code>b</code>:</p><p><code>vec3 c = mix(vec3(0.96, 0.62, 0.51), vec3(0.95, 0.81, 0.36), t);</code></p><p>The canvas will fade between the two colors.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders, Colors</a>.</p>',
+ '<p>You will use the last lesson''s pulse to fade between two colors.</p><p><code>mix(a, b, t)</code> is a built-in function that blends two values. It mixes them with this exact recipe:</p><p><code>mix(a, b, t) = a * (1.0 - t) + b * t</code></p><p>Read it like a slider. When <code>t</code> is <code>0</code>, you get pure <code>a</code>. When <code>t</code> is <code>1</code>, you get pure <code>b</code>. At <code>0.5</code>, you get the halfway color. So <code>t</code> picks where you are between the two.</p><p>The starter has the same pulse from last lesson, with the variable renamed from <code>v</code> to <code>t</code>. Same number, new name. <code>t</code> is the conventional name for a mix factor, so it lines up cleanly with <code>mix(a, b, t)</code>.</p><p>Use salmon <code>(0.96, 0.62, 0.51)</code> for <code>a</code> and yellow <code>(0.95, 0.81, 0.36)</code> for <code>b</code>:</p><p><code>vec3 c = mix(vec3(0.96, 0.62, 0.51), vec3(0.95, 0.81, 0.36), t);</code></p><p>The canvas will fade between the two colors.</p><p>Reference: <a href="https://thebookofshaders.com/06/" target="_blank" rel="noreferrer">Book of Shaders, Colors</a>.</p>',
  'void main() {
     float t = 0.5 + 0.5 * sin(u_time);
     gl_FragColor = vec4(vec3(t), 1.0);
@@ -91,7 +91,7 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'time-oscillation'), '5Wv1Wxu93pY', 2,
  'Phase-offset RGB',
- '<p>You will pulse each color channel on its own clock. The canvas will cycle through colors.</p><p>The starter already has a <code>vec3 col</code> set to a gray pulse. All three channels are tied to the same <code>sin(u_time)</code>, so they rise and fall together.</p><p>To get color motion, the three channels need to be out of sync. Replace the line with this:</p><p><code>vec3 col = 0.5 + 0.5 * cos(u_time + vec3(0.0, 2.094, 4.189));</code></p><p>Two things changed.</p><p><strong>Why cos instead of sin?</strong> Either one swings between <code>-1</code> and <code>+1</code>. They are the same wave, just shifted. Cosine is the convention here. The same formula returns in the cosine palettes lesson later, and matching the convention now will make it feel familiar then.</p><p><strong>Why a vec3 offset?</strong> GLSL lets you call <code>cos</code> on a <code>vec3</code>. It runs <code>cos</code> on each part on its own. So <code>cos(u_time + vec3(0.0, 2.094, 4.189))</code> gives three cosines. Each one starts at a different time. The offsets <code>0</code>, <code>2.094</code>, and <code>4.189</code> are <code>2π/3</code> apart. That spaces the three colors evenly around the cycle, so the canvas glides through red, green, and blue instead of pulsing gray.</p><p>Reference: <a href="https://iquilezles.org/articles/trigfunctions/" target="_blank" rel="noreferrer">IQ, Trig functions</a>.</p>',
+ '<p>You will pulse each color channel on its own clock. The canvas will cycle through colors.</p><p>Last lesson blended between two whole colors. This one is different: instead of mixing two pre-picked colors, we drive each of the three channels (red, green, blue) on its own clock. So the starter steps back from the crossfade to a single gray pulse, the simplest possible "one wave per channel" version. All three channels are tied to the same <code>sin(u_time)</code>, so they rise and fall together:</p><p><code>vec3 col = vec3(0.5 + 0.5 * sin(u_time));</code></p><p>To get color motion, the three channels need to be out of sync. Replace that line with this:</p><p><code>vec3 col = 0.5 + 0.5 * cos(u_time + vec3(0.0, 2.094, 4.189));</code></p><p>Two things changed.</p><p><strong>Why cos instead of sin?</strong> Either one swings between <code>-1</code> and <code>+1</code>. They are the same wave, just shifted. Cosine is the convention here. The same formula returns in the cosine palettes lesson later, and matching the convention now will make it feel familiar then.</p><p><strong>Why a vec3 offset?</strong> GLSL lets you call <code>cos</code> on a <code>vec3</code>. It runs <code>cos</code> on each part on its own. So <code>cos(u_time + vec3(0.0, 2.094, 4.189))</code> gives three cosines. Each one starts at a different time. The offsets <code>0</code>, <code>2.094</code>, and <code>4.189</code> are <code>2π/3</code> apart. That spaces the three colors evenly around the cycle, so the canvas glides through red, green, and blue instead of pulsing gray.</p><p>Reference: <a href="https://iquilezles.org/articles/trigfunctions/" target="_blank" rel="noreferrer">IQ, Trig functions</a>.</p>',
  'void main() {
     vec3 col = vec3(0.5 + 0.5 * sin(u_time));
     gl_FragColor = vec4(col, 1.0);
@@ -103,14 +103,15 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'time-oscillation'), '8LOHoVrvY5s', 3,
  'Per-axis frequency',
- '<p>You will mix space and time inside one <code>sin</code>. The wave will depend on both <code>uv.x</code> and <code>u_time</code>.</p><p>The starter already gives you <code>uv = gl_FragCoord.xy / u_resolution.xy</code>. You have seen this line before in Orientation and in the UV course. It gives every pixel a spot from <code>0</code> to <code>1</code> across the canvas.</p><p>The line you will write is:</p><p><code>float v = 0.5 + 0.5 * sin(uv.x * k + u_time);</code></p><p>The <code>0.5 + 0.5 * (...)</code> wrapper is the same trick you have been using. It matters here for a special reason. Plain <code>sin</code> dips below <code>0</code> for half its swing, and a negative color value just shows up as black. Without the wrapper, big stripes of the canvas would be flat black with no shape. The wrapper lifts the swing into the <code>0</code> to <code>1</code> range so every pixel gets a real brightness.</p><p>Now look at what is inside the <code>sin</code>:</p><ul><li><code>uv.x * k</code> makes the wave repeat across the canvas. <code>k</code> controls how fast that repeat happens. A bigger <code>k</code> packs more bright and dark cycles into the same width.</li><li><code>+ u_time</code> slides the whole wave each frame. The stripes scroll.</li></ul><p>Pick <code>k = 12.566</code>. That is about <code>4π</code>. It gives two full bright and dark cycles across the canvas.</p><p>Reference: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">Book of Shaders, Shaping functions</a>.</p>',
+ '<p>You will mix space and time inside one <code>sin</code>. The wave will depend on both <code>uv.x</code> and <code>u_time</code>.</p><p>The starter already gives you <code>uv = gl_FragCoord.xy / u_resolution.xy</code>. You have seen this line before in Orientation and in the UV course. It gives every pixel a spot from <code>0</code> to <code>1</code> across the canvas.</p><p>First, declare a <code>float</code> named <code>k</code>. This controls how fast the wave repeats across the canvas. Use <code>12.566</code>, which is about <code>4π</code> and gives two full bright-and-dark cycles:</p><p><code>float k = 12.566;</code></p><p>Then write the wave:</p><p><code>float v = 0.5 + 0.5 * sin(uv.x * k + u_time);</code></p><p>The <code>0.5 + 0.5 * (...)</code> wrapper is the same trick you have been using. It matters here for a special reason. Plain <code>sin</code> dips below <code>0</code> for half its swing, and a negative color value just shows up as black. Without the wrapper, big stripes of the canvas would be flat black with no shape. The wrapper lifts the swing into the <code>0</code> to <code>1</code> range so every pixel gets a real brightness.</p><p>Now look at what is inside the <code>sin</code>:</p><ul><li><code>uv.x * k</code> makes the wave repeat across the canvas. A bigger <code>k</code> packs more bright-and-dark cycles into the same width.</li><li><code>+ u_time</code> slides the whole wave each frame. The stripes scroll.</li></ul><p>Reference: <a href="https://thebookofshaders.com/05/" target="_blank" rel="noreferrer">Book of Shaders, Shaping functions</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    float v = 0.5 + 0.5 * sin(uv.x * 12.566 + u_time);
+    float k = 12.566;
+    float v = 0.5 + 0.5 * sin(uv.x * k + u_time);
     gl_FragColor = vec4(vec3(v), 1.0);
 }'),
 
@@ -144,10 +145,11 @@ INSERT INTO lesson (course_id, slug, display_order, title, description, starter_
 
 ((SELECT id FROM course WHERE slug = 'step-smoothstep'), 'DMpqeHFWXBM', 2,
  'Stripe via two smoothsteps',
- '<p>You will draw a bright stripe in the middle. You will do this by subtracting one smoothstep from another.</p><p>The starter gives you <code>uv = gl_FragCoord.xy / u_resolution.xy</code>. The first smoothstep, <code>smoothstep(0.30, 0.32, uv.x)</code>, goes from <code>0</code> to <code>1</code> near <code>uv.x = 0.31</code>. The second, <code>smoothstep(0.68, 0.70, uv.x)</code>, goes from <code>0</code> to <code>1</code> near <code>uv.x = 0.69</code>. Subtract them. The result is <code>0</code> on the sides. It is <code>1</code> in the middle. The edges are soft.</p><p>Rising edge minus rising edge gives a band. You will use this same pattern to draw stripes and rings and ribbons later.</p><p>Reference: <a href="https://iquilezles.org/articles/smoothsteps/" target="_blank" rel="noreferrer">IQ, Smoothsteps</a>.</p>',
+ '<p>You will draw a bright stripe in the middle. You will do this by subtracting one smoothstep from another.</p><p>The starter ships the single smoothstep from last lesson, which rises near <code>uv.x = 0.5</code>. Replace the single smoothstep with a subtraction of two. The first, <code>smoothstep(0.30, 0.32, uv.x)</code>, goes from <code>0</code> to <code>1</code> near <code>uv.x = 0.31</code>. The second, <code>smoothstep(0.68, 0.70, uv.x)</code>, goes from <code>0</code> to <code>1</code> near <code>uv.x = 0.69</code>. Subtract them:</p><p><code>float m = smoothstep(0.30, 0.32, uv.x) - smoothstep(0.68, 0.70, uv.x);</code></p><p>The result is <code>0</code> on the sides. It is <code>1</code> in the middle. The edges are soft. Rising edge minus rising edge gives a band. You will use this same pattern to draw stripes and rings and ribbons later.</p><p>Reference: <a href="https://iquilezles.org/articles/smoothsteps/" target="_blank" rel="noreferrer">IQ, Smoothsteps</a>.</p>',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    float m = smoothstep(0.48, 0.52, uv.x);
+    gl_FragColor = vec4(vec3(m), 1.0);
 }',
  'void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
@@ -381,7 +383,7 @@ void main() {
 
 ((SELECT id FROM course WHERE slug = 'loop-fundamentals'), 'WxfbsGl4W28', 2,
  'Running maximum',
- '<p>You will use a loop to keep only the biggest value out of many.</p><p>The starter ships <code>uv</code>, <code>m</code> set to <code>-1.0</code>, and the final <code>gl_FragColor</code> that maps <code>m</code> from <code>-1</code>-to-<code>1</code> into a gray value. <code>-1.0</code> is the right starting point because it sits below anything <code>sin</code> can give. The first comparison will always lift <code>m</code> up.</p><p>All you write is the loop. For <code>i</code> from <code>0</code> to <code>15</code>, work out <code>sin(uv.x * float(i))</code>. Keep the bigger of the old <code>m</code> and the new value:</p><p><code>for (int i = 0; i &lt; 16; i++) {<br>&nbsp;&nbsp;&nbsp;&nbsp;m = max(m, sin(uv.x * float(i)));<br>}</code></p><p>The result is the top edge of 16 sines at different speeds. The waves overlap, so the running max stays near <code>1</code> most of the time. You will see a bright canvas with thin dark seams.</p><p>Reference: <a href="https://registry.khronos.org/OpenGL/specs/es/2.0/GLSL_ES_Specification_1.00.pdf" target="_blank" rel="noreferrer">Khronos, GLSL ES 1.0 spec</a>.</p>',
+ '<p>You will use a loop to keep only the biggest value out of many. You will also add <code>u_time</code> so the pattern shifts each frame.</p><p>The starter ships <code>uv</code>, <code>m</code> set to <code>-1.0</code>, and the final <code>gl_FragColor</code> that maps <code>m</code> from <code>-1</code>-to-<code>1</code> into a gray value. <code>-1.0</code> is the right starting point because it sits below anything <code>sin</code> can give. The first comparison will always lift <code>m</code> up.</p><p>All you write is the loop. For <code>i</code> from <code>0</code> to <code>15</code>, work out <code>sin(uv.x * float(i) + u_time)</code>. Adding <code>u_time</code> inside the sine slides each wave each frame. Keep the bigger of the old <code>m</code> and the new value:</p><p><code>for (int i = 0; i &lt; 16; i++) {<br>&nbsp;&nbsp;&nbsp;&nbsp;m = max(m, sin(uv.x * float(i) + u_time));<br>}</code></p><p>The result is the top edge of 16 sines at different speeds, all sliding over time. The waves overlap, so the running max stays near <code>1</code> most of the time. You will see a bright canvas with thin dark seams that drift across the screen.</p><p>Reference: <a href="https://registry.khronos.org/OpenGL/specs/es/2.0/GLSL_ES_Specification_1.00.pdf" target="_blank" rel="noreferrer">Khronos, GLSL ES 1.0 spec</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -397,14 +399,14 @@ void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     float m = -1.0;
     for (int i = 0; i < 16; i++) {
-        m = max(m, sin(uv.x * float(i)));
+        m = max(m, sin(uv.x * float(i) + u_time));
     }
     gl_FragColor = vec4(vec3(0.5 + 0.5 * m), 1.0);
 }'),
 
 ((SELECT id FROM course WHERE slug = 'loop-fundamentals'), '_8epBwGjScc', 3,
  'Running average',
- '<p>You will swap <code>max</code> for sum. Now the loop adds things up. You will use this for blur and noise later.</p><p>Start <code>s = 0</code>. Loop 16 times. Each time, add <code>sin(uv.x * float(i) * 0.5)</code> to <code>s</code>. The result is the sum of 16 sine waves at different speeds.</p><p>The sum can reach <code>±16</code>. That is far outside the visible range. The output uses <code>0.5 + 0.05 * s</code> to bring it back to gray. <code>0.05</code> is about <code>1/16</code>. So each sine adds about <code>1/16</code> of the brightness.</p><p>Reference: <a href="https://registry.khronos.org/OpenGL/specs/es/2.0/GLSL_ES_Specification_1.00.pdf" target="_blank" rel="noreferrer">Khronos, GLSL ES 1.0 spec</a>.</p>',
+ '<p>You will swap <code>max</code> for sum. Now the loop adds things up. You will use this for blur and noise later.</p><p>Start <code>s = 0</code>. Loop 16 times. Each time, add <code>sin(uv.x * float(i) * 0.5 + u_time)</code> to <code>s</code>. The result is the sum of 16 sine waves at different speeds, all sliding over time.</p><p>The sum can reach <code>±16</code>. That is far outside the visible range. The output uses <code>0.5 + 0.05 * s</code> to bring it back to gray. <code>0.05</code> is about <code>1/16</code>. So each sine adds about <code>1/16</code> of the brightness.</p><p>Reference: <a href="https://registry.khronos.org/OpenGL/specs/es/2.0/GLSL_ES_Specification_1.00.pdf" target="_blank" rel="noreferrer">Khronos, GLSL ES 1.0 spec</a>.</p>',
  'float hash(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
@@ -412,7 +414,7 @@ void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     float m = -1.0;
     for (int i = 0; i < 16; i++) {
-        m = max(m, sin(uv.x * float(i)));
+        m = max(m, sin(uv.x * float(i) + u_time));
     }
     gl_FragColor = vec4(vec3(0.5 + 0.5 * m), 1.0);
 }',
@@ -423,7 +425,7 @@ void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     float s = 0.0;
     for (int i = 0; i < 16; i++) {
-        s += sin(uv.x * float(i) * 0.5);
+        s += sin(uv.x * float(i) * 0.5 + u_time);
     }
     gl_FragColor = vec4(vec3(0.5 + 0.05 * s), 1.0);
 }');
