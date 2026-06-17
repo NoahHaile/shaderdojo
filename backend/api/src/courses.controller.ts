@@ -9,7 +9,7 @@ import { AdminGuard } from './admin.guard';
 
 class CourseDto {
     id: string; slug: string; title: string; description: string | null;
-    category: string; difficulty: Difficulty; displayOrder: number;
+    category: string; difficulty: Difficulty; displayOrder: number; underReview: boolean;
 }
 class LessonSummaryDto {
     id: string; slug: string; title: string; displayOrder: number; verified: boolean;
@@ -22,6 +22,7 @@ class CreateCourseBody {
     category?: string;
     difficulty?: Difficulty;
     displayOrder?: number;
+    underReview?: boolean;
 }
 
 const VALID_DIFFICULTY: ReadonlySet<Difficulty> = new Set(['beginner', 'intermediate', 'advanced']);
@@ -38,7 +39,7 @@ function toCourseDto(c: Course): CourseDto {
         id: c.id, slug: c.slug, title: c.title,
         description: c.description ?? null,
         category: c.category, difficulty: c.difficulty,
-        displayOrder: c.displayOrder,
+        displayOrder: c.displayOrder, underReview: c.underReview,
     };
 }
 
@@ -91,6 +92,7 @@ export class CoursesController {
             category: body.category ?? 'Fundamentals',
             difficulty: body.difficulty ?? 'beginner',
             displayOrder: body.displayOrder ?? 0,
+            underReview: body.underReview ?? false,
         });
         return toCourseDto(await this.courses.save(c));
     }
@@ -109,6 +111,7 @@ export class CoursesController {
         if (body.category != null)     c.category = body.category;
         if (body.difficulty != null)   c.difficulty = body.difficulty;
         if (body.displayOrder != null) c.displayOrder = body.displayOrder;
+        if (body.underReview != null)  c.underReview = body.underReview;
         return toCourseDto(await this.courses.save(c));
     }
 

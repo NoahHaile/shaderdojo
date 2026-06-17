@@ -40,6 +40,7 @@ export class Course {
     @Column({ default: 'Fundamentals' }) category: string;
     @Column({ default: 'beginner' }) difficulty: Difficulty;
     @Column({ name: 'display_order', default: 0 }) displayOrder: number;
+    @Column({ name: 'under_review', default: false }) underReview: boolean;
     @CreateDateColumn({ name: 'created_at' }) createdAt: Date;
 
     @BeforeInsert() _id() { ensureId(this); }

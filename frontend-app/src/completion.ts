@@ -1,11 +1,10 @@
 // Tracks which lessons the current visitor has solved.
 //
-// For signed-in users this is a cache hydrated on auth-state change from
-// /account/completed-lessons (see AuthProvider). For anonymous users
-// localStorage IS the source of truth.
+// localStorage IS the source of truth — there are no accounts, so completion
+// lives entirely on the visitor's device.
 //
 // Mutations bump a version counter; useCompletedLessons() subscribes via
-// useSyncExternalStore so the UI re-renders after async server hydration.
+// useSyncExternalStore so the UI re-renders when the set changes.
 
 import { useSyncExternalStore } from 'react';
 
@@ -37,14 +36,6 @@ export function isLocallyCompleted(lessonId: string): boolean {
 export function markLocallyCompleted(lessonId: string) {
     const s = read();
     if (!s.has(lessonId)) { s.add(lessonId); write(s); notify(); }
-}
-
-/** Union the given ids into the locally-stored set. Used to hydrate from server. */
-export function mergeCompletedLessons(ids: string[]) {
-    const s = read();
-    let changed = false;
-    for (const id of ids) if (!s.has(id)) { s.add(id); changed = true; }
-    if (changed) { write(s); notify(); }
 }
 
 /** For UI badges on courses/lessons lists — returns the full set. */

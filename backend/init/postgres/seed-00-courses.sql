@@ -71,3 +71,8 @@ INSERT INTO course (slug, title, description, category, difficulty, display_orde
 ('orbit-traps',          'Orbit traps',           'Color a fractal by the closest approach to a shape. Like a point, a line, or a circle.',                                                   'Iteration & Fractals', 'advanced', 48),
 ('ifs-folding',          'IFS folding',           'Fold space with abs and scale. Get Sierpinski triangles. Get Koch snowflakes.',                                                             'Iteration & Fractals', 'advanced', 49),
 ('kifs-raymarched',      'KIFS raymarched',       'Fold 3D space in a loop. Raymarch the result. Get mandelbox fractals.',                                                                    'Iteration & Fractals', 'advanced', 50);
+
+-- Everything past the Trials checkpoint (display_order >= 10, families C-J) is
+-- still being written. Flag it so the frontend shows an "Under review" tag.
+-- Orientation, Foundations, Color, and Trials (display_order 0-9) stay live.
+UPDATE course SET under_review = TRUE WHERE display_order >= 10;

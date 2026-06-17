@@ -2,10 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import {
-    accountApi, coursesApi, lessonsApi,
-    type AttemptResponse, type Course, type Lesson,
+    coursesApi, lessonsApi,
+    type Course, type Lesson,
 } from '../api';
-import { useAuth } from '../auth';
 import {
     clearLessonCode, isLocallyCompleted, loadLessonCode,
     markLocallyCompleted, saveLessonCode, useCompletedLessons,
@@ -51,13 +50,11 @@ function celebrate() {
 export function LessonPage() {
     const { id = '' } = useParams();
     const navigate = useNavigate();
-    const { isAuthed } = useAuth();
 
     const [lesson, setLesson] = useState<Lesson | null>(null);
     const [course, setCourse] = useState<Course | null>(null);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [code, setCode] = useState<string>('');
-    const [attempt, setAttempt] = useState<AttemptResponse | null>(null);
     const [verdict, setVerdict] = useState<Verdict>('idle');
     const [verdictMsg, setVerdictMsg] = useState<string>('');
     const [compileError, setCompileError] = useState<string | null>(null);
@@ -87,12 +84,6 @@ export function LessonPage() {
             .catch((e: any) => !cancelled && setLoadError(e.message ?? 'Lesson not found'));
         return () => { cancelled = true; };
     }, [id]);
-
-    // Authed users get server-side attempt status (used for the badge)
-    useEffect(() => {
-        if (!isAuthed || !lesson) { setAttempt(null); return; }
-        accountApi.status(lesson.id).then(setAttempt).catch(() => {});
-    }, [isAuthed, lesson]);
 
     // Stargazed star: refresh from localStorage on lesson change + when Concierge fires.
     useEffect(() => {
@@ -170,8 +161,7 @@ export function LessonPage() {
             await lessonsApi.verify(lesson.id, FRAGMENT_HEADER + code);
             setVerdict('correct');
             setVerdictMsg('Solved.');
-            // Anonymous users persist completion in localStorage; authed users
-            // also get it stashed locally so subsequent navigation is instant.
+            // Completion is persisted in localStorage.
             markLocallyCompleted(lesson.id);
         } catch (e: any) {
             if (e?.status === 400) {
@@ -181,12 +171,8 @@ export function LessonPage() {
                 setVerdict('error');
                 setVerdictMsg(e?.message ?? 'Verification failed.');
             }
-        } finally {
-            if (isAuthed && lesson) {
-                accountApi.status(lesson.id).then(setAttempt).catch(() => {});
-            }
         }
-    }, [code, isAuthed, lesson]);
+    }, [code, lesson]);
 
     const resetCode = useCallback(() => {
         if (!lesson) return;
@@ -293,10 +279,8 @@ export function LessonPage() {
                     )}
                 </h1>
                 <AttemptBadge
-                    attempt={attempt}
                     locallyCompleted={isLocallyCompleted(lesson.id)}
                     verified={lesson.verified}
-                    authed={isAuthed}
                 />
             </header>
 
@@ -427,11 +411,9 @@ function UImageAside({ show }: { show: boolean }) {
     );
 }
 
-function AttemptBadge({ attempt, locallyCompleted, verified, authed }: {
-    attempt: AttemptResponse | null;
+function AttemptBadge({ locallyCompleted, verified }: {
     locallyCompleted: boolean;
     verified: boolean;
-    authed: boolean;
 }) {
     if (!verified) {
         return locallyCompleted
@@ -439,21 +421,10 @@ function AttemptBadge({ attempt, locallyCompleted, verified, authed }: {
             : <span className="pill-explore">Exploratory</span>;
     }
 
-    // Anonymous users get a localStorage-only verdict.
-    if (!authed) {
-        return locallyCompleted
-            ? <span className="pill-passed">Solved</span>
-            : <span className="pill-explore">Submit any time. No sign-in needed.</span>;
-    }
-
-    if (!attempt) return <span className="pill-explore">Loading status…</span>;
-    if (attempt.status === 'SUCCESSFUL') {
-        return <span className="pill-passed">Solved · {attempt.count} attempt{attempt.count === 1 ? '' : 's'}</span>;
-    }
-    if (attempt.status === 'FAILED') {
-        return <span className="pill-failed">Attempted · {attempt.count}</span>;
-    }
-    return <span className="pill-explore">Unattempted</span>;
+    // Completion is tracked locally — solved once the learner submits a match.
+    return locallyCompleted
+        ? <span className="pill-passed">Solved</span>
+        : <span className="pill-explore">Unsolved</span>;
 }
 
 function VerdictBanner({ verdict, message, verified }: {

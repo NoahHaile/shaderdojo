@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../auth';
 import { isAdminSignedIn, setAdminKey } from '../admin-api';
 
 const navItem =
@@ -9,7 +8,6 @@ const navItemActive =
     'px-3 py-1.5 rounded-md text-sm font-medium text-ink bg-cream';
 
 export function Header() {
-    const { isAuthed, logout } = useAuth();
     const loc = useLocation();
     // Re-read the admin flag on every navigation so the link appears/disappears.
     const [adminSignedIn, setAdminSignedIn] = useState(isAdminSignedIn());
@@ -29,20 +27,6 @@ export function Header() {
                     <NavLink to="/reference" className={({ isActive }) => isActive ? navItemActive : navItem}>
                         Reference
                     </NavLink>
-                    {isAuthed ? (
-                        <>
-                            <NavLink to="/profile" className={({ isActive }) => isActive ? navItemActive : navItem}>
-                                Profile
-                            </NavLink>
-                            <button onClick={logout} className={navItem + ' text-ink/60'}>
-                                Sign out
-                            </button>
-                        </>
-                    ) : (
-                        <NavLink to="/login" className={({ isActive }) => isActive ? navItemActive : navItem}>
-                            Sign in
-                        </NavLink>
-                    )}
                     {adminSignedIn && (
                         <>
                             <NavLink to="/admin" className={({ isActive }) => isActive ? navItemActive : navItem}>

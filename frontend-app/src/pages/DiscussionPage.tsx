@@ -1,23 +1,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
-    accountApi, commentsApi, lessonsApi,
+    commentsApi, lessonsApi,
     type Comment, type Lesson,
 } from '../api';
-import { useAuth } from '../auth';
 import { isLocallyCompleted } from '../completion';
 
 export function DiscussionPage() {
     const { id = '' } = useParams();
-    const { isAuthed } = useAuth();
 
     const [lesson, setLesson] = useState<Lesson | null>(null);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [comments, setComments] = useState<Comment[] | null>(null);
-
-    // Completion check: localStorage is the source of truth for anon users;
-    // for authed users we also consult the server-side attempt.
-    const [serverSolved, setServerSolved] = useState<boolean>(false);
 
     useEffect(() => {
         let cancelled = false;
@@ -27,13 +21,6 @@ export function DiscussionPage() {
             .catch((e: any) => !cancelled && setLoadError(e.message ?? 'Lesson not found'));
         return () => { cancelled = true; };
     }, [id]);
-
-    useEffect(() => {
-        if (!isAuthed || !lesson) { setServerSolved(false); return; }
-        accountApi.status(lesson.id)
-            .then(s => setServerSolved(s.status === 'SUCCESSFUL'))
-            .catch(() => setServerSolved(false));
-    }, [isAuthed, lesson]);
 
     const refresh = useCallback(() => {
         commentsApi.list(id).then(setComments).catch(() => setComments([]));
@@ -51,7 +38,7 @@ export function DiscussionPage() {
     }
     if (!lesson) return <Skeleton />;
 
-    const canComment = serverSolved || isLocallyCompleted(lesson.id);
+    const canComment = isLocallyCompleted(lesson.id);
 
     return (
         <div className="max-w-3xl mx-auto px-4 py-8">
@@ -150,7 +137,6 @@ function CommentCard({ comment }: { comment: Comment }) {
 }
 
 function CommentForm({ lessonId, onPosted }: { lessonId: string; onPosted: () => void }) {
-    const { isAuthed } = useAuth();
     const [code, setCode] = useState('');
     const [content, setContent] = useState('');
     const [posting, setPosting] = useState(false);
@@ -174,15 +160,9 @@ function CommentForm({ lessonId, onPosted }: { lessonId: string; onPosted: () =>
     return (
         <form onSubmit={submit} className="space-y-3">
             <h2 className="text-base font-semibold text-ink">Leave a comment</h2>
-            {!isAuthed && (
-                <p className="text-xs text-muted">
-                    You're commenting as <strong>Anonymous</strong>.{' '}
-                    <Link to={`/login?from=${encodeURIComponent(`/lesson/${lessonId}/discussion`)}`}
-                          className="text-accent hover:underline">
-                        Sign in
-                    </Link>{' '}to attach your name.
-                </p>
-            )}
+            <p className="text-xs text-muted">
+                You're commenting as <strong>Anonymous</strong>.
+            </p>
             <div>
                 <label className="label">Code snippet (optional)</label>
                 <textarea

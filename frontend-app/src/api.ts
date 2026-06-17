@@ -19,6 +19,7 @@ export interface Course {
     category: string;
     difficulty: Difficulty;
     displayOrder: number;
+    underReview: boolean;
     lessons: LessonSummary[];
 }
 export interface Lesson {
@@ -46,43 +47,13 @@ export interface Comment {
     content: string | null;
     username: string | null;
 }
-export type AttemptStatus = 'SUCCESSFUL' | 'FAILED' | 'UNATTEMPTED';
-export interface AttemptResponse {
-    count: number;
-    status: AttemptStatus;
-}
-export interface AccountResponse {
-    username: string;
-    email: string | null;
-    country: string | null;
-    bio: string | null;
-}
-
-const TOKEN_KEY = 'token';
-
-export function getToken(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
-}
-export function setToken(t: string | null) {
-    if (t) localStorage.setItem(TOKEN_KEY, t);
-    else   localStorage.removeItem(TOKEN_KEY);
-}
-
 async function request<T = unknown>(
     method: string,
     path: string,
-    opts: { body?: any; auth?: 'required' | 'optional'; raw?: boolean } = {},
+    opts: { body?: any; raw?: boolean } = {},
 ): Promise<T> {
     const headers: Record<string, string> = {};
     if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
-    if (opts.auth === 'required') {
-        const token = getToken();
-        if (!token) throw { status: 401, message: 'Not signed in' } as ApiError;
-        headers['Authorization'] = `Bearer ${token}`;
-    } else if (opts.auth === 'optional') {
-        const token = getToken();
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-    }
 
     const res = await fetch(path, {
         method,
@@ -106,14 +77,6 @@ async function request<T = unknown>(
     catch { return text as unknown as T; }
 }
 
-// ─── auth ────────────────────────────────────────────────────────────
-export const authApi = {
-    login: (username: string, password: string) =>
-        request<string>('POST', '/auth/login', { body: { username, password }, raw: true }),
-    register: (username: string, password: string, email?: string) =>
-        request<string>('POST', '/auth/register', { body: { username, password, email }, raw: true }),
-};
-
 // ─── courses ─────────────────────────────────────────────────────────
 export const coursesApi = {
     list: () => request<Course[]>('GET', '/app/courses'),
@@ -125,11 +88,10 @@ export const lessonsApi = {
     get: (id: string) => request<Lesson>('GET', `/app/lessons/${encodeURIComponent(id)}`),
     solution: (id: string) =>
         request<LessonSolution>('GET', `/app/lessons/${encodeURIComponent(id)}/solution`),
-    // Optional-auth: anon submits get a verdict but no Attempt row server-side.
+    // Anonymous submit: returns a verdict; no server-side attempt history.
     verify: (lessonId: string, fragmentShader: string) =>
         request<string>('POST', '/app/lessons/verify', {
             body: { lessonId, fragmentShader },
-            auth: 'optional',
             raw: true,
         }),
 };
@@ -138,23 +100,9 @@ export const lessonsApi = {
 export const commentsApi = {
     list: (lessonId: string) =>
         request<Comment[]>('GET', `/app/comments/${encodeURIComponent(lessonId)}`),
-    // Optional-auth: anon comments save with account=null and render as Anonymous.
+    // Comments save with account=null and render as Anonymous.
     post: (lessonId: string, code: string, content: string) =>
         request<Comment>('POST', `/app/comments/${encodeURIComponent(lessonId)}`, {
             body: { code, content },
-            auth: 'optional',
         }),
-};
-
-// ─── account (signed-in only) ────────────────────────────────────────
-export const accountApi = {
-    me: () => request<AccountResponse>('GET', '/app/account', { auth: 'required' }),
-    status: (lessonId: string) =>
-        request<AttemptResponse>('GET', `/app/account/status/${encodeURIComponent(lessonId)}`, { auth: 'required' }),
-    completedLessons: () =>
-        request<string[]>('GET', '/app/account/completed-lessons', { auth: 'required' }),
-    updateProfile: (data: { email?: string; country?: string; bio?: string }) =>
-        request<string>('POST', '/app/account/profile_info', { body: data, auth: 'required', raw: true }),
-    updateAccount: (data: { username: string; password: string; oldPassword: string }) =>
-        request<string>('POST', '/app/account/account_info', { body: data, auth: 'required', raw: true }),
 };

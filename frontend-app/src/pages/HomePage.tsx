@@ -29,7 +29,7 @@ export function HomePage() {
                         Imagine you had control over every pixel on the screen
                     </h1>
                     <p className="mt-3 text-base text-ink/60 max-w-prose">
-                        ShaderDojo teaches a range of techniques that allow you to do this effectively. It is a mix between{' '}
+                        ShaderDojo teaches a range of techniques that allow you to color your canvas creatively and effectively. The project is a mix between{' '}
                         <a className="text-accent font-medium hover:underline" href="https://shadertoy.com/" target="_blank" rel="noreferrer">
                             ShaderToy
                         </a>{' '}and{' '}

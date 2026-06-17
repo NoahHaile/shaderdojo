@@ -88,7 +88,12 @@ function CourseNodeView({ data }: NodeProps<CourseNode>) {
                     aria-label={`difficulty: ${course.difficulty}`}
                 />
             </div>
-            <div className="mt-1.5 text-[11px] text-muted">{course.category}</div>
+            <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-muted">
+                <span>{course.category}</span>
+                {course.underReview && (
+                    <span className="text-[9px] uppercase tracking-wide text-ink/40">· under review</span>
+                )}
+            </div>
             <div className="mt-1.5 flex items-center gap-2">
                 <div className="flex-1 h-1 rounded-full bg-muted/20 overflow-hidden">
                     <div

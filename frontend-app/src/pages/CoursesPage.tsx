@@ -117,6 +117,13 @@ export function CoursesPage() {
                                                             }>
                                                             <div className="flex items-center gap-2">
                                                                 <span className="flex-1">{c.title}</span>
+                                                                {c.underReview && (
+                                                                    <span
+                                                                        className="text-[9px] uppercase tracking-wide text-ink/40 shrink-0"
+                                                                        title="Under review">
+                                                                        review
+                                                                    </span>
+                                                                )}
                                                                 <DifficultyDot d={c.difficulty} />
                                                             </div>
                                                             {c.lessons.length > 0 && (
@@ -165,6 +172,7 @@ function CourseDetail({ course }: { course: Course }) {
                 <div className="flex items-center gap-3 flex-wrap">
                     <h1 className="text-3xl font-semibold tracking-tight">{course.title}</h1>
                     <DifficultyPill d={course.difficulty} />
+                    {course.underReview && <span className="pill-review">Under review</span>}
                 </div>
                 {course.description && (
                     <p className="mt-2 text-ink/70 max-w-prose">{course.description}</p>

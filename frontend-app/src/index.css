@@ -54,6 +54,7 @@
     .pill-explore  { @apply pill text-muted border-muted/30 bg-cream; }
     .pill-passed   { @apply pill text-green-700 border-green-200 bg-green-50; }
     .pill-failed   { @apply pill text-amber-700 border-amber-200 bg-amber-50; }
+    .pill-review   { @apply pill text-ink/50 border-ink/15 bg-ink/5; }
 
     /* Author-authored lesson descriptions (sanitized HTML). */
     .lesson-prose       { @apply text-sm text-ink/80 leading-relaxed; }

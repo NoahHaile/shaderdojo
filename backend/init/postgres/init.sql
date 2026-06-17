@@ -19,6 +19,8 @@ CREATE INDEX idx_account_username ON account (username);
 -- category is freeform (admin convention). UI groups courses by this column.
 -- difficulty is one of: 'beginner' | 'intermediate' | 'advanced'.
 -- display_order sorts courses within a category.
+-- under_review marks a course as not-yet-finished content; the frontend shows an
+-- "Under review" tag. Purely informational, it does not gate access.
 CREATE TABLE course
 (
     id            VARCHAR(36) PRIMARY KEY DEFAULT (gen_random_uuid()::text),
@@ -28,6 +30,7 @@ CREATE TABLE course
     category      VARCHAR(64) NOT NULL DEFAULT 'Fundamentals',
     difficulty    VARCHAR(16) NOT NULL DEFAULT 'beginner',
     display_order INT NOT NULL DEFAULT 0,
+    under_review  BOOLEAN NOT NULL DEFAULT FALSE,
     created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
