@@ -181,7 +181,7 @@ export function LessonPage() {
     }, [lesson]);
 
     // Exploratory (ungraded) lessons can't be auto-verified. The learner marks
-    // them done themselves — for the masterwork checkpoint, after posting it.
+    // them done themselves once they've shared what they made.
     const markShared = useCallback(() => {
         if (!lesson) return;
         markLocallyCompleted(lesson.id);
